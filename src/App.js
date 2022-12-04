@@ -10,38 +10,48 @@ function getWindowDimensions() {
   };
 }
 
+let circle = {
+  x: 0,
+  y: 0,
+  radius: 0,
+  fill: "#ffff00",
+  stroke: "black",
+  strokeWidth: 0
+};
+
+function drawCircle(ctx) {
+  var canvas = document.getElementById("test-canvas");
+  if (canvas) {
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, circle.x*2, circle.y*2);
+    ctx.beginPath()
+    ctx.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI, false)
+    if (circle.fill) {
+      ctx.fillStyle = circle.fill
+      ctx.fill()
+    }
+    if (circle.stroke) {
+      ctx.lineWidth = circle.strokeWidth
+      ctx.strokeStyle = circle.stroke
+      ctx.stroke()
+    }
+  }
+}
+
 function useWindowDimensions() {
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
   useEffect(() => {
     function handleResize() {
-
-
-      function drawCircle(ctx, x, y, radius, fill, stroke, strokeWidth) {
-        ctx.beginPath()
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false)
-        if (fill) {
-          ctx.fillStyle = fill
-          ctx.fill()
-        }
-        if (stroke) {
-          ctx.lineWidth = strokeWidth
-          ctx.strokeStyle = stroke
-          ctx.stroke()
-        }
-      }
-
       console.log("dimensions: ",getWindowDimensions());
 
       let dimensions = getWindowDimensions();
 
-      var canvas = document.getElementById("test-canvas");
-      var ctx = canvas.getContext("2d");
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, dimensions.width, dimensions.height);
-
-      drawCircle(ctx, dimensions.width/2, dimensions.height/2, 100, "#ffff00","black",0);
-
+      circle.x = dimensions.width/2;
+      circle.y = dimensions.height/2;
+      // drawCircle(ctx, dimensions.width/2, dimensions.height/2, 100, "#ffff00","black",0);
       setWindowDimensions(getWindowDimensions());
     }
 
@@ -59,6 +69,25 @@ function Canvas(props) {
 }
 
 function App() {
+
+  let startTime = new Date().getTime();
+
+  let dimensions = getWindowDimensions();
+
+  circle.x = dimensions.width/2;
+  circle.y = dimensions.height/2;
+
+  function animate () {
+    let duration = new Date().getTime() - startTime;
+    let phase = 0.5 + Math.sin(duration/500)/2;
+
+    circle.radius = 100 + phase * 30;
+    drawCircle();
+
+    window.requestAnimationFrame(animate);
+  }
+
+  animate();
 
   const { height, width } = useWindowDimensions();
 
