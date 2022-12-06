@@ -2,6 +2,68 @@ import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 
+class ParticleWorld {
+  #particles = [];
+}
+
+class Particle {
+  #dimensions = 2;
+  #position = [];
+  #velocity = [];
+  #repulsion = 1;
+  #gravity = 1;
+
+  constructor (repulsion, gravity) {
+    this.repulsion = repulsion;
+    this.gravity = gravity;
+    this.position = new Array (this.dimensions);
+  }
+
+  constructor (repulsion, gravity, dimensions) {
+    this.repulsion = repulsion;
+    this.gravity = gravity;
+    this.dimensions = dimensions;
+    this.position = new Array (this.dimensions);
+  }
+
+  set position (arr) {
+    if (arr.length === this.dimensions) {
+      this.position = arr.slice(0);
+    }
+  }
+
+  get position () {
+    return this.position.slice(0);
+  }
+
+  set velocity (arr) {
+    if (arr.length === this.dimensions) { 
+      this.velocity = arr.slice(0);
+    }
+  }
+
+  get velocity () {
+    return this.velocity.slice(0);
+  }
+
+  get repulsion () {
+    return this.repulsion;
+  }
+
+  get gravity () {
+    return this.gravity;
+  }
+
+  calculateEffect (otherParticle, time) {
+    for (let i = 0; i < this.dimensions; ++i) {
+      //calculate based on other particle's gravity
+      this.velocity[i] += time*otherParticle.gravity/(1+Math.pow((otherParticle.position[i] - this.position[i]), 2));
+      //calculate based on other particle's repulsion
+      this.velocity[i] += -time*otherParticle.repulsion/Math.pow((otherParticle.position[i] - this.position[i]), 2);
+    }
+  }
+}
+
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window;
   return {
