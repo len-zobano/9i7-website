@@ -15,9 +15,8 @@ class ParticleWorld {
   }
 
   simulate(time) {
-    let interval = (time - this.#currentTime)/20000;
+    let interval = (time - this.#currentTime)/1000;
 
-    console.log('simulating with interval',interval);
     this.#particles.forEach((particleA) => {
       this.#particles.forEach((particleB) => {
         if (particleA !== particleB) {
@@ -54,9 +53,10 @@ class Particle {
   #velocity = [];
   #repulsion = 1;
   #gravity = 1;
+  color = "white";
 
   constructor() {
-    this.#repulsion = 1;
+    this.#repulsion = 5;
     this.#gravity = 1;
     this.#dimensions = 2;
 
@@ -116,9 +116,11 @@ class Particle {
 
     for (let i = 0; i < this.#dimensions; ++i) {
       //calculate based on other particle's gravity
-      this.#velocity[i] += time*otherParticle.#gravity/(distanceSquared+1)*(otherParticle.#position[i] - this.#position[i]);
+      this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (otherParticle.#position[i] - this.#position[i]);
       //calculate based on other particle's repulsion
-      // this.#velocity[i] += -time*otherParticle.#repulsion/Math.pow((otherParticle.#position[i] - this.#position[i]), 2);
+      this.#velocity[i] += (time*otherParticle.#repulsion/(20*(distanceSquared))) * (-otherParticle.#position[i] + this.#position[i]);
+      //calculate loss
+      this.#velocity[i] -= time*this.velocity[i]*0.01;
     }
   }
 
@@ -133,10 +135,10 @@ class Particle {
     let dimensions = getWindowDimensions();
 
     let circle = {
-      x: (1 + this.#position[0])*dimensions.height/2,
+      x: (this.#position[0])*dimensions.height/2 + dimensions.width/2,
       y: (1 + this.#position[1])*dimensions.height/2,
       radius: 5,
-      fill: "#ffff00"
+      fill: this.color
     };
 
     var canvas = document.getElementById("test-canvas");
@@ -197,28 +199,37 @@ function Canvas(props) {
   return <canvas id="test-canvas" width={width} height={height}></canvas>;
 }
 
+//not the right way to run a one-time init function, but I don't know the React way yet
+let didInit = false;
+
 function App() {
-  let dimensions = getWindowDimensions();
 
-  let world = new ParticleWorld();
-  world.setTime(new Date().getTime());
+  if (!didInit) {
+    didInit = true;
 
-  for (let i = 0; i < 200; ++i) {
-    let particle = new Particle();
-    particle.position = [Math.random()*2-1,Math.random()*2-1];
-    world.addParticle(particle);
+    let world = new ParticleWorld();
+    world.setTime(new Date().getTime());
+    
+    for (let i = 0; i < 200; ++i) {
+      let seedX = Math.random(), seedY = Math.random();
+
+      let particle = new Particle();
+      particle.position = [seedX*2-1,seedY*2-1];
+
+      particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
+
+      world.addParticle(particle);
+    }
+    
+    function animate () {    
+      world.simulate(new Date().getTime());
+      world.draw();
+    
+      window.requestAnimationFrame(animate);
+    }
+    
+    animate();
   }
-
-  function animate () {    
-    world.simulate(new Date().getTime());
-    world.draw();
-
-    window.requestAnimationFrame(animate);
-  }
-
-  animate();
-
-  const { height, width } = useWindowDimensions();
 
   return (
     <Canvas/>
