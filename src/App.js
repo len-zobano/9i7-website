@@ -15,11 +15,14 @@ class ParticleWorld {
   }
 
   simulate(time) {
-    let interval = time - this.#currentTime;
+    let interval = (time - this.#currentTime)/20000;
 
+    console.log('simulating with interval',interval);
     this.#particles.forEach((particleA) => {
       this.#particles.forEach((particleB) => {
-        particleA.calculateEffect(particleB, interval);
+        if (particleA !== particleB) {
+          particleA.calculateEffect(particleB, interval);
+        }
       });
 
       particleA.calculatePosition(interval);
@@ -29,12 +32,14 @@ class ParticleWorld {
   }
 
   draw() {
+
+    let dimensions = getWindowDimensions();
+
     var canvas = document.getElementById("test-canvas");
     if (canvas) {
-      console.log('drawing world');
       var ctx = canvas.getContext("2d"); 
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, 500, 500);
+      ctx.fillStyle = "rgba(0,0,0,0.1)";
+      ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
       this.#particles.forEach((particle) => {
         particle.draw();
@@ -54,7 +59,11 @@ class Particle {
     this.#repulsion = 1;
     this.#gravity = 1;
     this.#dimensions = 2;
-    this.#position = new Array (this.#dimensions);
+
+    for (let i = 0; i < this.#dimensions; ++i) {
+      this.#position[i] = 0;
+      this.#velocity[i] = 0;
+    }
   }
 
   // constructor (repulsion, gravity) {
@@ -72,12 +81,9 @@ class Particle {
   // }
 
   set position (arr) {
-
-    console.log('setting position with',arr);
     if (arr.length === this.#dimensions) {
       this.#position = arr.slice(0);
     }
-    console.log('position:',this.#position);
   }
 
   get position () {
@@ -103,11 +109,16 @@ class Particle {
   }
 
   calculateEffect (otherParticle, time) {
+    let distanceSquared = 0;
+    for (let i = 0; i < this.#dimensions; ++i) {
+      distanceSquared += Math.pow((otherParticle.#position[i] - this.#position[i]),2);
+    }
+
     for (let i = 0; i < this.#dimensions; ++i) {
       //calculate based on other particle's gravity
-      this.#velocity[i] += time*otherParticle.#gravity/(1+Math.pow((otherParticle.#position[i] - this.#position[i]), 2));
+      this.#velocity[i] += time*otherParticle.#gravity/(distanceSquared+1)*(otherParticle.#position[i] - this.#position[i]);
       //calculate based on other particle's repulsion
-      this.#velocity[i] += -time*otherParticle.#repulsion/Math.pow((otherParticle.#position[i] - this.#position[i]), 2);
+      // this.#velocity[i] += -time*otherParticle.#repulsion/Math.pow((otherParticle.#position[i] - this.#position[i]), 2);
     }
   }
 
@@ -119,16 +130,14 @@ class Particle {
   }
 
   draw() {
-    let viewportSize = [500, 500];
+    let dimensions = getWindowDimensions();
 
     let circle = {
-      x: (1 + this.#position[0])*250,
-      y: (1 + this.#position[1])*250,
-      radius: 10,
+      x: (1 + this.#position[0])*dimensions.height/2,
+      y: (1 + this.#position[1])*dimensions.height/2,
+      radius: 5,
       fill: "#ffff00"
     };
-
-    console.log('drawing circle',circle,'with position',this.#position);
 
     var canvas = document.getElementById("test-canvas");
     if (canvas) {
@@ -166,7 +175,6 @@ function useWindowDimensions() {
 
   useEffect(() => {
     function handleResize() {
-      console.log("dimensions: ",getWindowDimensions());
 
       let dimensions = getWindowDimensions();
 
@@ -194,13 +202,15 @@ function App() {
 
   let world = new ParticleWorld();
   world.setTime(new Date().getTime());
-  let particle = new Particle();
-  particle.position = [0,0];
 
-  world.addParticle(particle);
+  for (let i = 0; i < 200; ++i) {
+    let particle = new Particle();
+    particle.position = [Math.random()*2-1,Math.random()*2-1];
+    world.addParticle(particle);
+  }
 
   function animate () {    
-    // world.simulate(new Date().getTime());
+    world.simulate(new Date().getTime());
     world.draw();
 
     window.requestAnimationFrame(animate);
