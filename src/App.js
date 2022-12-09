@@ -15,6 +15,9 @@ class ParticleWorld {
   }
 
   simulate(time) {
+    if (!time) {
+      time = this.#currentTime + 33;
+    }
     let interval = (time - this.#currentTime)/1000;
 
     this.#particles.forEach((particleA) => {
@@ -102,6 +105,10 @@ class Particle {
     return this.#gravity;
   }
 
+  set gravity (gravity) {
+    this.#gravity = gravity;
+  }
+  
   calculateEffect (otherParticle, time) {
     if (!this.anchor) {
       let distanceSquared = 0;
@@ -113,9 +120,9 @@ class Particle {
         //calculate based on other particle's gravity
         this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (otherParticle.#position[i] - this.#position[i]);
         //calculate based on other particle's repulsion
-        this.#velocity[i] += (time*otherParticle.#repulsion/(4*(distanceSquared))) * (-otherParticle.#position[i] + this.#position[i]);
+        this.#velocity[i] += (time*otherParticle.#repulsion/(4*distanceSquared)) * (-otherParticle.#position[i] + this.#position[i]);
         //calculate loss
-        this.#velocity[i] -= time*this.velocity[i]*0.02;
+        this.#velocity[i] -= time*this.velocity[i]*0.05;
       }
     }
   }
@@ -163,12 +170,12 @@ class Particle {
         ctx.fill();
       }
 
-      ctx.beginPath();
-      ctx.arc(velocityCircle.x, velocityCircle.y, velocityCircle.radius, 0, 2 * Math.PI, false);
-      if (velocityCircle.fill) {
-        ctx.fillStyle = velocityCircle.fill;
-        ctx.fill();
-      }
+      // ctx.beginPath();
+      // ctx.arc(velocityCircle.x, velocityCircle.y, velocityCircle.radius, 0, 2 * Math.PI, false);
+      // if (velocityCircle.fill) {
+      //   ctx.fillStyle = velocityCircle.fill;
+      //   ctx.fill();
+      // }
     }
 
 
@@ -237,7 +244,7 @@ function App() {
     for (let i = 0; i < 200; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(1.5,1);
+      let particle = new Particle(3,1);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
@@ -252,18 +259,7 @@ function App() {
     world.addParticle(anchorParticle);
     
     document.addEventListener('mousemove', (e) => {
-
       let dimensions = getWindowDimensions();
-
-      // let circle = {
-      //   x: (this.#position[0])*dimensions.height/2 + dimensions.width/2,
-      //   y: (1 + this.#position[1])*dimensions.height/2,
-      //   radius: 5,
-      //   fill: this.color
-      // };
-
-      
-
       let xFromEvent = 2*e.clientX/dimensions.height - dimensions.width/dimensions.height,
       yFromEvent = 2*e.clientY/dimensions.height - 1;
 
@@ -271,8 +267,16 @@ function App() {
       console.log('mouse move',e,anchorParticle.position);
     });
 
+    document.addEventListener('mousedown', () => {
+      anchorParticle.gravity = 200;
+    });
+
+    document.addEventListener('mouseup', () => {
+      anchorParticle.gravity = 50;
+    });
+
     function animate () {    
-      world.simulate(new Date().getTime());
+      world.simulate();
       world.draw();
     
       window.requestAnimationFrame(animate);
