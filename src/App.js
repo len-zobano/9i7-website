@@ -244,7 +244,7 @@ function App() {
     for (let i = 0; i < 200; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(3,1);
+      let particle = new Particle(3,0);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
@@ -276,7 +276,7 @@ function App() {
     });
 
     function animate () {    
-      world.simulate();
+      world.simulate(new Date().getTime());
       world.draw();
     
       window.requestAnimationFrame(animate);
