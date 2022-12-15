@@ -1,23 +1,30 @@
 #!/bin/bash
 
 # updates required by default linux
-sudo yum update -y
+printf "\n\n\n\n\n Updating yum\n" > ~/build-log
+sudo yum update -y >> ~/build-log
 
 # install git
-sudo yum install git -y
+printf "\n\n\n\n\n Installing git\n" >> ~/build-log
+sudo yum install git -y >> ~/build-log
 
 # install gcc - needed?
-# sudo yum install gcc -y
+printf "\n\n\n\n\n Installing gcc\n" >> ~/build-log
+sudo yum install gcc -y >> ~/build-log
 
 # install node / npm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-. ~/.nvm/nvm.sh
-nvm install 16
+printf "\n\n\n\n\n Installing node\n" >> ~/build-log
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash >> ~/build-log
+. ~/.nvm/nvm.sh >> ~/build-log
+nvm install 16 >> ~/build-log
 
 # clone site
-https://github.com/len-zobano/9i7-website.git
-cd 9i7-website
+printf "\n\n\n\n\n Cloning project\n" >> ~/build-log
+git clone https://github.com/len-zobano/9i7-website.git >> ~/build-log
+cd 9i7-website  
 
 # build site
-npm install
-npm run build
+printf "\n\n\n\n\n Building\n" >> ~/build-log
+npm install >> ~/build-log
+npm run build >> ~/build-log
+npm install -g serve
