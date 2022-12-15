@@ -1,16 +1,41 @@
 #!/bin/bash
+echo 'start deploy to aws'
+KEY_NAME=9i7-website-key
 
 # If AMI doesn't exist,
 
     # Create AMI, install react, pull repo, shut down, save AMI
+    
+    # Create key to SSH into the instance
+    if [[ ! -f 9i7-website-key.pem ]]
+    then
+        #generate key pair
+        aws ec2 create-key-pair \
+        --key-name $KEY_NAME \
+        --output text \
+        --region us-east-2 \
+        > key-pair-response
+        #strip the key and save it
+        sed -e 's/.*-----BEGIN/-----BEGIN/g' -e 's/KEY-----.*$/KEY-----/g' key-pair-response > $KEY_NAME.pem
+        chmod 400 $KEY_NAME.pem
+        #remove the temporary file
+        rm key-pair-response
+    fi
 
     # Create blank instance
-    aws ec2 run-instances --image-id ami-0beaa649c482330f7 --count 1 --instance-type t2.micro --region us-east-2 > run-instance-response.json
+    aws ec2 run-instances \
+        --image-id ami-0beaa649c482330f7 \
+        --count 1 \
+        --instance-type t2.micro \
+        --region us-east-2 \
+        --key-name $KEY_NAME \
+        --user-data file://./initialize-ami.sh \
+        > \
+        run-instance-response.json
 
     # Get ID of created instance
-
-
-    # Run initialize-ami script on instance
+    AMI_INSTANCE_ID=$(node get-instance-id.js)
+    echo "instance id: $AMI_INSTANCE_ID"
 
     # Confirm that initialization is complete
 
@@ -25,3 +50,4 @@
 # Point networking to new deploy
 
 # If old instance exists, shut it down
+echo 'end deploy to aws'

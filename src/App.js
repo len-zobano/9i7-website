@@ -62,7 +62,6 @@ class Particle {
   constructor(repulsion, gravity) {
     this.#repulsion = repulsion || 1;
     this.#gravity = gravity || 1;
-    this.#dimensions = 2;
 
     for (let i = 0; i < this.#dimensions; ++i) {
       this.#position[i] = 0;
@@ -122,7 +121,7 @@ class Particle {
         //calculate based on other particle's repulsion
         this.#velocity[i] += (time*otherParticle.#repulsion/(4*distanceSquared)) * (-otherParticle.#position[i] + this.#position[i]);
         //calculate loss
-        this.#velocity[i] -= time*this.velocity[i]*0.05;
+        this.#velocity[i] -= time*this.velocity[i]*0.1;
       }
     }
   }
