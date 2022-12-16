@@ -22,6 +22,10 @@ KEY_NAME=9i7-website-key
         rm key-pair-response
     fi
 
+    # Copy user data into temporary file
+    INITIALIZE_AMI_FILE="initialize-ami-"$(echo $RANDOM)".sh"
+    cp initialize-ami.sh $INITIALIZE_AMI_FILE
+
     # Create blank instance
     aws ec2 run-instances \
         --image-id ami-0beaa649c482330f7 \
@@ -29,13 +33,16 @@ KEY_NAME=9i7-website-key
         --instance-type t2.micro \
         --region us-east-2 \
         --key-name $KEY_NAME \
-        --user-data file://./initialize-ami.sh \
+        --user-data "file://./"$INITIALIZE_AMI_FILE \
         > \
         run-instance-response.json
 
     # Get ID of created instance
     AMI_INSTANCE_ID=$(node get-instance-id.js)
     echo "instance id: $AMI_INSTANCE_ID"
+
+    # Delete temporary ser data file
+    # rm $INITIALIZE_AMI_FILE
 
     # Confirm that initialization is complete
 

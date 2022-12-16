@@ -45,7 +45,6 @@ cd 9i7-website
 printf "\n\n\n\n\n Building\n" >> $BUILD_LOG_FILE 2>&1
 npm install >> $BUILD_LOG_FILE 2>&1
 npm run build >> $BUILD_LOG_FILE 2>&1
-npm install -g serve >> $BUILD_LOG_FILE 2>&1
-serve -s build >> $BUILD_LOG_FILE 2>&1
+npm install -g serve
 
 printf "\n\n\n\n\n Done initializing AMI, iteration $ITERATION\n"  >> $BUILD_LOG_FILE 2>&1

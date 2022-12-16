@@ -1,9 +1,7 @@
 #!/bin/bash
-ITERATION=6
+ITERATION=5
 BUILD_LOG_FILE=~/build.log
 printf "\n\n\n\n\n Starting 9i7 AMI build, iteration $ITERATION\n" > $BUILD_LOG_FILE
-HOME="/root"
-cd $HOME
 
 # updates required by default linux
 printfexport NVM_DIR="$HOME/.nvm" "\n\n\n\n\n Updating yum\n" >> $BUILD_LOG_FILE 2>&1
@@ -45,7 +43,6 @@ cd 9i7-website
 printf "\n\n\n\n\n Building\n" >> $BUILD_LOG_FILE 2>&1
 npm install >> $BUILD_LOG_FILE 2>&1
 npm run build >> $BUILD_LOG_FILE 2>&1
-npm install -g serve >> $BUILD_LOG_FILE 2>&1
-serve -s build >> $BUILD_LOG_FILE 2>&1
+npm install -g serve
 
 printf "\n\n\n\n\n Done initializing AMI, iteration $ITERATION\n"  >> $BUILD_LOG_FILE 2>&1
