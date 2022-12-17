@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 class ParticleWorld {
   #particles = [];
   #currentTime = 0;
+  #gravityVector = [0,20];
 
   setTime(time) {
     this.#currentTime = time;
@@ -21,6 +22,9 @@ class ParticleWorld {
     let interval = (time - this.#currentTime)/1000;
 
     this.#particles.forEach((particleA) => {
+
+      particleA.calculateGravityVector(this.#gravityVector, interval);
+      
       this.#particles.forEach((particleB) => {
         if (particleA !== particleB) {
           particleA.calculateEffect(particleB, interval);
@@ -100,6 +104,10 @@ class Particle {
     return this.#repulsion;
   }
 
+  set repulsion (repulsion) {
+    this.#repulsion = repulsion;
+  }
+
   get gravity () {
     return this.#gravity;
   }
@@ -123,6 +131,14 @@ class Particle {
         //calculate loss
         this.#velocity[i] -= time*this.velocity[i]*0.1;
       }
+    }
+  }
+
+  calculateGravityVector (vector, time) {
+    if (!this.anchor) {
+      for (let i = 0; i < this.#dimensions; ++i) {
+        this.#velocity[i] += time*vector[i];
+      } 
     }
   }
 
@@ -243,7 +259,7 @@ function App() {
     for (let i = 0; i < 200; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(3,0);
+      let particle = new Particle(0.5,0);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
@@ -251,7 +267,7 @@ function App() {
       world.addParticle(particle);
     }
 
-    let anchorParticle = new Particle(50,50);
+    let anchorParticle = new Particle(1,50);
     anchorParticle.position = [0,0];
     // anchorParticle.color = "red";
     anchorParticle.anchor = true;
@@ -267,11 +283,11 @@ function App() {
     });
 
     document.addEventListener('mousedown', () => {
-      anchorParticle.gravity = 200;
+      anchorParticle.repulsion = 100;
     });
 
     document.addEventListener('mouseup', () => {
-      anchorParticle.gravity = 50;
+      anchorParticle.repulsion = 1;
     });
 
     function animate () {    
