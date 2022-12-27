@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 class ParticleWorld {
   #particles = [];
   #currentTime = 0;
-  #gravityVector = [0,20];
+  #gravityVector = [0,0];
 
   setTime(time) {
     this.#currentTime = time;
@@ -123,13 +123,19 @@ class Particle {
         distanceSquared += Math.pow((otherParticle.#position[i] - this.#position[i]),2);
       }
 
+      let distance = Math.pow(distanceSquared, 0.5);
+      let normal = [];
+      for (let i = 0; i < this.#dimensions; ++i) {
+        normal[i] = (otherParticle.#position[i] - this.#position[i])/distance;
+      }
+
       for (let i = 0; i < this.#dimensions; ++i) {
         //calculate based on other particle's gravity
-        this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (otherParticle.#position[i] - this.#position[i]);
+        this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (normal[i]);
         //calculate based on other particle's repulsion
-        this.#velocity[i] += (time*otherParticle.#repulsion/(4*distanceSquared)) * (-otherParticle.#position[i] + this.#position[i]);
+        this.#velocity[i] += (time*otherParticle.#repulsion/(distanceSquared)) * (-normal[i]);
         //calculate loss
-        this.#velocity[i] -= time*this.velocity[i]*0.1;
+        this.#velocity[i] -= time*this.velocity[i]*0.5;
       }
     }
   }
@@ -256,10 +262,10 @@ function App() {
     let world = new ParticleWorld();
     world.setTime(new Date().getTime());
     
-    for (let i = 0; i < 200; ++i) {
+    for (let i = 0; i < 100; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(0.5,0);
+      let particle = new Particle(1,0);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
@@ -267,7 +273,7 @@ function App() {
       world.addParticle(particle);
     }
 
-    let anchorParticle = new Particle(1,50);
+    let anchorParticle = new Particle(1,100);
     anchorParticle.position = [0,0];
     // anchorParticle.color = "red";
     anchorParticle.anchor = true;
