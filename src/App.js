@@ -135,7 +135,7 @@ class Particle {
         //calculate based on other particle's repulsion
         this.#velocity[i] += (time*otherParticle.#repulsion/(distanceSquared)) * (-normal[i]);
         //calculate loss
-        this.#velocity[i] -= time*this.velocity[i]*0.5;
+        this.#velocity[i] -= time*this.velocity[i]*0.1;
       }
     }
   }
@@ -265,7 +265,7 @@ function App() {
     for (let i = 0; i < 100; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(1,0);
+      let particle = new Particle(1,1);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
