@@ -17,7 +17,7 @@ class ParticleWorld {
 
   simulate(time) {
     if (!time) {
-      time = this.#currentTime + 33;
+      time = this.#currentTime + 5;
     }
     let interval = (time - this.#currentTime)/1000;
 
@@ -129,11 +129,19 @@ class Particle {
         normal[i] = (otherParticle.#position[i] - this.#position[i])/distance;
       }
 
+      let repulsionDistance = 0.1;
+
       for (let i = 0; i < this.#dimensions; ++i) {
         //calculate based on other particle's gravity
-        this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (normal[i]);
+        if (otherParticle.#gravity > 0) {
+          this.#velocity[i] += (time*otherParticle.#gravity/(distanceSquared+1)) * (normal[i]);
+        }
         //calculate based on other particle's repulsion
-        this.#velocity[i] += (time*otherParticle.#repulsion/(distanceSquared)) * (-normal[i]);
+        let repulsionBuffer = 0.01;
+        if (otherParticle.#repulsion > 0 && distanceSquared < repulsionDistance) {
+          // this.#velocity[i] += (repulsionDistance - distance)*otherParticle.#repulsion*(-normal[i]);
+          this.#velocity[i] += (time*(otherParticle.#repulsion/(distanceSquared + repulsionBuffer) - otherParticle.#repulsion/(repulsionDistance + repulsionBuffer))) * (-normal[i]);
+        }
         //calculate loss
         this.#velocity[i] -= time*this.velocity[i]*0.1;
       }
@@ -262,10 +270,10 @@ function App() {
     let world = new ParticleWorld();
     world.setTime(new Date().getTime());
     
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 200; ++i) {
       let seedX = Math.random(), seedY = Math.random();
 
-      let particle = new Particle(1,1);
+      let particle = new Particle(1,0);
       particle.position = [seedX*2-1,seedY*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
@@ -290,14 +298,16 @@ function App() {
 
     document.addEventListener('mousedown', () => {
       anchorParticle.repulsion = 100;
+      anchorParticle.gravity = 0;
     });
 
     document.addEventListener('mouseup', () => {
       anchorParticle.repulsion = 1;
+      anchorParticle.gravity = 100;
     });
 
     function animate () {    
-      world.simulate(new Date().getTime());
+      world.simulate();
       world.draw();
     
       window.requestAnimationFrame(animate);
