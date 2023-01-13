@@ -1,5 +1,6 @@
+import React from "react";
 
-class NoteNode {
+class NoteNode extends React.Component {
     #id = ''; //unique id string
     #children = [];
     #text = '';
@@ -11,28 +12,32 @@ class NoteNode {
     #categories = []; //must maintain parity with category -> node relationship
 
     inputChanged (event) {
-        console.log('this:',this);
-        console.log(event.target.value,this.#text);
-        this.#text = event.target.value;
+        this.setState({ text: event.target.value });
     }
 
     render () {
         return (
-            <div class="noteNode"> 
-                <div class="nodeText">
-                    {this.#text} 
+            // <div/>
+            <div> 
+                <div>
+                    {this.state.text} 
                 </div>
                 <input type="text" onChange={this.inputChanged}>
 
                 </input>
             </div>
-            
         )
+    }
+    
+    componentDidMount() {
+        console.log('will mount');
+        this.inputChanged = this.inputChanged.bind(this);
     }
 
     constructor (text) {
+        super(text);
+        this.state = { text };
         this.#text = text;
-        this.inputChanged = this.inputChanged.bind(this);
     }
 }
 
