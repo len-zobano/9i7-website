@@ -10,12 +10,29 @@ class NoteNode {
 
     #categories = []; //must maintain parity with category -> node relationship
 
+    inputChanged (event) {
+        console.log('this:',this);
+        console.log(event.target.value,this.#text);
+        this.#text = event.target.value;
+    }
+
     render () {
-        return <div class="noteNode"> {this.#text} </div>
+        return (
+            <div class="noteNode"> 
+                <div class="nodeText">
+                    {this.#text} 
+                </div>
+                <input type="text" onChange={this.inputChanged}>
+
+                </input>
+            </div>
+            
+        )
     }
 
     constructor (text) {
         this.#text = text;
+        this.inputChanged = this.inputChanged.bind(this);
     }
 }
 
