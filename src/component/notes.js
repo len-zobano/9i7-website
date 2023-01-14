@@ -1,6 +1,6 @@
 import React from "react";
 
-class NoteNode extends React.Component {
+class NoteNode {
     #id = ''; //unique id string
     #children = [];
     #text = '';
@@ -11,42 +11,79 @@ class NoteNode extends React.Component {
 
     #categories = []; //must maintain parity with category -> node relationship
 
+    addChild (child) {
+        this.#children.push(child);
+    }
+
+    getChildren () {
+        return this.#children.slice(0);
+    }
+
+    constructor (text) {
+        this.text = text;
+    }
+}
+
+class Note extends React.Component {
+
+    #node = new NoteNode ();
+
+    state = {
+        text: ''
+    };
+
     inputChanged (event) {
+        console.log('input changed. this:', this);
         this.setState({ text: event.target.value });
     }
 
     render () {
-        return (
-            // <div/>
-            <div> 
-                <div>
-                    {this.state.text} 
-                </div>
-                <input type="text" onChange={this.inputChanged}>
+        
+        console.log('children:',this.#node.getChildren());
 
+        return (
+            <div class="note-node"> 
+                <div>
+                    {this.state.text}
+                </div>
+                <input 
+                    type="text" 
+                    onChange={this.inputChanged}
+                >
                 </input>
+                {
+                    this.#node.getChildren().map((child) => {
+                        return <Note node={child}></Note>
+                    })
+                }
             </div>
         )
     }
     
     componentDidMount() {
-        console.log('will mount');
-        this.inputChanged = this.inputChanged.bind(this);
+        console.log('will mount. this:',this);
+        console.log('after bind');
     }
 
-    constructor (text) {
-        super(text);
-        this.state = { text };
-        this.#text = text;
+    constructor (props) {
+        console.log('props:',props);
+        super(props);
+        this.#node = props.node;
+        this.inputChanged = this.inputChanged.bind(this);
     }
 }
 
 function Notes() {
+    let 
+        rootNode = new NoteNode (''),
+        childA = new NoteNode (''),
+        childB = new NoteNode ('');
 
-    let rootNode = new NoteNode('Hello world note');
+    rootNode.addChild(childA);
+    rootNode.addChild(childB);
 
   return (
-    rootNode.render()
+    <Note node={rootNode}></Note>
   );
 }
 
