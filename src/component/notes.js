@@ -3,8 +3,8 @@ import React from "react";
 let nodeID = 1;
 
 class NoteNode {
-    #id = ''; //unique id string
-    #children = [];
+    #ID = ''; //unique id string
+    #children = []; //must maintain parity in parent / children relationship
     #parent = null;
     #text = '';
     #encryption = ''; //if not a blank string, is an encryption key ID
@@ -14,8 +14,19 @@ class NoteNode {
 
     #categories = []; //must maintain parity with category -> node relationship
 
-    addChild (child) {
-        this.#children.push(child);
+    addChild (child, after) {
+        let indexToAdd = this.#children.indexOf(after) + 1;
+        console.log('index:',indexToAdd);
+        if (indexToAdd < 1) {
+            indexToAdd = this.#children.length;
+        }
+        console.log('index 2:',indexToAdd);
+        //non-mutating splice
+        let newChildren = this.#children.slice(0);
+        newChildren.splice(indexToAdd, 0, child);
+        this.#children = newChildren;
+        console.log('children array:',this.#children);
+
         child.#parent = this;
     }
 
@@ -23,15 +34,19 @@ class NoteNode {
         return this.#children.slice(0);
     }
 
+    getID () {
+        return this.#ID;
+    }
+
     constructor (text) {
         this.text = text;
-        this.#id = `note-node-${nodeID++}`;
+        this.#ID = `note-node-${nodeID++}`;
     }
 }
 
 class Note extends React.Component {
 
-    #node = new NoteNode ();
+    #node = null;
     #parentComponent;
 
     state = {
@@ -40,7 +55,6 @@ class Note extends React.Component {
     };
 
     inputChanged (event) {
-        console.log('input changed. this:', this);
         //set text in state
         this.setState({ text: event.target.value });
         //set text in node
@@ -48,41 +62,51 @@ class Note extends React.Component {
     }
 
     keyPressed (event) {
-        console.log('key pressed:',event);
+        console.log('key pressed:',event,'at node',this.#node);
         if (event.charCode === 13 && this.#parentComponent) {
-            this.#parentComponent.createAndFocusNextSiblingNode();
+            this.#parentComponent.createAndFocusNextSiblingNode(this.#node);
         }
     }
 
-    createAndFocusNextSiblingNode() {
+    debug () {
+        console.log('in debug handler');
+        if (this.state.children.length > 0) {
+            this.setState({ children: [] });
+        }
+        else {
+            this.setState({ children: this.#node.getChildren() });
+        }
+    }
+
+    createAndFocusNextSiblingNode(after) {
         //create and add to node
-        let nextSibling = new NoteNode('');
-        this.#node.addChild(nextSibling);
+        let nextSibling = new NoteNode('New Sibling');
+        this.#node.addChild(nextSibling, after);
         //add to state, new array
         this.setState({ children: this.#node.getChildren() });
-        //focus on new node
-
     }
 
     render () {
-        
-        console.log('children:',this.#node.getChildren());
-
+        console.log('rendering node',this.#node.getID());
         return (
             <div class="note-node"> 
                 <div>
-                    {this.state.text}
+                    {this.state.text} ({this.state.ID})
+                </div>
+                <div onClick={this.debug} style={{width: '1em', height: '1em', backgroundColor: 'red'}}>
+
                 </div>
                 <input 
                     autoFocus
                     type="text" 
+                    value={this.state.text}
                     onChange={this.inputChanged}
                     onKeyPress={this.keyPressed}
                 >
                 </input>
                 {
                     this.state.children.map((child) => {
-                        return <Note node={child} parentComponent={this}></Note>
+                        return <Note key={child.getID()} node={child} parentComponent={this}></Note>
                     })
                 }
             </div>
@@ -90,26 +114,28 @@ class Note extends React.Component {
     }
     
     componentDidMount() {
-        console.log('will mount. this:',this);
-        console.log('after bind');
-        this.setState({ children: this.#node.getChildren() });
+        this.setState({ 
+            text: this.#node.text,
+            ID: this.#node.getID(),
+            children: this.#node.getChildren() 
+        });
     }
 
     constructor (props) {
-        console.log('props:',props);
         super(props);
         this.#node = props.node;
         this.#parentComponent = props.parentComponent;
         this.inputChanged = this.inputChanged.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
+        this.debug = this.debug.bind(this);
     }
 }
 
 function Notes() {
     let 
-        rootNode = new NoteNode (''),
-        childA = new NoteNode (''),
-        childB = new NoteNode ('');
+        rootNode = new NoteNode ('Title'),
+        childA = new NoteNode ('Line 1'),
+        childB = new NoteNode ('Line 2');
 
     rootNode.addChild(childA);
     rootNode.addChild(childB);
