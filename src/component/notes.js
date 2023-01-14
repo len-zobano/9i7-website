@@ -1,8 +1,11 @@
 import React from "react";
 
+let nodeID = 1;
+
 class NoteNode {
     #id = ''; //unique id string
     #children = [];
+    #parent = null;
     #text = '';
     #encryption = ''; //if not a blank string, is an encryption key ID
     #metadata = {}; //a JSON object with implementation-specific contents
@@ -13,6 +16,7 @@ class NoteNode {
 
     addChild (child) {
         this.#children.push(child);
+        child.#parent = this;
     }
 
     getChildren () {
@@ -21,20 +25,43 @@ class NoteNode {
 
     constructor (text) {
         this.text = text;
+        this.#id = `note-node-${nodeID++}`;
     }
 }
 
 class Note extends React.Component {
 
     #node = new NoteNode ();
+    #parentComponent;
 
     state = {
-        text: ''
+        text: '',
+        children: []
     };
 
     inputChanged (event) {
         console.log('input changed. this:', this);
+        //set text in state
         this.setState({ text: event.target.value });
+        //set text in node
+        this.#node.text = event.target.value;
+    }
+
+    keyPressed (event) {
+        console.log('key pressed:',event);
+        if (event.charCode === 13 && this.#parentComponent) {
+            this.#parentComponent.createAndFocusNextSiblingNode();
+        }
+    }
+
+    createAndFocusNextSiblingNode() {
+        //create and add to node
+        let nextSibling = new NoteNode('');
+        this.#node.addChild(nextSibling);
+        //add to state, new array
+        this.setState({ children: this.#node.getChildren() });
+        //focus on new node
+
     }
 
     render () {
@@ -47,13 +74,15 @@ class Note extends React.Component {
                     {this.state.text}
                 </div>
                 <input 
+                    autoFocus
                     type="text" 
                     onChange={this.inputChanged}
+                    onKeyPress={this.keyPressed}
                 >
                 </input>
                 {
-                    this.#node.getChildren().map((child) => {
-                        return <Note node={child}></Note>
+                    this.state.children.map((child) => {
+                        return <Note node={child} parentComponent={this}></Note>
                     })
                 }
             </div>
@@ -63,13 +92,16 @@ class Note extends React.Component {
     componentDidMount() {
         console.log('will mount. this:',this);
         console.log('after bind');
+        this.setState({ children: this.#node.getChildren() });
     }
 
     constructor (props) {
         console.log('props:',props);
         super(props);
         this.#node = props.node;
+        this.#parentComponent = props.parentComponent;
         this.inputChanged = this.inputChanged.bind(this);
+        this.keyPressed = this.keyPressed.bind(this);
     }
 }
 
