@@ -3,6 +3,7 @@ import React from "react";
 let nodeID = 1;
 
 class NoteNode {
+    #iteration = 0; //changes when children are updated
     #ID = ''; //unique id string
     #children = []; //must maintain parity in parent / children relationship
     #parent = null;
@@ -28,6 +29,19 @@ class NoteNode {
         console.log('children array:',this.#children);
 
         child.#parent = this;
+        ++this.#iteration;
+    }
+
+    removeChild(child) {
+        let indexOfChild = this.#children.indexOf(child);
+        if (indexOfChild > -1) {
+            this.#children.splice(indexOfChild,1);
+            ++this.#iteration;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     getChildren () {
@@ -36,6 +50,10 @@ class NoteNode {
 
     getID () {
         return this.#ID;
+    }
+    
+    getKey () {
+        return `${this.#ID}-${this.#iteration}`;
     }
 
     constructor (text) {
@@ -55,10 +73,26 @@ class Note extends React.Component {
     };
 
     inputChanged (event) {
+        let newText = event.target.value;
+        //if the line begins with three spaces, it's a tab
+        //put it under its previous sibling node and delete the spaces
+        //if this fails, it's just three spaces
+        if (newText.match(/^   /)) {
+            if (this.#parentComponent.indentNode(this.#node)) {
+                //remove 3 leading whitespace
+                newText = newText.replace(/^   /,''); 
+            }
+        }
+        else if (newText.match(/   $/)) {
+            if (this.createAndFocusChildNode()) {
+                //remove 3 trailing whitespace
+                newText = newText.replace(/   $/,'');
+            }
+        }
         //set text in state
-        this.setState({ text: event.target.value });
+        this.setState({ text: newText });
         //set text in node
-        this.#node.text = event.target.value;
+        this.#node.text = newText;
     }
 
     keyPressed (event) {
@@ -80,22 +114,45 @@ class Note extends React.Component {
 
     createAndFocusNextSiblingNode(after) {
         //create and add to node
-        let nextSibling = new NoteNode('New Sibling');
+        let nextSibling = new NoteNode('');
         this.#node.addChild(nextSibling, after);
         //add to state, new array
         this.setState({ children: this.#node.getChildren() });
+    }
+
+    createAndFocusChildNode() {
+        let child = new NoteNode('');
+        this.#node.addChild(child);
+        this.setState({ children: this.#node.getChildren() });
+        return true;
+    }
+
+    indentNode(node) {
+        //find node in children
+        let nodeChildren = this.#node.getChildren();
+        let indexOfNodeToIndent = nodeChildren.indexOf(node);
+        //if index > 0, remove the child and add it as a child of index-1 child and return true
+        if (indexOfNodeToIndent > 0 && this.#node.removeChild(node)) {
+            nodeChildren[indexOfNodeToIndent-1].addChild(node);
+            this.setState({ children: this.#node.getChildren() });
+            return true;
+        }
+        //else return false
+        else {
+            return false;
+        }
     }
 
     render () {
         console.log('rendering node',this.#node.getID());
         return (
             <div class="note-node"> 
-                <div>
+                {/* <div>
                     {this.state.text} ({this.state.ID})
                 </div>
                 <div onClick={this.debug} style={{width: '1em', height: '1em', backgroundColor: 'red'}}>
 
-                </div>
+                </div> */}
                 <input 
                     autoFocus
                     type="text" 
@@ -106,7 +163,7 @@ class Note extends React.Component {
                 </input>
                 {
                     this.state.children.map((child) => {
-                        return <Note key={child.getID()} node={child} parentComponent={this}></Note>
+                        return <Note key={child.getKey()} node={child} parentComponent={this}></Note>
                     })
                 }
             </div>
