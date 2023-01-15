@@ -32,6 +32,16 @@ class NoteNode {
         ++this.#iteration;
     }
 
+    shiftChild(child) {
+        let indexToAdd = 0;
+        //non-mutating splice
+        let newChildren = this.#children.slice(0);
+        newChildren.splice(indexToAdd, 0, child);
+        this.#children = newChildren;
+        child.#parent = this;
+        ++this.#iteration;
+    }
+
     removeChild(child) {
         let indexOfChild = this.#children.indexOf(child);
         if (indexOfChild > -1) {
@@ -122,7 +132,7 @@ class Note extends React.Component {
 
     createAndFocusChildNode() {
         let child = new NoteNode('');
-        this.#node.addChild(child);
+        this.#node.shiftChild(child);
         this.setState({ children: this.#node.getChildren() });
         return true;
     }
