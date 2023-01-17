@@ -118,7 +118,7 @@ class Note extends React.Component {
         if (event.code === "Backspace") {
             let keyPosition = event.target.selectionStart;
             console.log('backspace at cursor',keyPosition);
-            if (keyPosition === 0) {
+            if (keyPosition === 0 && event.target.selectionEnd === 0) {
                 //if this component has a grandparent component, it can be indented
                 if (
                     this.#parentComponent &&
