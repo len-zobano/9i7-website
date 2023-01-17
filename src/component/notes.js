@@ -58,6 +58,13 @@ class NoteNode {
         return this.#children.slice(0);
     }
 
+    getPreviousChild(node) {
+        let indexOfNode = this.#children.indexOf(node);
+        if (indexOfNode > 0) {
+            return this.#children[indexOfNode-1];
+        }
+    }
+
     getID () {
         return this.#ID;
     }
@@ -136,7 +143,7 @@ class Note extends React.Component {
                     this.#node.text == ''
                 ) {
                     console.log('delete 0 delete child');
-                    this.#parentComponent.deleteChildNode(this.#node);
+                    this.#parentComponent.deleteChildNodeAndFocusPrevious(this.#node);
                 }
                 //otherwise, do nothing
                 else {
@@ -161,8 +168,12 @@ class Note extends React.Component {
         }
     }
 
-    deleteChildNode(child) {
+    deleteChildNodeAndFocusPrevious(child) {
+        let previous = this.#node.getPreviousChild(child) || this.#node;
         this.#node.removeChild(child);
+        let IDOfPreviousNode = previous.getID();
+        document.getElementById(IDOfPreviousNode).focus();
+
         this.setState({ children: this.#node.getChildren() });
     }
 
@@ -220,6 +231,7 @@ class Note extends React.Component {
                 <input 
                     autoFocus
                     type="text" 
+                    id={this.#node.getID()}
                     value={this.state.text}
                     onChange={this.inputChanged}
                     onKeyPress={this.keyPressed}
@@ -228,7 +240,11 @@ class Note extends React.Component {
                 </input>
                 {
                     this.state.children.map((child) => {
-                        return <Note key={child.getKey()} node={child} parentComponent={this}></Note>
+                        return <Note 
+                            key={child.getKey()} 
+                            node={child} 
+                            parentComponent={this}
+                        ></Note>
                     })
                 }
             </div>
