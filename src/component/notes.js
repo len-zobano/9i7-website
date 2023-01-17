@@ -7,7 +7,7 @@ class NoteNode {
     #ID = ''; //unique id string
     #children = []; //must maintain parity in parent / children relationship
     #parent = null;
-    #text = '';
+    text = '';
     #encryption = ''; //if not a blank string, is an encryption key ID
     #metadata = {}; //a JSON object with implementation-specific contents
     #complete = -1; //a negative value means it isn
@@ -112,6 +112,45 @@ class Note extends React.Component {
         }
     }
 
+    keyDown (event) {
+        console.log('key down:',event,'at node',this.#node);
+        let prevent = false;
+        if (event.code === "Backspace") {
+            let keyPosition = event.target.selectionStart;
+            console.log('backspace at cursor',keyPosition);
+            if (keyPosition === 0) {
+                //if this component has a grandparent component, it can be indented
+                if (
+                    this.#parentComponent &&
+                    this.#parentComponent.#parentComponent
+                ) {
+                    console.log('delete 0 un-indent child');
+                    this.#parentComponent.#parentComponent.unIndentGrandchildNode(
+                        this.#node, 
+                        this.#parentComponent.#node
+                    );
+                }
+                //if it has a parent, but no grandparent, and is empty, it can be deleted
+                else if (
+                    this.#parentComponent &&
+                    this.#node.text == ''
+                ) {
+                    console.log('delete 0 delete child');
+                    this.#parentComponent.deleteChildNode(this.#node);
+                }
+                //otherwise, do nothing
+                else {
+                    console.log('delete 0 noop')
+                }
+                prevent = true;
+            }
+        }
+
+        if (prevent) {
+            event.preventDefault();
+        }
+    }
+
     debug () {
         console.log('in debug handler');
         if (this.state.children.length > 0) {
@@ -122,12 +161,27 @@ class Note extends React.Component {
         }
     }
 
+    deleteChildNode(child) {
+        this.#node.removeChild(child);
+        this.setState({ children: this.#node.getChildren() });
+    }
+
+    unIndentGrandchildNode(node, parent) {
+        //remove grandchild node from its parent
+        parent.removeChild(node);
+        //add grandchild node to this node after parent
+        this.#node.addChild(node, parent);
+        this.setState({ children: this.#node.getChildren() });
+        return true;
+    }
+
     createAndFocusNextSiblingNode(after) {
         //create and add to node
         let nextSibling = new NoteNode('');
         this.#node.addChild(nextSibling, after);
         //add to state, new array
         this.setState({ children: this.#node.getChildren() });
+        return true;
     }
 
     createAndFocusChildNode() {
@@ -169,6 +223,7 @@ class Note extends React.Component {
                     value={this.state.text}
                     onChange={this.inputChanged}
                     onKeyPress={this.keyPressed}
+                    onKeyDown={this.keyDown}
                 >
                 </input>
                 {
@@ -194,6 +249,7 @@ class Note extends React.Component {
         this.#parentComponent = props.parentComponent;
         this.inputChanged = this.inputChanged.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
+        this.keyDown = this.keyDown.bind(this);
         this.debug = this.debug.bind(this);
     }
 }
