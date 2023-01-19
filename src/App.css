@@ -39,6 +39,7 @@
 
 .note-node {
   margin-left: 1em;
+  border: 0.25em solid transparent;
 }
 
 .note-node input {
@@ -46,11 +47,16 @@
   border-right-style: hidden;
   border-left-style: hidden;
   border-bottom-style: hidden;
+  background-color: transparent;
   width: 100%;
 }
 
 .note-node input:focus {
   outline: none;
+}
+
+.note-node:has(> input:focus) {
+  border: 0.25em #fee dotted;
 }
 
 .root-node > input {
