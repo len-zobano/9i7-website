@@ -40,3 +40,19 @@
 .note-node {
   margin-left: 1em;
 }
+
+.note-node input {
+  border-top-style: hidden;
+  border-right-style: hidden;
+  border-left-style: hidden;
+  border-bottom-style: hidden;
+  width: 100%;
+}
+
+.note-node input:focus {
+  outline: none;
+}
+
+.root-node > input {
+  font-size: 2em;
+}

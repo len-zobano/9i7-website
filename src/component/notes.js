@@ -248,7 +248,8 @@ class Note extends React.Component {
     render () {
         console.log('rendering node',this.#node.getID());
         return (
-            <div class="note-node"> 
+            
+            <div class={`note-node ${ !this.#parentComponent ? 'root-node' : '' }`}> 
                 {/* <div>
                     {this.state.text} ({this.state.ID})
                 </div>
@@ -299,12 +300,7 @@ class Note extends React.Component {
 
 function Notes() {
     let 
-        rootNode = new NoteNode ('Title'),
-        childA = new NoteNode ('Line 1'),
-        childB = new NoteNode ('Line 2');
-
-    rootNode.addChild(childA);
-    rootNode.addChild(childB);
+        rootNode = new NoteNode ('');
 
   return (
     <Note node={rootNode}></Note>
