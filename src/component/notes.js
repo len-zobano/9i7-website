@@ -114,8 +114,13 @@ class Note extends React.Component {
 
     keyPressed (event) {
         console.log('key pressed:',event,'at node',this.#node);
-        if (event.charCode === 13 && this.#parentComponent) {
-            this.#parentComponent.createAndFocusNextSiblingNode(this.#node);
+        if (event.charCode === 13) {
+            if (this.#parentComponent) {
+                this.#parentComponent.createAndFocusNextSiblingNode(this.#node) 
+            }
+            else {
+                this.createAndFocusChildNode();
+            }
         }
     }
 
