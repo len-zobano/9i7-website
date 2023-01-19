@@ -81,8 +81,11 @@ class NoteNode {
 
 class Note extends React.Component {
 
+    static nodeToFocusNext = false;
+
     #node = null;
     #parentComponent;
+    #input = null;
 
     state = {
         text: '',
@@ -113,7 +116,7 @@ class Note extends React.Component {
     }
 
     keyPressed (event) {
-        console.log('key pressed:',event,'at node',this.#node);
+        // console.log('key pressed:',event,'at node',this.#node);
         if (event.charCode === 13) {
             if (this.#parentComponent) {
                 this.#parentComponent.createAndFocusNextSiblingNode(this.#node) 
@@ -125,7 +128,7 @@ class Note extends React.Component {
     }
 
     keyDown (event) {
-        console.log('key down:',event,'at node',this.#node);
+        // console.log('key down:',event,'at node',this.#node);
         let keyPosition = event.target.selectionStart;
         let prevent = false;
         if (event.code === "Tab") {
@@ -206,9 +209,13 @@ class Note extends React.Component {
 
     unIndentGrandchildNode(node, parent) {
         //remove grandchild node from its parent
+        console.log('removing at uigc');
         parent.removeChild(node);
         //add grandchild node to this node after parent
+        console.log('adding at uigc');
         this.#node.addChild(node, parent);
+        Note.nodeToFocusNext = node;
+        console.log('setting state at uigc');
         this.setState({ children: this.#node.getChildren() });
         return true;
     }
@@ -216,6 +223,7 @@ class Note extends React.Component {
     createAndFocusNextSiblingNode(after) {
         //create and add to node
         let nextSibling = new NoteNode('');
+        Note.nodeToFocusNext = nextSibling;
         this.#node.addChild(nextSibling, after);
         //add to state, new array
         this.setState({ children: this.#node.getChildren() });
@@ -224,6 +232,7 @@ class Note extends React.Component {
 
     createAndFocusChildNode() {
         let child = new NoteNode('');
+        Note.nodeToFocusNext = child;
         this.#node.shiftChild(child);
         this.setState({ children: this.#node.getChildren() });
         return true;
@@ -236,6 +245,7 @@ class Note extends React.Component {
         //if index > 0, remove the child and add it as a child of index-1 child and return true
         if (indexOfNodeToIndent > 0 && this.#node.removeChild(node)) {
             nodeChildren[indexOfNodeToIndent-1].addChild(node);
+            Note.nodeToFocusNext = node;
             this.setState({ children: this.#node.getChildren() });
             return true;
         }
@@ -246,7 +256,6 @@ class Note extends React.Component {
     }
 
     render () {
-        console.log('rendering node',this.#node.getID());
         return (
             
             <div class={`note-node ${ !this.#parentComponent ? 'root-node' : '' }`}> 
@@ -257,9 +266,9 @@ class Note extends React.Component {
 
                 </div> */}
                 <input 
-                    autoFocus
                     type="text" 
                     id={this.#node.getID()}
+                    ref={(input) => { this.#input = input; }} 
                     value={this.state.text}
                     onChange={this.inputChanged}
                     onKeyPress={this.keyPressed}
@@ -285,6 +294,11 @@ class Note extends React.Component {
             ID: this.#node.getID(),
             children: this.#node.getChildren() 
         });
+
+        if (Note.nodeToFocusNext === this.#node) {
+            this.#input.focus();
+            Note.nodeToFocusNext = null;
+        }
     }
 
     constructor (props) {
