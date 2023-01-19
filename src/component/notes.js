@@ -129,7 +129,7 @@ class Note extends React.Component {
                 this.#parentComponent.indentNode(this.#node);
             }
             //if tabbing at last index, create new indented node
-            if (keyPosition === this.#node.text.length) {
+            else if (keyPosition === this.#node.text.length) {
                 this.createAndFocusChildNode();
             }
             prevent = true;   
