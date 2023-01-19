@@ -65,6 +65,13 @@ class NoteNode {
         }
     }
 
+    getNextChild(node) {
+        let indexOfNode = this.#children.indexOf(node);
+        if (indexOfNode > -1) {
+            return this.#children[indexOfNode+1];
+        }
+    }
+
     getID () {
         return this.#ID;
     }
@@ -128,10 +135,18 @@ class Note extends React.Component {
     }
 
     keyDown (event) {
-        // console.log('key down:',event,'at node',this.#node);
+        console.log('key down:',event,'at node',this.#node);
         let keyPosition = event.target.selectionStart;
         let prevent = false;
-        if (event.code === "Tab") {
+        if (event.code === "ArrowUp" && this.#parentComponent) {
+            this.#parentComponent.focusOnPreviousChild(this.#node, 0);
+            prevent = true;
+        }
+        else if (event.code === "ArrowDown") {
+            this.focusOnNext(0);
+            prevent = true;
+        }
+        else if (event.code === "Tab") {
             if (!event.shiftKey) {
                 //if tabbing at index 0, indent node
                 if (keyPosition === 0) {
@@ -236,6 +251,50 @@ class Note extends React.Component {
         this.#node.shiftChild(child);
         this.setState({ children: this.#node.getChildren() });
         return true;
+    }
+
+    focusOnLastChild(node) {
+        console.log('focusing on last child of node',node);
+        let childrenLength = 0;
+        if (childrenLength = node.getChildren().length) {
+            this.focusOnLastChild(node.getChildren()[childrenLength-1]);
+        }
+        else {
+            let element = document.getElementById(node.getID());
+            element.focus(); 
+        }
+    }
+
+    focusOnPreviousChild(node, index) {
+        let previous = this.#node.getPreviousChild(node);
+        if (!previous) {
+            previous = this.#node;
+            let element = document.getElementById(previous.getID());
+            element.focus();
+        }
+        else {
+            this.focusOnLastChild(previous);
+        }
+    }
+
+    focusOnNext(index, countChildren = true) {
+        let node = this.#node;
+        let next = null;
+        //if the node has children, focus on its next child
+        if (countChildren && node.getChildren().length > 0) {
+            next = node.getChildren()[0];
+        }
+        else if (this.#parentComponent) {
+            next = this.#parentComponent.#node.getNextChild(node);
+            if (!next) {
+                this.#parentComponent.focusOnNext(this.#node, index, false);
+            }
+        }
+
+        if (next) {
+            let element = document.getElementById(next.getID());
+            element.focus();
+        }
     }
 
     indentNode(node) {
