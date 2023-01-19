@@ -124,20 +124,31 @@ class Note extends React.Component {
         let keyPosition = event.target.selectionStart;
         let prevent = false;
         if (event.code === "Tab") {
-            //if tabbing at index 0, indent node
-            if (keyPosition === 0) {
-                this.#parentComponent.indentNode(this.#node);
+            if (!event.shiftKey) {
+                //if tabbing at index 0, indent node
+                if (keyPosition === 0) {
+                    this.#parentComponent.indentNode(this.#node);
+                }
+                //if tabbing at last index, create new indented node
+                else if (keyPosition === this.#node.text.length) {
+                    this.createAndFocusChildNode();
+                }
             }
-            //if tabbing at last index, create new indented node
-            else if (keyPosition === this.#node.text.length) {
-                this.createAndFocusChildNode();
+            else if (
+                this.#parentComponent &&
+                this.#parentComponent.#parentComponent
+            ) {
+                this.#parentComponent.#parentComponent.unIndentGrandchildNode(
+                    this.#node, 
+                    this.#parentComponent.#node
+                ); 
             }
             prevent = true;   
         }
         else if (event.code === "Backspace") {
             console.log('backspace at cursor',keyPosition);
             if (keyPosition === 0 && event.target.selectionEnd === 0) {
-                //if this component has a grandparent component, it can be indented
+                //if this component has a grandparent component, it can be unindented
                 if (
                     this.#parentComponent &&
                     this.#parentComponent.#parentComponent
