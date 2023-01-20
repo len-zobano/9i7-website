@@ -89,6 +89,7 @@ class NoteNode {
 class Note extends React.Component {
 
     static nodeToFocusNext = false;
+    static lastFocusedNode = null;
 
     #node = null;
     #parentComponent;
@@ -132,6 +133,10 @@ class Note extends React.Component {
                 this.createAndFocusChildNode();
             }
         }
+    }
+
+    focused() {
+        Note.lastFocusedNode = this.#node;
     }
 
     keyDown (event) {
@@ -331,6 +336,7 @@ class Note extends React.Component {
                     onChange={this.inputChanged}
                     onKeyPress={this.keyPressed}
                     onKeyDown={this.keyDown}
+                    onFocus={this.focused}
                 >
                 </input>
                 {
@@ -367,29 +373,31 @@ class Note extends React.Component {
         this.keyPressed = this.keyPressed.bind(this);
         this.keyDown = this.keyDown.bind(this);
         this.debug = this.debug.bind(this);
-        this.deleteButton = this.deleteButton.bind(this);
+        this.focused = this.focused.bind(this);
     }
 }
 
-function Notes() {
-    let 
-        rootNode = new NoteNode ('Title'),
-        header = new NoteNode ('Header'),
-        text = new NoteNode ('Text');
+class Notes extends React.Component {
+    rootNode = new NoteNode ('Title');
+    header = new NoteNode ('Header');
+    text = new NoteNode ('Text');
 
-    rootNode.addChild(header);
-    header.addChild(text);
+    constructor(props) {
+        super(props);
+        this.rootNode.addChild(this.header);
+        this.header.addChild(this.text);
+    }
 
-  return (
-    <div class="notes">
-        <Note node={rootNode}></Note>
-        <div class="tools">
-            <div class="delete button"/>
-            <div class="move-up button" />
-            <div class="move-down button" />
-        </div>
-    </div>
-  );
+    render () {
+        return (<div class="notes">
+            <Note node={this.rootNode}></Note>
+            <div class="tools">
+                <div class="delete button"/>
+                <div class="move-up button" />
+                <div class="move-down button" />
+            </div>
+        </div>);
+    }
 }
 
 export default Notes;
