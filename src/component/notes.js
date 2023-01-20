@@ -146,16 +146,10 @@ class Note extends React.Component {
             this.focusOnNext(0);
             prevent = true;
         }
-        else if (event.code === "Tab") {
+        else if (event.code === "Tab" && this.#parentComponent) {
             if (!event.shiftKey) {
-                //if tabbing at index 0, indent node
-                if (keyPosition === 0) {
-                    this.#parentComponent.indentNode(this.#node);
-                }
-                //if tabbing at last index, create new indented node
-                else if (keyPosition === this.#node.text.length) {
-                    this.createAndFocusChildNode();
-                }
+                //if tabbing at index 0, indent node\
+                this.#parentComponent.indentNode(this.#node);
             }
             else if (
                 this.#parentComponent &&
@@ -321,6 +315,9 @@ class Note extends React.Component {
                 <div onClick={this.debug} style={{width: '1em', height: '1em', backgroundColor: 'red'}}>
 
                 </div> */}
+                <div class="tools">
+                    
+                </div>
                 <input 
                     type="text" 
                     id={this.#node.getID()}
