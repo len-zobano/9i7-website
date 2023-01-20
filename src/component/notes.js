@@ -89,7 +89,7 @@ class NoteNode {
 class Note extends React.Component {
 
     static nodeToFocusNext = false;
-    static lastFocusedNode = null;
+    static lastFocused = null;
 
     #node = null;
     #parentComponent;
@@ -136,7 +136,7 @@ class Note extends React.Component {
     }
 
     focused() {
-        Note.lastFocusedNode = this.#node;
+        Note.lastFocused = this;
     }
 
     keyDown (event) {
@@ -223,7 +223,6 @@ class Note extends React.Component {
         if (this.#parentComponent) {
             this.#parentComponent.deleteChildNodeAndFocusPrevious(this.#node);
         }
-        event.preventDefault();
     }
 
     unIndentGrandchildNode(node, parent) {
@@ -382,17 +381,25 @@ class Notes extends React.Component {
     header = new NoteNode ('Header');
     text = new NoteNode ('Text');
 
+    deleteButton(event) {
+        Note.lastFocused.deleteButton(event);
+    }
+
     constructor(props) {
         super(props);
         this.rootNode.addChild(this.header);
         this.header.addChild(this.text);
+        this.deleteButton = this.deleteButton.bind(this);
     }
 
     render () {
         return (<div class="notes">
             <Note node={this.rootNode}></Note>
             <div class="tools">
-                <div class="delete button"/>
+                <div 
+                    class="delete button"
+                    onClick={this.deleteButton}    
+                />
                 <div class="move-up button" />
                 <div class="move-down button" />
             </div>
