@@ -214,11 +214,8 @@ class Note extends React.Component {
     }
 
     deleteChildNodeAndFocusPrevious(child) {
-        let previous = this.#node.getPreviousChild(child) || this.#node;
+        this.focusOnPreviousChild(child, 0);
         this.#node.removeChild(child);
-        let IDOfPreviousNode = previous.getID();
-        document.getElementById(IDOfPreviousNode).focus();
-
         this.setState({ children: this.#node.getChildren() });
     }
 
@@ -287,7 +284,7 @@ class Note extends React.Component {
         else if (this.#parentComponent) {
             next = this.#parentComponent.#node.getNextChild(node);
             if (!next) {
-                this.#parentComponent.focusOnNext(this.#node, index, false);
+                this.#parentComponent.focusOnNext(index, false);
             }
         }
 
