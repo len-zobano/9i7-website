@@ -213,6 +213,14 @@ class Note extends React.Component {
         this.setState({ children: this.#node.getChildren() });
     }
 
+    deleteButton(event) {
+        console.log('delete button');
+        if (this.#parentComponent) {
+            this.#parentComponent.deleteChildNodeAndFocusPrevious(this.#node);
+        }
+        event.preventDefault();
+    }
+
     unIndentGrandchildNode(node, parent) {
         //remove grandchild node from its parent
         console.log('removing at uigc');
@@ -315,9 +323,6 @@ class Note extends React.Component {
                 <div onClick={this.debug} style={{width: '1em', height: '1em', backgroundColor: 'red'}}>
 
                 </div> */}
-                <div class="tools">
-                    
-                </div>
                 <input 
                     type="text" 
                     id={this.#node.getID()}
@@ -362,15 +367,28 @@ class Note extends React.Component {
         this.keyPressed = this.keyPressed.bind(this);
         this.keyDown = this.keyDown.bind(this);
         this.debug = this.debug.bind(this);
+        this.deleteButton = this.deleteButton.bind(this);
     }
 }
 
 function Notes() {
     let 
-        rootNode = new NoteNode ('');
+        rootNode = new NoteNode ('Title'),
+        header = new NoteNode ('Header'),
+        text = new NoteNode ('Text');
+
+    rootNode.addChild(header);
+    header.addChild(text);
 
   return (
-    <Note node={rootNode}></Note>
+    <div class="notes">
+        <Note node={rootNode}></Note>
+        <div class="tools">
+            <div class="delete button"/>
+            <div class="move-up button" />
+            <div class="move-down button" />
+        </div>
+    </div>
   );
 }
 
