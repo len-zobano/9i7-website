@@ -17,14 +17,18 @@ class App extends Component {
        <Router>
         <Routes>
           <Route exact path='/particle' element={< Particle />}></Route>
-          <Route exact path='/notes' element={< Notes />}></Route>
+          <Route 
+            path='/notes/:ID' 
+            element={< Notes />}
+          >  
+          </Route>
         </Routes>
         <ul>
           <li>
             <Link to="/particle">Particle</Link>
           </li>
           <li>
-            <Link to="/notes">Notes</Link>
+            <Link to="/notes/0">Note 0</Link>
           </li>
         </ul>
        </Router>

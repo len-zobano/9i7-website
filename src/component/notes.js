@@ -1,4 +1,5 @@
 import React from "react";
+import { useParams } from "react-router-dom"
 
 let nodeID = 1;
 
@@ -420,51 +421,101 @@ class Note extends React.Component {
     }
 }
 
-class Notes extends React.Component {
-    rootNode = new NoteNode ('Title');
-    header = new NoteNode ('Header');
-    text = new NoteNode ('Text');
+const Notes = () => {
+    const rootNode = new NoteNode (`Title (${useParams().ID})`);
+    const header = new NoteNode ('Header');
+    const text = new NoteNode ('Text');
 
-    deleteButton(event) {
+    rootNode.addChild(header);
+    header.addChild(text);
+
+    const deleteButton = (event) => {
         Note.lastFocused.deleteButton(event);
     }
 
-    moveUpButton(event) {
+    const moveUpButton = (event) => {
         Note.lastFocused.moveUpButton(event);
     }
 
-    moveDownButton(event) {
+    const moveDownButton = (event) => {
         Note.lastFocused.moveDownButton(event);
     }
 
-    constructor(props) {
-        super(props);
-        this.rootNode.addChild(this.header);
-        this.header.addChild(this.text);
-        this.deleteButton = this.deleteButton.bind(this);
-        this.moveUpButton = this.moveUpButton.bind(this);
-        this.moveDownButton = this.moveDownButton.bind(this);
-    }
 
-    render () {
-        return (<div class="notes">
-            <Note node={this.rootNode}></Note>
+    return (
+        <div class="notes">
+            <Note node={rootNode}></Note>
             <div class="tools">
                 <div 
                     class="delete button"
-                    onClick={this.deleteButton}    
+                    onClick={deleteButton}    
                 />
                 <div 
                     class="move-up button" 
-                    onClick={this.moveUpButton}
+                    onClick={moveUpButton}
                 />
                 <div 
                     class="move-down button" 
-                    onClick={this.moveDownButton}
+                    onClick={moveDownButton}
                 />
             </div>
-        </div>);
-    }
+        </div>
+    );
 }
+
+// class Notes extends React.Component {
+    
+//     rootNode = null;
+//     header = null;
+//     text = null;
+
+//     deleteButton(event) {
+//         Note.lastFocused.deleteButton(event);
+//     }
+
+//     moveUpButton(event) {
+//         Note.lastFocused.moveUpButton(event);
+//     }
+
+//     moveDownButton(event) {
+//         Note.lastFocused.moveDownButton(event);
+//     }
+
+//     constructor(props) {
+//         super(props);
+
+//         console.log('props at notes',props);
+
+//         this.rootNode = new NoteNode (`Title`);
+//         this.header = new NoteNode ('Header');
+//         this.text = new NoteNode ('Text');
+
+//         this.rootNode.addChild(this.header);
+//         this.header.addChild(this.text);
+//         this.deleteButton = this.deleteButton.bind(this);
+//         this.moveUpButton = this.moveUpButton.bind(this);
+//         this.moveDownButton = this.moveDownButton.bind(this);
+//     }
+
+//     render () {
+//         return (<div class="notes">
+//             <Note node={this.rootNode}></Note>
+//             <div class="tools">
+//                 <div 
+//                     class="delete button"
+//                     onClick={this.deleteButton}    
+//                 />
+//                 <div 
+//                     class="move-up button" 
+//                     onClick={this.moveUpButton}
+//                 />
+//                 <div 
+//                     class="move-down button" 
+//                     onClick={this.moveDownButton}
+//                 />
+//             </div>
+//         </div>);
+//     }
+// }
 
 export default Notes;
