@@ -421,8 +421,10 @@ class Note extends React.Component {
     }
 }
 
-const Notes = () => {
-    const rootNode = new NoteNode (`Title (${useParams().ID})`);
+const NoteEditor = () => {
+
+    const { ID } = useParams();
+    const rootNode = new NoteNode (`Title (${ID})`);
     const header = new NoteNode ('Header');
     const text = new NoteNode ('Text');
 
@@ -441,9 +443,8 @@ const Notes = () => {
         Note.lastFocused.moveDownButton(event);
     }
 
-
     return (
-        <div class="notes">
+        <div class="note-editor">
             <Note node={rootNode}></Note>
             <div class="tools">
                 <div 
@@ -463,59 +464,4 @@ const Notes = () => {
     );
 }
 
-// class Notes extends React.Component {
-    
-//     rootNode = null;
-//     header = null;
-//     text = null;
-
-//     deleteButton(event) {
-//         Note.lastFocused.deleteButton(event);
-//     }
-
-//     moveUpButton(event) {
-//         Note.lastFocused.moveUpButton(event);
-//     }
-
-//     moveDownButton(event) {
-//         Note.lastFocused.moveDownButton(event);
-//     }
-
-//     constructor(props) {
-//         super(props);
-
-//         console.log('props at notes',props);
-
-//         this.rootNode = new NoteNode (`Title`);
-//         this.header = new NoteNode ('Header');
-//         this.text = new NoteNode ('Text');
-
-//         this.rootNode.addChild(this.header);
-//         this.header.addChild(this.text);
-//         this.deleteButton = this.deleteButton.bind(this);
-//         this.moveUpButton = this.moveUpButton.bind(this);
-//         this.moveDownButton = this.moveDownButton.bind(this);
-//     }
-
-//     render () {
-//         return (<div class="notes">
-//             <Note node={this.rootNode}></Note>
-//             <div class="tools">
-//                 <div 
-//                     class="delete button"
-//                     onClick={this.deleteButton}    
-//                 />
-//                 <div 
-//                     class="move-up button" 
-//                     onClick={this.moveUpButton}
-//                 />
-//                 <div 
-//                     class="move-down button" 
-//                     onClick={this.moveDownButton}
-//                 />
-//             </div>
-//         </div>);
-//     }
-// }
-
-export default Notes;
+export default NoteEditor;

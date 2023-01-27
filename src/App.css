@@ -41,11 +41,11 @@
   margin-left: 1em;
 }
 
-.notes {
+.note-editor {
   height: 30em;
 }
 
-.notes .tools {
+.note-editor .tools {
   width: 100%;
   font-size: 3em;
   height: 2em;
@@ -55,7 +55,7 @@
   bottom: 0;
 }
 
-.notes > .tools > .button {
+.note-editor > .tools > .button {
   width: 1em;
   height: 1em;
   float: left;

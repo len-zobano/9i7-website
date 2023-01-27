@@ -2,7 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import React, {Component} from "react";
 import Particle from './component/particle';
-import Notes from './component/notes';
+import NoteEditor from './component/note-editor';
 
 import {
   BrowserRouter as Router,
@@ -19,7 +19,7 @@ class App extends Component {
           <Route exact path='/particle' element={< Particle />}></Route>
           <Route 
             path='/notes/:ID' 
-            element={< Notes />}
+            element={< NoteEditor />}
           >  
           </Route>
         </Routes>
