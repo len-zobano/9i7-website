@@ -32,6 +32,16 @@ class NoteNode {
         ++this.#iteration;
     }
 
+    addChildAtIndex(child, indexToAdd) {
+        //non-mutating splice
+        let newChildren = this.#children.slice(0);
+        newChildren.splice(indexToAdd, 0, child);
+        this.#children = newChildren;
+        console.log('children array:',this.#children);
+        child.#parent = this;
+        ++this.#iteration;
+    }
+
     shiftChild(child) {
         let indexToAdd = 0;
         //non-mutating splice
@@ -225,6 +235,38 @@ class Note extends React.Component {
         }
     }
 
+    moveChild(node, places) {
+        console.log('moving child places',places);
+        let indexOfNode = this.#node.getChildren().indexOf(node);
+        //if the index is inside the confines of an array one smaller than the current
+        if (
+            indexOfNode + places >= 0 &&
+            indexOfNode + places < this.#node.getChildren().length
+        ) {
+            //delete this node from parent's children
+            this.#node.removeChild(node);
+            //add it at index of node - 1
+            this.#node.addChildAtIndex(node, indexOfNode + places);
+            //set state
+            this.setState({ children: this.#node.getChildren() });
+            //focus
+            let element = document.getElementById(node.getID());
+            element.focus(); 
+        }
+    }
+
+    moveUpButton() {
+        if (this.#parentComponent) {
+            this.#parentComponent.moveChild(this.#node, -1);
+        }
+    }
+
+    moveDownButton() {
+        if (this.#parentComponent) {
+            this.#parentComponent.moveChild(this.#node, 1);
+        }
+    }
+
     unIndentGrandchildNode(node, parent) {
         //remove grandchild node from its parent
         console.log('removing at uigc');
@@ -373,6 +415,8 @@ class Note extends React.Component {
         this.keyDown = this.keyDown.bind(this);
         this.debug = this.debug.bind(this);
         this.focused = this.focused.bind(this);
+        this.moveUpButton = this.moveUpButton.bind(this);
+        this.moveDownButton = this.moveDownButton.bind(this);
     }
 }
 
@@ -385,11 +429,21 @@ class Notes extends React.Component {
         Note.lastFocused.deleteButton(event);
     }
 
+    moveUpButton(event) {
+        Note.lastFocused.moveUpButton(event);
+    }
+
+    moveDownButton(event) {
+        Note.lastFocused.moveDownButton(event);
+    }
+
     constructor(props) {
         super(props);
         this.rootNode.addChild(this.header);
         this.header.addChild(this.text);
         this.deleteButton = this.deleteButton.bind(this);
+        this.moveUpButton = this.moveUpButton.bind(this);
+        this.moveDownButton = this.moveDownButton.bind(this);
     }
 
     render () {
@@ -400,8 +454,14 @@ class Notes extends React.Component {
                     class="delete button"
                     onClick={this.deleteButton}    
                 />
-                <div class="move-up button" />
-                <div class="move-down button" />
+                <div 
+                    class="move-up button" 
+                    onClick={this.moveUpButton}
+                />
+                <div 
+                    class="move-down button" 
+                    onClick={this.moveDownButton}
+                />
             </div>
         </div>);
     }
