@@ -1,11 +1,14 @@
-import SimpleHTTPServer
-import SocketServer
+import http.server
+import socketserver
+from http import HTTPStatus
 
-PORT = 8001
 
-Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(HTTPStatus.OK)
+        self.end_headers()
+        self.wfile.write(b'')
 
-httpd = SocketServer.TCPServer(("", PORT), Handler)
 
-print "serving at port", PORT
+httpd = socketserver.TCPServer(('', 8000), Handler)
 httpd.serve_forever()
