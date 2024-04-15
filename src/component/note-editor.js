@@ -3,6 +3,12 @@ import { useParams } from "react-router-dom"
 
 let nodeID = 1;
 
+class NoteNodeCategory {
+    #ID = '';
+    #nodes = [];
+    #name = '';
+}
+
 class NoteNode {
     #iteration = 0; //changes when children are updated
     #ID = ''; //unique id string

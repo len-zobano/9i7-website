@@ -1,5 +1,5 @@
 import logo from './logo.svg';
-import './App.css';
+import './App.scss';
 import React, {Component} from "react";
 import Particle from './component/particle';
 import NoteEditor from './component/note-editor';
@@ -10,6 +10,7 @@ import {
   Route,
   Link
 } from 'react-router-dom';
+import NavigationCard from './component/navigation-card';
 
 class App extends Component {
   render() {
@@ -23,14 +24,17 @@ class App extends Component {
           >  
           </Route>
         </Routes>
-        <ul>
+        <div class="App">
+          <NavigationCard imageSource="test.jpg">
+
+          </NavigationCard>
           <li>
             <Link to="/particle">Particle</Link>
           </li>
           <li>
             <Link to="/notes/0">Note 0</Link>
           </li>
-        </ul>
+        </div>
        </Router>
    );
   }

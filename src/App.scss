@@ -89,3 +89,48 @@
 .root-node .note-node:has(.note-node) > input {
   font-size: 1.5em;
 }
+
+@keyframes highlight-navigation-card {
+  from {
+    height: 18em;
+    width: 18em;
+    margin: 1em;
+  }
+
+  to {
+    height: 20em;
+    width: 20em;
+    margin: 0;
+  }
+}
+
+@keyframes unhighlight-navigation-card {
+  to {
+    height: 18em;
+    width: 18em;
+    margin: 1em;
+  }
+
+  from {
+    height: 20em;
+    width: 20em;
+    margin: 0;
+  }
+}
+
+.navigation-card {
+  height: 18em;
+  width: 18em;
+  margin: 1em;
+  border: 1px solid red;
+  animation-name: unhighlight-navigation-card;
+  animation-duration: 0.3s;
+
+  &:hover {
+    height: 20em;
+    width: 20em;
+    margin: 0;
+    animation-name: highlight-navigation-card;
+    animation-duration: 0.3s;
+  }
+}
