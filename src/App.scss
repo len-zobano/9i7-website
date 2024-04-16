@@ -1,3 +1,8 @@
+$unhighlighted-nav-card-bg-width: 20em;
+$highlighted-nav-card-bg-width: 18em;
+$highlighted-nav-card-padding: 3em;
+$unhighlighted-nav-card-padding: 2em;
+
 .App {
   text-align: center;
 }
@@ -95,32 +100,45 @@
     height: 18em;
     width: 18em;
     margin: 1em;
+    background-size: $unhighlighted-nav-card-bg-width auto;
+    padding: $unhighlighted-nav-card-padding;
   }
 
   to {
     height: 20em;
     width: 20em;
     margin: 0;
+    background-size: $highlighted-nav-card-bg-width auto;
+    padding: $highlighted-nav-card-padding;
   }
 }
+
 
 @keyframes unhighlight-navigation-card {
   to {
     height: 18em;
     width: 18em;
     margin: 1em;
+    background-size: $unhighlighted-nav-card-bg-width auto;
+    padding: $unhighlighted-nav-card-padding;
   }
 
   from {
     height: 20em;
     width: 20em;
     margin: 0;
+    background-size: $highlighted-nav-card-bg-width auto;
+    padding: $highlighted-nav-card-padding;
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .app {
   padding-top: 1px;
-  background-color: black;
+  background-color: #222;
   height: 100em;
 }
 
@@ -129,11 +147,21 @@
   width: 18em;
   margin: 1em;
   float: left;
-  border: 1px solid red;
+  border: 1px solid #333;
   animation-name: unhighlight-navigation-card;
   animation-duration: 0.3s;
   background-position: center;
-  background-size: 100% auto;
+  background-size: $unhighlighted-nav-card-bg-width auto;
+  background-repeat: no-repeat;
+  background-color: black;
+  cursor: pointer;
+  color: white;
+  padding: $unhighlighted-nav-card-padding;
+
+  .title {
+    font-size: 3em;
+    color: white;
+  }
 
   &:hover {
     height: 20em;
@@ -141,5 +169,7 @@
     margin: 0;
     animation-name: highlight-navigation-card;
     animation-duration: 0.3s;
+    background-size: $highlighted-nav-card-bg-width auto;
+    padding: $highlighted-nav-card-padding;
   }
 }
