@@ -24,8 +24,11 @@ class App extends Component {
           >  
           </Route>
         </Routes>
-        <div class="App">
-          <NavigationCard imageSource="test.jpg">
+        <div class="app">
+          <NavigationCard imageSource="particle-screenshot.png" to="/particle">
+
+          </NavigationCard>
+          <NavigationCard imageSource="test2.jpg" to="/particle">
 
           </NavigationCard>
           <li>
