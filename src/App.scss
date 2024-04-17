@@ -1,7 +1,16 @@
 $unhighlighted-nav-card-bg-width: 20em;
 $highlighted-nav-card-bg-width: 18em;
-$highlighted-nav-card-padding: 3em;
-$unhighlighted-nav-card-padding: 2em;
+$highlighted-nav-card-padding: 1em;
+$unhighlighted-nav-card-padding: 1em;
+
+$highlighted-nav-card-height: 26em;
+$highlighted-nav-card-width: 20em;
+$unhighlighted-nav-card-height: 25em;
+$unhighlighted-nav-card-width: 19em;
+
+$nav-card-color: #444;
+
+$page-background-color: white;
 
 .App {
   text-align: center;
@@ -97,16 +106,16 @@ $unhighlighted-nav-card-padding: 2em;
 
 @keyframes highlight-navigation-card {
   from {
-    height: 18em;
-    width: 18em;
+    height: $unhighlighted-nav-card-height;
+    width: $unhighlighted-nav-card-width;
     margin: 1em;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
 
   to {
-    height: 20em;
-    width: 20em;
+    height: $highlighted-nav-card-height;
+    width: $highlighted-nav-card-width;
     margin: 0;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
@@ -116,16 +125,16 @@ $unhighlighted-nav-card-padding: 2em;
 
 @keyframes unhighlight-navigation-card {
   to {
-    height: 18em;
-    width: 18em;
+    height: $unhighlighted-nav-card-height;
+    width: $unhighlighted-nav-card-width;
     margin: 1em;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
 
   from {
-    height: 20em;
-    width: 20em;
+    height: $highlighted-nav-card-height;
+    width: $highlighted-nav-card-width;
     margin: 0;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
@@ -138,25 +147,30 @@ $unhighlighted-nav-card-padding: 2em;
 
 .app {
   padding-top: 1px;
-  background-color: #222;
+  background-color: $page-background-color;
   height: 100em;
 }
 
 .navigation-card {
-  height: 18em;
-  width: 18em;
-  margin: 1em;
+  background-color: $nav-card-color;
+  height: $unhighlighted-nav-card-height;
+  width: $unhighlighted-nav-card-width;
   float: left;
   border: 1px solid #333;
   animation-name: unhighlight-navigation-card;
   animation-duration: 0.3s;
-  background-position: center;
-  background-size: $unhighlighted-nav-card-bg-width auto;
-  background-repeat: no-repeat;
-  background-color: black;
   cursor: pointer;
   color: white;
   padding: $unhighlighted-nav-card-padding;
+
+  .image {
+    height: 16em;
+    width: 16em;
+    background-position: center;
+    background-size: $unhighlighted-nav-card-bg-width auto;
+    background-repeat: no-repeat;
+    background-color: black;
+  }
 
   .title {
     font-size: 3em;
@@ -164,8 +178,8 @@ $unhighlighted-nav-card-padding: 2em;
   }
 
   &:hover {
-    height: 20em;
-    width: 20em;
+    height: $highlighted-nav-card-height;
+    width: $highlighted-nav-card-width;
     margin: 0;
     animation-name: highlight-navigation-card;
     animation-duration: 0.3s;

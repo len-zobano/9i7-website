@@ -7,11 +7,19 @@ import {
     Link
   } from 'react-router-dom';
 
-const NavigationCard = ({imageSource, title, to}) => {
+const NavigationCard = ({imageSource, title, caption, to}) => {
     return (
-        <Link to={to} class="navigation-card" style={{ backgroundImage: `url(${imageSource})` }}>
-            <div class="title">
-                {title}
+        <Link to={to} class="navigation-card">
+            <div class="image" style={{ backgroundImage: `url(${imageSource})` }}>
+
+            </div>
+            <div class="text">
+                <div class="title">
+                    {title}
+                </div>
+                <div class="caption">
+                    {caption}
+                </div>
             </div>
         </Link>
     )
