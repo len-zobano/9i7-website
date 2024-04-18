@@ -25,12 +25,17 @@ class App extends Component {
           </Route>
         </Routes>
         <div class="app">
-          <NavigationCard imageSource="particle-screenshot.png" to="/particle" title="Particle Simulator" caption="A simple environment simulating particle physics inefficiently because it looks cool">
+          <div class="header-bar">
 
-          </NavigationCard>
-          <NavigationCard imageSource="note-icon.png" to="/notes/0" title="Notes" caption="A tree-structured note-taking app for better-organized data">
+          </div>
+          <div class="app-body">
+            <NavigationCard imageSource="particle-screenshot.png" to="/particle" title="Particle Simulator" caption="A simple environment simulating particle physics inefficiently because it looks cool">
 
-          </NavigationCard>
+            </NavigationCard>
+            <NavigationCard imageSource="note-icon.png" to="/notes/0" title="Notes" caption="A tree-structured note-taking app for better-organized data">
+
+            </NavigationCard>
+          </div>
         </div>
        </Router>
    );

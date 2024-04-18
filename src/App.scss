@@ -175,6 +175,11 @@ $page-background-color: white;
   padding-top: 1px;
   background-color: $page-background-color;
   height: 100em;
+
+  .app-body {
+    height: 80em;
+    width: 100%;
+  }
 }
 
 a {
@@ -219,7 +224,7 @@ a {
     .caption {
       font-size: 0.8em;
       color: white;
-      opacity: 0.9;
+      opacity: 0.8;
     }
   }
 
@@ -241,4 +246,13 @@ a {
       animation-duration: 0.3s * $animation-quotient;;
     }
   }
+}
+
+.header-bar {
+  width: 100%;
+  height: 8em;
+  background-image: url(../public/teacup.png);
+  background-position: center;
+  background-size: auto 80%;
+  background-repeat: no-repeat;
 }
