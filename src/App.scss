@@ -1,16 +1,4 @@
-$unhighlighted-nav-card-bg-width: 20em;
-$highlighted-nav-card-bg-width: 18em;
-$highlighted-nav-card-padding: 0.5em;
-$unhighlighted-nav-card-padding: 0.7em;
-
-$highlighted-nav-card-height: 29em;
-$highlighted-nav-card-width: 20em;
-$unhighlighted-nav-card-height: 28em;
-$unhighlighted-nav-card-width: 19em;
-
-$animation-quotient: 1;
-
-$nav-card-color: #484848;
+@import 'component/navigation-card.scss';
 
 $page-background-color: white;
 
@@ -106,67 +94,6 @@ $page-background-color: white;
   font-size: 1.5em;
 }
 
-@keyframes highlight-navigation-card {
-  from {
-    height: $unhighlighted-nav-card-height;
-    width: $unhighlighted-nav-card-width;
-    background-size: $unhighlighted-nav-card-bg-width auto;
-    padding: $unhighlighted-nav-card-padding;
-  }
-
-  to {
-    height: $highlighted-nav-card-height;
-    width: $highlighted-nav-card-width;
-    background-size: $highlighted-nav-card-bg-width auto;
-    padding: $highlighted-nav-card-padding;
-  }
-}
-
-@keyframes highlight-navigation-card-image {
-  from {
-    background-size: $unhighlighted-nav-card-bg-width auto;
-    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
-    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
-  }
-
-  to {
-    background-size: $highlighted-nav-card-bg-width auto;
-    height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
-    width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
-  }
-}
-
-
-@keyframes unhighlight-navigation-card {
-  to {
-    height: $unhighlighted-nav-card-height;
-    width: $unhighlighted-nav-card-width;
-    background-size: $unhighlighted-nav-card-bg-width auto;
-    padding: $unhighlighted-nav-card-padding;
-  }
-
-  from {
-    height: $highlighted-nav-card-height;
-    width: $highlighted-nav-card-width;
-    background-size: $highlighted-nav-card-bg-width auto;
-    padding: $highlighted-nav-card-padding;
-  }
-}
-
-@keyframes unhighlight-navigation-card-image {
-  to {
-    background-size: $unhighlighted-nav-card-bg-width auto;
-    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
-    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
-  }
-
-  from {
-    background-size: $highlighted-nav-card-bg-width auto;
-    height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
-    width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
-  }
-}
-
 * {
   box-sizing: border-box;
 }
@@ -186,68 +113,6 @@ $page-background-color: white;
 
 a {
   text-decoration: none !important;
-}
-
-.navigation-card {
-  border-radius: 5px 5px;
-  background-color: $nav-card-color;
-  height: $unhighlighted-nav-card-height;
-  width: $unhighlighted-nav-card-width;
-  margin: 0.5em;
-  float: left;
-  animation-name: unhighlight-navigation-card;
-  animation-duration: 0.3s * $animation-quotient;;
-  cursor: pointer;
-  color: white;
-  padding: $unhighlighted-nav-card-padding;
-
-  .image {
-    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
-    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
-    background-position: center;
-    background-size: $unhighlighted-nav-card-bg-width auto;
-    background-repeat: no-repeat;
-    background-color: black;
-    animation-name: unhighlight-navigation-card-image;
-    animation-duration: 0.3s * $animation-quotient;;
-  }
-
-  .text {
-    padding-left: $unhighlighted-nav-card-padding;
-    padding-right: $unhighlighted-nav-card-padding;
-
-    .title {
-      padding-top: 1em;
-      padding-bottom: 1em;
-      font-size: 1.2em;
-      color: white;
-    }
-
-    .caption {
-      font-size: 0.8em;
-      color: white;
-      opacity: 0.8;
-    }
-  }
-
-  &:hover {
-    height: $highlighted-nav-card-height;
-    width: $highlighted-nav-card-width;
-    animation-name: highlight-navigation-card;
-    animation-duration: 0.3s * $animation-quotient;
-    padding: $highlighted-nav-card-padding;
-
-    .image {
-      height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
-      width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
-      background-position: center;
-      background-size: $highlighted-nav-card-bg-width auto;
-      background-repeat: no-repeat;
-      background-color: black;
-      animation-name: highlight-navigation-card-image;
-      animation-duration: 0.3s * $animation-quotient;;
-    }
-  }
 }
 
 .header-bar {
