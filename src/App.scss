@@ -1,14 +1,14 @@
 $unhighlighted-nav-card-bg-width: 20em;
 $highlighted-nav-card-bg-width: 18em;
-$highlighted-nav-card-padding: 1em;
-$unhighlighted-nav-card-padding: 1em;
+$highlighted-nav-card-padding: 0.5em;
+$unhighlighted-nav-card-padding: 0.5em;
 
-$highlighted-nav-card-height: 26em;
+$highlighted-nav-card-height: 29em;
 $highlighted-nav-card-width: 20em;
-$unhighlighted-nav-card-height: 25em;
+$unhighlighted-nav-card-height: 28em;
 $unhighlighted-nav-card-width: 19em;
 
-$nav-card-color: #444;
+$nav-card-color: #333;
 
 $page-background-color: white;
 
@@ -108,7 +108,6 @@ $page-background-color: white;
   from {
     height: $unhighlighted-nav-card-height;
     width: $unhighlighted-nav-card-width;
-    margin: 1em;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
@@ -116,9 +115,20 @@ $page-background-color: white;
   to {
     height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
-    margin: 0;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
+  }
+}
+
+@keyframes highlight-navigation-card-image {
+  from {
+    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
+    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
+  }
+
+  to {
+    height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
+    width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
   }
 }
 
@@ -127,7 +137,6 @@ $page-background-color: white;
   to {
     height: $unhighlighted-nav-card-height;
     width: $unhighlighted-nav-card-width;
-    margin: 1em;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
@@ -135,9 +144,20 @@ $page-background-color: white;
   from {
     height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
-    margin: 0;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
+  }
+}
+
+@keyframes unhighlight-navigation-card-image {
+  to {
+    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
+    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
+  }
+
+  from {
+    height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
+    width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
   }
 }
 
@@ -151,12 +171,17 @@ $page-background-color: white;
   height: 100em;
 }
 
+a {
+  text-decoration: none !important;
+}
+
 .navigation-card {
+  border-radius: 5px 5px;
   background-color: $nav-card-color;
   height: $unhighlighted-nav-card-height;
   width: $unhighlighted-nav-card-width;
+  margin: 0.5em;
   float: left;
-  border: 1px solid #333;
   animation-name: unhighlight-navigation-card;
   animation-duration: 0.3s;
   cursor: pointer;
@@ -164,26 +189,51 @@ $page-background-color: white;
   padding: $unhighlighted-nav-card-padding;
 
   .image {
-    height: 16em;
-    width: 16em;
+    height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
+    width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
     background-position: center;
     background-size: $unhighlighted-nav-card-bg-width auto;
     background-repeat: no-repeat;
     background-color: black;
+    animation-name: unhighlight-navigation-card-image;
+    animation-duration: 0.3s;
   }
 
-  .title {
-    font-size: 3em;
-    color: white;
+  .text {
+    padding-left: $unhighlighted-nav-card-padding;
+    padding-right: $unhighlighted-nav-card-padding;
+
+    .title {
+      padding-top: 1em;
+      padding-bottom: 1em;
+      font-size: 1.3em;
+      color: white;
+    }
+
+    .caption {
+      font-size: 0.8em;
+      color: white;
+      opacity: 0.9;
+    }
   }
 
   &:hover {
     height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
-    margin: 0;
     animation-name: highlight-navigation-card;
     animation-duration: 0.3s;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
+
+    .image {
+      height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
+      width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
+      background-position: center;
+      background-size: $unhighlighted-nav-card-bg-width auto;
+      background-repeat: no-repeat;
+      background-color: black;
+      animation-name: highlight-navigation-card-image;
+      animation-duration: 0.3s;
+    }
   }
 }
