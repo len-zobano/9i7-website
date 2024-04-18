@@ -1,27 +1,25 @@
+$card-highlight-expansion-quotient: 1.03;
+
 $unhighlighted-nav-card-bg-width: 20em;
 $highlighted-nav-card-bg-width: 18em;
 $highlighted-nav-card-padding: 0.5em;
 $unhighlighted-nav-card-padding: 0.7em;
 
-$highlighted-nav-card-height: 29em;
-$highlighted-nav-card-width: 20em;
-$unhighlighted-nav-card-height: 28em;
 $unhighlighted-nav-card-width: 19em;
+$highlighted-nav-card-width: $unhighlighted-nav-card-width * $card-highlight-expansion-quotient;
 
-$animation-quotient: 1;
+$animation-quotient: 0.7;
 
 $nav-card-color: #484848;
 
 @keyframes highlight-navigation-card {
   from {
-    height: $unhighlighted-nav-card-height;
     width: $unhighlighted-nav-card-width;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
 
   to {
-    height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
@@ -45,14 +43,12 @@ $nav-card-color: #484848;
 
 @keyframes unhighlight-navigation-card {
   to {
-    height: $unhighlighted-nav-card-height;
     width: $unhighlighted-nav-card-width;
     background-size: $unhighlighted-nav-card-bg-width auto;
     padding: $unhighlighted-nav-card-padding;
   }
 
   from {
-    height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
     background-size: $highlighted-nav-card-bg-width auto;
     padding: $highlighted-nav-card-padding;
@@ -76,7 +72,6 @@ $nav-card-color: #484848;
 .navigation-card {
   border-radius: 5px 5px;
   background-color: $nav-card-color;
-  height: $unhighlighted-nav-card-height;
   width: $unhighlighted-nav-card-width;
   margin: 0.5em;
   float: left;
@@ -112,11 +107,13 @@ $nav-card-color: #484848;
       font-size: 0.8em;
       color: white;
       opacity: 0.8;
+      width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
     }
+    padding-bottom: 1em;
   }
 
   &:hover {
-    height: $highlighted-nav-card-height;
+    // height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
     animation-name: highlight-navigation-card;
     animation-duration: 0.3s * $animation-quotient;
