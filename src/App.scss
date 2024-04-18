@@ -1,14 +1,16 @@
 $unhighlighted-nav-card-bg-width: 20em;
 $highlighted-nav-card-bg-width: 18em;
 $highlighted-nav-card-padding: 0.5em;
-$unhighlighted-nav-card-padding: 0.5em;
+$unhighlighted-nav-card-padding: 0.7em;
 
 $highlighted-nav-card-height: 29em;
 $highlighted-nav-card-width: 20em;
 $unhighlighted-nav-card-height: 28em;
 $unhighlighted-nav-card-width: 19em;
 
-$nav-card-color: #333;
+$animation-quotient: 1;
+
+$nav-card-color: #484848;
 
 $page-background-color: white;
 
@@ -122,11 +124,13 @@ $page-background-color: white;
 
 @keyframes highlight-navigation-card-image {
   from {
+    background-size: $unhighlighted-nav-card-bg-width auto;
     height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
     width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
   }
 
   to {
+    background-size: $highlighted-nav-card-bg-width auto;
     height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
     width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
   }
@@ -151,11 +155,13 @@ $page-background-color: white;
 
 @keyframes unhighlight-navigation-card-image {
   to {
+    background-size: $unhighlighted-nav-card-bg-width auto;
     height: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding;
     width: $unhighlighted-nav-card-width - 2*$unhighlighted-nav-card-padding; 
   }
 
   from {
+    background-size: $highlighted-nav-card-bg-width auto;
     height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
     width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding; 
   }
@@ -183,7 +189,7 @@ a {
   margin: 0.5em;
   float: left;
   animation-name: unhighlight-navigation-card;
-  animation-duration: 0.3s;
+  animation-duration: 0.3s * $animation-quotient;;
   cursor: pointer;
   color: white;
   padding: $unhighlighted-nav-card-padding;
@@ -196,7 +202,7 @@ a {
     background-repeat: no-repeat;
     background-color: black;
     animation-name: unhighlight-navigation-card-image;
-    animation-duration: 0.3s;
+    animation-duration: 0.3s * $animation-quotient;;
   }
 
   .text {
@@ -206,7 +212,7 @@ a {
     .title {
       padding-top: 1em;
       padding-bottom: 1em;
-      font-size: 1.3em;
+      font-size: 1.2em;
       color: white;
     }
 
@@ -221,19 +227,18 @@ a {
     height: $highlighted-nav-card-height;
     width: $highlighted-nav-card-width;
     animation-name: highlight-navigation-card;
-    animation-duration: 0.3s;
-    background-size: $highlighted-nav-card-bg-width auto;
+    animation-duration: 0.3s * $animation-quotient;
     padding: $highlighted-nav-card-padding;
 
     .image {
       height: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
       width: $highlighted-nav-card-width - 2*$highlighted-nav-card-padding;
       background-position: center;
-      background-size: $unhighlighted-nav-card-bg-width auto;
+      background-size: $highlighted-nav-card-bg-width auto;
       background-repeat: no-repeat;
       background-color: black;
       animation-name: highlight-navigation-card-image;
-      animation-duration: 0.3s;
+      animation-duration: 0.3s * $animation-quotient;;
     }
   }
 }
