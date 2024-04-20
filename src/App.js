@@ -8,14 +8,15 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link
+  Link,
+  useLocation
 } from 'react-router-dom';
 import NavigationCard from './component/navigation-card';
 
-class App extends Component {
-  render() {
-    return (
-       <Router>
+const App = ({}) => {
+
+  return (
+      <Router>
         <Routes>
           <Route exact path='/particle' element={< Particle />}></Route>
           <Route 
@@ -26,7 +27,7 @@ class App extends Component {
         </Routes>
         <div class="app">
           <div class="header-bar">
-
+            {/* Test: {useLocation()} */}
           </div>
           <div class="app-body">
             <NavigationCard imageSource="particle-screenshot.png" to="/particle" title="Particle Simulator" caption="A simple environment simulating particle physics inefficiently because it looks cool">
@@ -37,9 +38,8 @@ class App extends Component {
             </NavigationCard>
           </div>
         </div>
-       </Router>
-   );
-  }
-}
+      </Router>
+  );
+};
 
 export default App;
