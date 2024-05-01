@@ -4,7 +4,9 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Root from "./routes/root";
-import ErrorPage from "./error-page.js"
+import ErrorPage from "./error-page.js";
+import Particle from './component/particle.js';
+import NoteEditor from './component/note-editor.js';
 
 import {
   createBrowserRouter,
@@ -16,6 +18,14 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root />,
     errorElement: <ErrorPage />
+  },
+  {
+    path: "/particle",
+    element: <Particle />
+  },
+  {
+    path: "/notes/:noteID",
+    element: <NoteEditor />
   }
 ]);
 
