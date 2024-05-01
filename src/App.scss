@@ -104,10 +104,10 @@ $page-background-color: white;
   height: 100em;
 
   .app-body {
-    height: 80em;
-    width: 41em;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 
