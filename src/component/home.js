@@ -1,8 +1,8 @@
-import logo from './logo.svg';
-import './App.scss';
+import logo from '../logo.svg';
+import '../App.scss';
 import React, {Component} from "react";
-import Particle from './component/particle';
-import NoteEditor from './component/note-editor';
+import Particle from './particle';
+import NoteEditor from './note-editor';
 
 import {
   BrowserRouter as Router,
@@ -11,7 +11,7 @@ import {
   Link,
   useLocation
 } from 'react-router-dom';
-import NavigationCard from './component/navigation-card';
+import NavigationCard from './navigation-card';
 
 const App = ({}) => {
   return (
