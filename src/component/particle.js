@@ -10,7 +10,7 @@ import {
 class ParticleWorld {
   #particles = [];
   #currentTime = 0;
-  #gravityVector = [0,0];
+  #gravityVector = [0,0,0];
 
   setTime(time) {
     this.#currentTime = time;
@@ -22,9 +22,9 @@ class ParticleWorld {
 
   simulate(time) {
     if (!time) {
-      time = this.#currentTime + 5;
+      time = new Date().getTime();
     }
-    let interval = (time - this.#currentTime)/1000;
+    let interval = (time - this.#currentTime)/5000;
 
     this.#particles.forEach((particleA) => {
 
@@ -60,7 +60,7 @@ class ParticleWorld {
 }
 
 class Particle {
-  #dimensions = 2;
+  #dimensions = 3;
   #position = [];
   #velocity = [];
   #repulsion = 1;
@@ -148,7 +148,7 @@ class Particle {
           this.#velocity[i] += (time*(otherParticle.#repulsion/(distanceSquared + repulsionBuffer) - otherParticle.#repulsion/(repulsionDistance + repulsionBuffer))) * (-normal[i]);
         }
         //calculate loss
-        this.#velocity[i] -= time*this.velocity[i]*0.1;
+        this.#velocity[i] -= time*this.velocity[i]*0.03;
       }
     }
   }
@@ -176,7 +176,7 @@ class Particle {
     let circle = {
       x: (this.#position[0])*dimensions.height/2 + dimensions.width/2,
       y: (1 + this.#position[1])*dimensions.height/2,
-      radius: 5,
+      radius: 3/(this.#position[2]+1),
       fill: this.color
     };
 
@@ -188,7 +188,7 @@ class Particle {
     };
 
     var canvas = document.getElementById("test-canvas");
-    if (canvas) {
+    if (canvas && circle.radius > 0) {
       var ctx = canvas.getContext("2d"); 
 
       // ctx.beginPath();
@@ -263,10 +263,6 @@ function Canvas(props) {
 //not the right way to run a one-time init function, but I don't know the React way yet
 let didInit = false;
 
-function test (e) {
-  console.log('mouse moved ',e);
-}
-
 function ParticleComponent() {
 
   if (!didInit) {
@@ -276,10 +272,10 @@ function ParticleComponent() {
     world.setTime(new Date().getTime());
     
     for (let i = 0; i < 200; ++i) {
-      let seedX = Math.random(), seedY = Math.random();
+      let seedX = Math.random(), seedY = Math.random(), seedZ = Math.random();
 
       let particle = new Particle(1,1);
-      particle.position = [seedX*2-1,seedY*2-1];
+      particle.position = [seedX*2-1,seedY*2-1,seedZ*2-1];
 
       particle.color = `rgb(${ Math.round(seedX*255) },127,${ Math.round(seedY*255) })`;
 
@@ -287,7 +283,7 @@ function ParticleComponent() {
     }
 
     let anchorParticle = new Particle(1,100);
-    anchorParticle.position = [0,0];
+    anchorParticle.position = [0,0,0];
     // anchorParticle.color = "red";
     anchorParticle.anchor = true;
     world.addParticle(anchorParticle);
@@ -297,7 +293,7 @@ function ParticleComponent() {
       let xFromEvent = 2*e.clientX/dimensions.height - dimensions.width/dimensions.height,
       yFromEvent = 2*e.clientY/dimensions.height - 1;
 
-      anchorParticle.position = [xFromEvent, yFromEvent];
+      anchorParticle.position = [xFromEvent, yFromEvent, 0];
       console.log('mouse move',e,anchorParticle.position);
     });
 
