@@ -2,6 +2,7 @@ import './App.scss';
 import React, {Component} from "react";
 import Particle from './component/particle';
 import NoteEditor from './component/note-editor';
+import UAG from './component/UAG'
 
 import {
   BrowserRouter as Router,
