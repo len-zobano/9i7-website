@@ -9,6 +9,72 @@ import {
 
 class World {
 
+    get vertexShaderSource () {return `
+        attribute vec4 aVertexPosition;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        void main() {
+        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        }
+    `;}
+
+    get fragmentShaderSource ()  { return `
+        void main() {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    `;}
+
+  initializeGL() {
+    var canvas = document.getElementById("test-canvas");
+    if (!canvas) return;
+    this.gl = canvas.getContext("webgl"); 
+
+    function loadShader(gl, type, source) {
+        const shader = gl.createShader(type);
+      
+        // Send the source to the shader object
+      
+        gl.shaderSource(shader, source);
+      
+        // Compile the shader program
+      
+        gl.compileShader(shader);
+      
+        // See if it compiled successfully
+      
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          alert(
+            `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
+          );
+          gl.deleteShader(shader);
+          return null;
+        }
+      
+        return shader;
+    }
+
+    const vertexShader = loadShader(this.gl, this.gl.VERTEX_SHADER, this.vertexShaderSource);
+    const fragmentShader = loadShader(this.gl, this.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
+  
+    // Create the shader program
+  
+    const shaderProgram = this.gl.createProgram();
+    this.gl.attachShader(shaderProgram, vertexShader);
+    this.gl.attachShader(shaderProgram, fragmentShader);
+    this.gl.linkProgram(shaderProgram);
+  
+    // If creating the shader program failed, alert
+  
+    if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
+      alert(
+        `Unable to initialize the shader program: ${this.gl.getProgramInfoLog(
+          shaderProgram,
+        )}`,
+      );
+      return null;
+    }
+  }
+
   simulate() {
 
   }
@@ -82,7 +148,7 @@ function Canvas(props) {
 //not the right way to run a one-time init function, but I don't know the React way yet
 let didInit = false;
 
-function UAG() {
+function UAGComponent() {
     // document.addEventListener('mousemove', (e) => {
     //   let dimensions = getWindowDimensions();
     //   let xFromEvent = 2*e.clientX/dimensions.height - dimensions.width/dimensions.height,
@@ -104,6 +170,10 @@ function UAG() {
     let world = new World();
 
     function animate () {    
+        if (!world.gl) {
+            world.initializeGL();
+        }
+
         world.simulate();
         world.draw();
 
@@ -117,4 +187,4 @@ function UAG() {
   );
 }
 
-export default UAG;
+export default UAGComponent;
