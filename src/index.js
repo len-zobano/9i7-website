@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import Root from "./routes/root";
 import ErrorPage from "./error-page.js";
 import Particle from './component/particle.js';
+import UAG from './component/UAG.js';
 import NoteEditor from './component/note-editor.js';
 
 import {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/particle",
     element: <Particle />
+  },
+  {
+    path: "/UAG",
+    element: <UAG />
   },
   {
     path: "/notes/:noteID",

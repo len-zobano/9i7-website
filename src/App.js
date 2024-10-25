@@ -21,6 +21,7 @@ const App = ({}) => {
             element={< NoteEditor />}
           >  
           </Route>
+          <Route exact path='/UAG' element={< UAG />}></Route>
         </Routes>
       </Router>
   );

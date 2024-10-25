@@ -2,6 +2,7 @@ import logo from '../logo.svg';
 import '../App.scss';
 import React, {Component} from "react";
 import Particle from './particle';
+import UAG from './UAG';
 import NoteEditor from './note-editor';
 
 import {
@@ -24,6 +25,9 @@ const App = ({}) => {
 
             </NavigationCard>
             <NavigationCard imageSource="note-icon.png" to="/notes/0" title="Notes" caption="A tree-structured note-taking app for better-organized data. I'm putting a lot of text here so I can test how the cards look at different heights with varying caption lengths. Look at me, look at me, wow.">
+
+            </NavigationCard>
+            <NavigationCard imageSource="particle-screenshot.png" to="/UAG" title="Untitled adventure game" caption="A game of exploration, economy, and combat">
 
             </NavigationCard>
           </div>
