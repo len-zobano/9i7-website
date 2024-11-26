@@ -12,16 +12,24 @@ class World {
 
     get vertexShaderSource () {return `
         attribute vec4 aVertexPosition;
+        attribute vec4 aVertexColor;
+
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
+
+        varying lowp vec4 vColor;
+
         void main() {
-        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+          vColor = aVertexColor;
         }
     `;}
 
     get fragmentShaderSource ()  { return `
-        void main() {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        varying lowp vec4 vColor;
+
+        void main(void) {
+          gl_FragColor = vColor;
         }
     `;}
 
@@ -84,6 +92,7 @@ class World {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: this.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+            vertexColor: this.gl.getAttribLocation(shaderProgram, "aVertexColor"),
         },
         uniformLocations: {
             projectionMatrix: this.gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
@@ -99,10 +108,39 @@ class World {
     draw() {
         function initBuffers(gl) {
             const positionBuffer = initPositionBuffer(gl);
+            const colorBuffer = initColorBuffer(gl);
           
             return {
+              color: colorBuffer,
               position: positionBuffer,
             };
+        }
+
+        function initColorBuffer(gl) {
+          const colors = [
+            1.0,
+            1.0,
+            1.0,
+            1.0, // white
+            1.0,
+            0.0,
+            0.0,
+            1.0, // red
+            0.0,
+            1.0,
+            0.0,
+            1.0, // green
+            0.0,
+            0.0,
+            1.0,
+            1.0, // blue
+          ];
+        
+          const colorBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        
+          return colorBuffer;
         }
 
         function initPositionBuffer(gl) {
@@ -123,6 +161,25 @@ class World {
           
             return positionBuffer;
         } 
+
+        function setColorAttribute(gl, buffers, programInfo) {
+          const numComponents = 4;
+          const type = gl.FLOAT;
+          const normalize = false;
+          const stride = 0;
+          const offset = 0;
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+          gl.vertexAttribPointer(
+            programInfo.attribLocations.vertexColor,
+            numComponents,
+            type,
+            normalize,
+            stride,
+            offset,
+          );
+          gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+        }
+
         // Tell WebGL how to pull out the positions from the position
         // buffer into the vertexPosition attribute.
         function setPositionAttribute(gl, buffers, programInfo) {
@@ -176,6 +233,7 @@ class World {
               program: this.shaderProgram,
               attribLocations: {
                 vertexPosition: gl.getAttribLocation(this.shaderProgram, "aVertexPosition"),
+                vertexColor: gl.getAttribLocation(this.shaderProgram, "aVertexColor"),
               },
               uniformLocations: {
                 projectionMatrix: gl.getUniformLocation(this.shaderProgram, "uProjectionMatrix"),
@@ -205,6 +263,7 @@ class World {
             setPositionAttribute(gl, buffers, programInfo);
           
             // Tell WebGL to use our program when drawing
+            setColorAttribute(gl, buffers, programInfo);
             gl.useProgram(programInfo.program);
           
             // Set the shader uniforms
