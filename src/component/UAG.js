@@ -8,76 +8,52 @@ import {
   Link
 } from 'react-router-dom';
 
-class World {
+class RainbowCube {
 
-    get vertexShaderSource () {return `
-        attribute vec4 aVertexPosition;
-        attribute vec4 aVertexColor;
+  #position = [0,0,0];
 
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
+  get vertexShaderSource () {return `
+  attribute vec4 aVertexPosition;
+  attribute vec4 aVertexColor;
 
-        varying lowp vec4 vColor;
+  uniform mat4 uModelViewMatrix;
+  uniform mat4 uProjectionMatrix;
 
-        void main() {
-          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-          vColor = aVertexColor;
-        }
-    `;}
+  varying lowp vec4 vColor;
 
-    get fragmentShaderSource ()  { return `
-        varying lowp vec4 vColor;
+  void main() {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    vColor = aVertexColor;
+  }
+`;}
 
-        void main(void) {
-          gl_FragColor = vColor;
-        }
-    `;}
+  get fragmentShaderSource ()  { return `
+  varying lowp vec4 vColor;
 
-  initializeGL() {
-    var canvas = document.getElementById("test-canvas");
-    if (!canvas) return;
-    this.gl = canvas.getContext("webgl"); 
+  void main(void) {
+    gl_FragColor = vColor;
+  }
+  `;}
 
-    function loadShader(gl, type, source) {
-        const shader = gl.createShader(type);
-      
-        // Send the source to the shader object
-      
-        gl.shaderSource(shader, source);
-      
-        // Compile the shader program
-      
-        gl.compileShader(shader);
-      
-        // See if it compiled successfully
-      
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          console.log(
-            `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
-          );
-          gl.deleteShader(shader);
-          return null;
-        }
-      
-        return shader;
-    }
+  initializeGL(world) {
 
-    const vertexShader = loadShader(this.gl, this.gl.VERTEX_SHADER, this.vertexShaderSource);
-    const fragmentShader = loadShader(this.gl, this.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
+
+    const vertexShader = this.loadShader(world.gl, world.gl.VERTEX_SHADER, this.vertexShaderSource);
+    const fragmentShader = this.loadShader(world.gl, world.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
   
     // Create the shader program
   
-    const shaderProgram = this.gl.createProgram();
+    const shaderProgram = world.gl.createProgram();
     this.shaderProgram = shaderProgram;
-    this.gl.attachShader(shaderProgram, vertexShader);
-    this.gl.attachShader(shaderProgram, fragmentShader);
-    this.gl.linkProgram(shaderProgram);
+    world.gl.attachShader(shaderProgram, vertexShader);
+    world.gl.attachShader(shaderProgram, fragmentShader);
+    world.gl.linkProgram(shaderProgram);
   
     // If creating the shader program failed, console.log
   
-    if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
+    if (!world.gl.getProgramParameter(shaderProgram, world.gl.LINK_STATUS)) {
       console.log(
-        `Unable to initialize the shader program: ${this.gl.getProgramInfoLog(
+        `Unable to initialize the shader program: ${world.gl.getProgramInfoLog(
           shaderProgram,
         )}`,
       );
@@ -91,18 +67,73 @@ class World {
     const programInfo = {
         program: shaderProgram,
         attribLocations: {
-            vertexPosition: this.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-            vertexColor: this.gl.getAttribLocation(shaderProgram, "aVertexColor"),
+            vertexPosition: world.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+            vertexColor: world.gl.getAttribLocation(shaderProgram, "aVertexColor"),
         },
         uniformLocations: {
-            projectionMatrix: this.gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-            modelViewMatrix: this.gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+            projectionMatrix: world.gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+            modelViewMatrix: world.gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
         },
     };
+
   }
 
   simulate() {
 
+  }
+
+  draw() {
+
+  }
+}
+
+class World {
+
+    #currentTime = 0;
+
+    setTime(time) {
+      this.#currentTime = time;
+    }
+
+   loadShader(gl, type, source) {
+    const shader = gl.createShader(type);
+  
+    // Send the source to the shader object
+  
+    gl.shaderSource(shader, source);
+  
+    // Compile the shader program
+  
+    gl.compileShader(shader);
+  
+    // See if it compiled successfully
+  
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.log(
+        `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
+      );
+      gl.deleteShader(shader);
+      return null;
+    }
+  
+    return shader;
+  }
+
+  initializeGL() {
+    var canvas = document.getElementById("test-canvas");
+    if (!canvas) return;
+    this.gl = canvas.getContext("webgl"); 
+    //each element
+  }
+
+  simulate(time) {
+    if (!time) {
+      time = new Date().getTime();
+    }
+    
+    let interval = (time - this.#currentTime);
+
+    this.#currentTime = time;
   }
 
     draw() {
@@ -256,6 +287,15 @@ class World {
               modelViewMatrix, // matrix to translate
               [-0.0, 0.0, -6.0],
             ); // amount to translate
+
+            const squareRotation = 0.5;
+
+            glMatrix.mat4.rotate(
+              modelViewMatrix, // destination matrix
+              modelViewMatrix, // matrix to rotate
+              squareRotation, // amount to rotate in radians
+              [0, 0, 1],
+            );
           
             let buffers = initBuffers(gl);
             // Tell WebGL how to pull out the positions from the position
@@ -286,21 +326,6 @@ class World {
         
         }
     }
-}
-
-class Character {
-  draw() {
-    let dimensions = getWindowDimensions();
-
-    var canvas = document.getElementById("test-canvas");
-        var ctx = canvas.getContext("webgl"); 
-        // ctx.beginPath();
-        // ctx.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI, false);
-        // if (circle.fill) {
-        // ctx.fillStyle = circle.fill;
-        // ctx.fill();
-        // }
-  }
 }
 
 function getWindowDimensions() {
@@ -360,7 +385,10 @@ function UAGComponent() {
     //   anchorParticle.repulsion = 1;
     //   anchorParticle.gravity = 100;
     // });
+    let cube = new RainbowCube();
+
     let world = new World();
+    world.add(cube);
 
     function animate () {    
         if (!world.gl) {
