@@ -96,8 +96,8 @@ class RainbowCube {
   }
 
   initBuffers(gl) {
-    const positionBuffer = initPositionBuffer(gl);
-    const colorBuffer = initColorBuffer(gl);
+    const positionBuffer = this.initPositionBuffer(gl);
+    const colorBuffer = this.initColorBuffer(gl);
   
     return {
       color: colorBuffer,
@@ -222,22 +222,22 @@ class RainbowCube {
       [0, 0, 1],
     );
 
-    let buffers = this.initBuffers(gl);
+    let buffers = this.initBuffers(this.#world.gl);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(gl, buffers, programInfo);
+    this.setPositionAttribute(this.#world.gl, buffers, this.#programInfo);
   
     // Tell WebGL to use our program when drawing
-    this.setColorAttribute(gl, buffers, programInfo);
-    gl.useProgram(programInfo.program);
+    this.setColorAttribute(this.#world.gl, buffers, this.#programInfo);
+    this.#world.gl.useProgram(this.#programInfo.program);
   
     // Set the shader uniforms
-    gl.uniformMatrix4fv(
+    this.#world.gl.uniformMatrix4fv(
       this.programInfo.uniformLocations.projectionMatrix,
       false,
-      projectionMatrix,
+      this.#world.projectionMatrix,
     );
-    gl.uniformMatrix4fv(
+    this.#world.gl.uniformMatrix4fv(
       this.programInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix,
@@ -255,6 +255,7 @@ class World {
   #currentTime = 0;
   #simulatables = [];
   #drawables = [];
+  #projectionMatrix = null;
 
   addSimulatable(simulatableToAdd) {
     this.#simulatables.push(simulatableToAdd);
@@ -319,10 +320,10 @@ class World {
             const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
             const zNear = 0.1;
             const zFar = 100.0;
-            const projectionMatrix = glMatrix.mat4.create();
+            this.#projectionMatrix = glMatrix.mat4.create();
             // note: glmatrix.js always has the first argument
             // as the destination to receive the result.
-            glMatrix.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+            glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
         }
     }
 }
