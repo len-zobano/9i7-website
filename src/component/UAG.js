@@ -110,6 +110,7 @@ class RainbowCube {
   #programInfo = null;
   #world = null;
   #angle = 0;
+  #buffers = null;
 
   get vertexShaderSource () {return `
   attribute vec4 aVertexPosition;
@@ -180,6 +181,8 @@ class RainbowCube {
       return null;
     }
 
+    this.#buffers = this.initBuffers(this.#world.gl);
+
     /*
         Initialize the shape buffer
     */
@@ -228,13 +231,13 @@ class RainbowCube {
       [0, 0, 1],
     );
 
-    let buffers = this.initBuffers(this.#world.gl);
+    
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(this.#world.gl, buffers, this.#programInfo);
+    this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
   
     // Tell WebGL to use our program when drawing
-    this.setColorAttribute(this.#world.gl, buffers, this.#programInfo);
+    this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
     this.#world.gl.useProgram(this.#programInfo.program);
   
     // Set the shader uniforms
