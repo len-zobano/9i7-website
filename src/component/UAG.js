@@ -201,6 +201,7 @@ class RainbowCube {
   }
 
   draw() {
+    console.log("drawng cube");
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
     const modelViewMatrix = glMatrix.mat4.create();
@@ -232,13 +233,15 @@ class RainbowCube {
     this.#world.gl.useProgram(this.#programInfo.program);
   
     // Set the shader uniforms
+    let thisWorld = this.#world;
+    let thisProgramInfo = this.#programInfo;
     this.#world.gl.uniformMatrix4fv(
-      this.programInfo.uniformLocations.projectionMatrix,
+      this.#programInfo.uniformLocations.projectionMatrix,
       false,
       this.#world.projectionMatrix,
     );
     this.#world.gl.uniformMatrix4fv(
-      this.programInfo.uniformLocations.modelViewMatrix,
+      this.#programInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix,
     );
@@ -256,6 +259,10 @@ class World {
   #simulatables = [];
   #drawables = [];
   #projectionMatrix = null;
+
+  get projectionMatrix() {
+    return this.#projectionMatrix;
+  }
 
   addSimulatable(simulatableToAdd) {
     this.#simulatables.push(simulatableToAdd);
@@ -324,6 +331,9 @@ class World {
             // note: glmatrix.js always has the first argument
             // as the destination to receive the result.
             glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
+            this.#drawables.forEach((drawable) => {
+              drawable.draw(this);
+            }); 
         }
     }
 }
