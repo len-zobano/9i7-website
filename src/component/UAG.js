@@ -199,6 +199,13 @@ class RainbowCube {
         },
     };
 
+    // Tell WebGL how to pull out the positions from the position
+    // buffer into the vertexPosition attribute.
+    this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
+  
+    // Tell WebGL to use our program when drawing
+    this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
+
   }
 
   simulate(world, thisTime) {
@@ -231,18 +238,9 @@ class RainbowCube {
       [0, 0, 1],
     );
 
-    
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
-  
-    // Tell WebGL to use our program when drawing
-    this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
     this.#world.gl.useProgram(this.#programInfo.program);
   
     // Set the shader uniforms
-    let thisWorld = this.#world;
-    let thisProgramInfo = this.#programInfo;
     this.#world.gl.uniformMatrix4fv(
       this.#programInfo.uniformLocations.projectionMatrix,
       false,
