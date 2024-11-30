@@ -10,6 +10,7 @@ import {
 
 class RainbowCube {
 
+  #lastTime = 0;
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
@@ -108,6 +109,7 @@ class RainbowCube {
   #position = [0,0,0];
   #programInfo = null;
   #world = null;
+  #angle = 0;
 
   get vertexShaderSource () {return `
   attribute vec4 aVertexPosition;
@@ -196,11 +198,16 @@ class RainbowCube {
 
   }
 
-  simulate() {
-
+  simulate(world, thisTime) {
+    if (this.#lastTime) {
+      let interval = thisTime - this.#lastTime;
+      this.#angle += interval / 500;
+    }
+    
+    this.#lastTime = thisTime;
   }
 
-  draw() {
+  draw(world) {
     console.log("drawng cube");
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
@@ -214,12 +221,10 @@ class RainbowCube {
       [-0.0, 0.0, -6.0],
     ); // amount to translate
 
-    const squareRotation = 0.5;
-
     glMatrix.mat4.rotate(
       modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to rotate
-      squareRotation, // amount to rotate in radians
+      this.#angle, // amount to rotate in radians
       [0, 0, 1],
     );
 
@@ -291,13 +296,12 @@ class World {
     });
   }
 
-  simulate(time) {
-    if (!time) {
-      time = new Date().getTime();
-    }
-    
-    let interval = (time - this.#currentTime);
-    this.#currentTime = time;
+  simulate() {
+    let thisTime = new Date().getTime();
+
+    this.#simulatables.forEach((simulatable) => {
+      simulatable.simulate(this, thisTime);
+    });
   }
 
     draw() {
