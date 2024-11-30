@@ -5,7 +5,7 @@ class RainbowCube {
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
-      const numComponents = 2; // pull out 2 values per iteration
+      const numComponents = 3; // pull out 2 values per iteration
       const type = gl.FLOAT; // the data in the buffer is 32bit floats
       const normalize = false; // don't normalize
       const stride = 0; // how many bytes to get from one set of values to the next
@@ -41,6 +41,64 @@ class RainbowCube {
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
   }
 
+  initIndexBuffer(gl) {
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  
+    // This array defines each face as two triangles, using the
+    // indices into the vertex array to specify each triangle's
+    // position.
+  
+    const indices = [
+      0,
+      1,
+      2,
+      0,
+      2,
+      3, // front
+      4,
+      5,
+      6,
+      4,
+      6,
+      7, // back
+      8,
+      9,
+      10,
+      8,
+      10,
+      11, // top
+      12,
+      13,
+      14,
+      12,
+      14,
+      15, // bottom
+      16,
+      17,
+      18,
+      16,
+      18,
+      19, // right
+      20,
+      21,
+      22,
+      20,
+      22,
+      23, // left
+    ];
+  
+    // Now send the element array to GL
+  
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(indices),
+      gl.STATIC_DRAW,
+    );
+  
+    return indexBuffer;
+  }
+
   initPositionBuffer(gl) {
     // Create a buffer for the square's positions.
     const positionBuffer = gl.createBuffer();
@@ -50,7 +108,25 @@ class RainbowCube {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   
     // Now create an array of positions for the square.
-    const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+    const positions = [
+        // Front face
+        -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+      
+        // Back face
+        -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
+      
+        // Top face
+        -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+      
+        // Bottom face
+        -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
+      
+        // Right face
+        1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+      
+        // Left face
+        -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+      ];
   
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
@@ -61,24 +137,24 @@ class RainbowCube {
 } 
 
   initColorBuffer(gl) {
-    const colors = [
-      1.0,
-      1.0,
-      1.0,
-      1.0, // white
-      1.0,
-      0.0,
-      0.0,
-      1.0, // red
-      0.0,
-      1.0,
-      0.0,
-      1.0, // green
-      0.0,
-      0.0,
-      1.0,
-      1.0, // blue
-    ];
+    const faceColors = [
+        [1.0, 1.0, 1.0, 1.0], // Front face: white
+        [1.0, 0.0, 0.0, 1.0], // Back face: red
+        [0.0, 1.0, 0.0, 1.0], // Top face: green
+        [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
+        [1.0, 1.0, 0.0, 1.0], // Right face: yellow
+        [1.0, 0.0, 1.0, 1.0], // Left face: purple
+      ];
+      
+      // Convert the array of colors into a table for all the vertices.
+
+    let colors = [];
+
+    for (var j = 0; j < faceColors.length; ++j) {
+        const c = faceColors[j];
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(c, c, c, c);
+    }// Convert the array of colors into a table for all the vertices.
   
     const colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -90,8 +166,10 @@ class RainbowCube {
   initBuffers(gl) {
     const positionBuffer = this.initPositionBuffer(gl);
     const colorBuffer = this.initColorBuffer(gl);
-  
+    const indexBuffer = this.initIndexBuffer(gl);
+
     return {
+      indices: indexBuffer,
       color: colorBuffer,
       position: positionBuffer,
     };
@@ -232,6 +310,21 @@ class RainbowCube {
       [0, 0, 1],
     );
 
+    glMatrix.mat4.rotate(
+        modelViewMatrix, // destination matrix
+        modelViewMatrix, // matrix to rotate
+        this.#angle/2, // amount to rotate in radians
+        [0, 1, 0],
+    );
+
+    glMatrix.mat4.rotate(
+        modelViewMatrix, // destination matrix
+        modelViewMatrix, // matrix to rotate
+        this.#angle/3, // amount to rotate in radians
+        [1, 0, 0],
+    );
+
+    this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
     this.#world.gl.useProgram(this.#programInfo.program);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -253,8 +346,9 @@ class RainbowCube {
   
     {
       const offset = 0;
-      const vertexCount = 4;
-      this.#world.gl.drawArrays(this.#world.gl.TRIANGLE_STRIP, offset, vertexCount);
+      const vertexCount = 36;
+      const type = this.#world.gl.UNSIGNED_SHORT;
+      this.#world.gl.drawElements(this.#world.gl.TRIANGLES, vertexCount, type, offset);
     }
   }
 }
