@@ -34,7 +34,22 @@ class World {
   #currentTime = 0;
   #simulatables = [];
   #drawables = [];
+  #controllables = [];
   #projectionMatrix = null;
+
+  keyIsUp(keyCode) {
+    console.log('key up:',keyCode);
+    this.#controllables.forEach((controllable) => {
+        controllable.keyIsUp(keyCode);
+    });
+  }
+
+  keyIsDown(keyCode) {
+    console.log('key down:',keyCode);
+    this.#controllables.forEach((controllable) => {
+        controllable.keyIsDown(keyCode);
+    });
+  }
 
   get projectionMatrix() {
     return this.#projectionMatrix;
@@ -46,6 +61,10 @@ class World {
 
   addDrawable(drawableToAdd) {
     this.#drawables.push(drawableToAdd);
+  }
+
+  addControllable(controllableToAdd) {
+    this.#controllables.push(controllableToAdd);
   }
 
   addDrawableAndSimulatable(drawableAndSimulatableToAdd) {

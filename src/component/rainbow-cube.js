@@ -2,6 +2,8 @@ import * as glMatrix from 'gl-matrix';
 
 class RainbowCube {
   #lastTime = 0;
+  #YAxisRotationsPerSecond = 0;
+  #XAxisRotationsPerSecond = 0;
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
@@ -21,6 +23,19 @@ class RainbowCube {
           offset,
       );
       gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    }
+
+    #downKeys = {};
+
+    keyIsDown(keyCode) {
+        console.log('key is down at cube: ',keyCode);
+        this.#downKeys[keyCode] = true;
+        console.log('down keys: ',this.#downKeys);
+    }
+
+    keyIsUp(keyCode) {
+        console.log('key is up at cube',keyCode);
+        this.#downKeys[keyCode] = false;
     }
 
   setColorAttribute(gl, buffers, programInfo) {
@@ -187,7 +202,8 @@ class RainbowCube {
 
   #programInfo = null;
   #world = null;
-  #angle = 0;
+  #XAngle = 0;
+  #YAngle = 0;
   #buffers = null;
 
   get vertexShaderSource () {return `
@@ -283,14 +299,38 @@ class RainbowCube {
   simulate(world, thisTime) {
     if (this.#lastTime) {
       let interval = thisTime - this.#lastTime;
-      this.#angle += interval / 500;
+
+        //a is down
+        if (this.#downKeys[65]) {
+            this.#YAxisRotationsPerSecond -= interval / 50;
+        }
+
+        //d is down
+        if (this.#downKeys[68]) {
+            this.#YAxisRotationsPerSecond += interval / 50;
+        }
+
+        //w
+        if (this.#downKeys[87]) {
+            this.#XAxisRotationsPerSecond -= interval / 50;
+        }
+
+        //w
+        if (this.#downKeys[83]) {
+            this.#XAxisRotationsPerSecond += interval / 50;
+        }
+
+        this.#XAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
+        this.#YAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
+
+        this.#YAngle += this.#YAxisRotationsPerSecond/interval;
+        this.#XAngle += this.#XAxisRotationsPerSecond/interval;
     }
-    
+
     this.#lastTime = thisTime;
   }
 
   draw(world) {
-    console.log("drawng cube");
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
     const modelViewMatrix = glMatrix.mat4.create();
@@ -303,24 +343,24 @@ class RainbowCube {
       this.#position,
     ); // amount to translate
 
-    glMatrix.mat4.rotate(
-      modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to rotate
-      this.#angle, // amount to rotate in radians
-      [0, 0, 1],
-    );
+    // glMatrix.mat4.rotate(
+    //   modelViewMatrix, // destination matrix
+    //   modelViewMatrix, // matrix to rotate
+    //   this.#angle, // amount to rotate in radians
+    //   [0, 0, 1],
+    // );
 
     glMatrix.mat4.rotate(
         modelViewMatrix, // destination matrix
         modelViewMatrix, // matrix to rotate
-        this.#angle/2, // amount to rotate in radians
+        this.#YAngle, // amount to rotate in radians
         [0, 1, 0],
     );
 
     glMatrix.mat4.rotate(
         modelViewMatrix, // destination matrix
         modelViewMatrix, // matrix to rotate
-        this.#angle/3, // amount to rotate in radians
+        this.#XAngle, // amount to rotate in radians
         [1, 0, 0],
     );
 
