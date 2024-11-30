@@ -10,7 +10,104 @@ import {
 
 class RainbowCube {
 
+    // Tell WebGL how to pull out the positions from the position
+    // buffer into the vertexPosition attribute.
+    setPositionAttribute(gl, buffers, programInfo) {
+      const numComponents = 2; // pull out 2 values per iteration
+      const type = gl.FLOAT; // the data in the buffer is 32bit floats
+      const normalize = false; // don't normalize
+      const stride = 0; // how many bytes to get from one set of values to the next
+      // 0 = use type and numComponents above
+      const offset = 0; // how many bytes inside the buffer to start from
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+      gl.vertexAttribPointer(
+          programInfo.attribLocations.vertexPosition,
+          numComponents,
+          type,
+          normalize,
+          stride,
+          offset,
+      );
+      gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    }
+
+  setColorAttribute(gl, buffers, programInfo) {
+    const numComponents = 4;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.vertexColor,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset,
+    );
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+  }
+
+  initPositionBuffer(gl) {
+    // Create a buffer for the square's positions.
+    const positionBuffer = gl.createBuffer();
+  
+    // Select the positionBuffer as the one to apply buffer
+    // operations to from here out.
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  
+    // Now create an array of positions for the square.
+    const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+  
+    // Now pass the list of positions into WebGL to build the
+    // shape. We do this by creating a Float32Array from the
+    // JavaScript array, then use it to fill the current buffer.
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  
+    return positionBuffer;
+} 
+
+  initColorBuffer(gl) {
+    const colors = [
+      1.0,
+      1.0,
+      1.0,
+      1.0, // white
+      1.0,
+      0.0,
+      0.0,
+      1.0, // red
+      0.0,
+      1.0,
+      0.0,
+      1.0, // green
+      0.0,
+      0.0,
+      1.0,
+      1.0, // blue
+    ];
+  
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+  
+    return colorBuffer;
+  }
+
+  initBuffers(gl) {
+    const positionBuffer = initPositionBuffer(gl);
+    const colorBuffer = initColorBuffer(gl);
+  
+    return {
+      color: colorBuffer,
+      position: positionBuffer,
+    };
+  }
+
   #position = [0,0,0];
+  #programInfo = null;
+  #world = null;
 
   get vertexShaderSource () {return `
   attribute vec4 aVertexPosition;
@@ -35,9 +132,30 @@ class RainbowCube {
   }
   `;}
 
+  loadShader(gl, type, source) {
+    const shader = gl.createShader(type);
+  
+    // Send the source to the shader object
+    gl.shaderSource(shader, source);
+  
+    // Compile the shader program
+    gl.compileShader(shader);
+  
+    // See if it compiled successfully
+  
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.log(
+        `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
+      );
+      gl.deleteShader(shader);
+      return null;
+    }
+  
+    return shader;
+  }
+
   initializeGL(world) {
-
-
+    this.#world = world;
     const vertexShader = this.loadShader(world.gl, world.gl.VERTEX_SHADER, this.vertexShaderSource);
     const fragmentShader = this.loadShader(world.gl, world.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
   
@@ -64,7 +182,7 @@ class RainbowCube {
         Initialize the shape buffer
     */
     
-    const programInfo = {
+    this.#programInfo = {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: world.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
@@ -83,47 +201,86 @@ class RainbowCube {
   }
 
   draw() {
+    // Set the drawing position to the "identity" point, which is
+    // the center of the scene.
+    const modelViewMatrix = glMatrix.mat4.create();
+  
+    // Now move the drawing position a bit to where we want to
+    // start drawing the square.
+    glMatrix.mat4.translate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to translate
+      [-0.0, 0.0, -6.0],
+    ); // amount to translate
 
+    const squareRotation = 0.5;
+
+    glMatrix.mat4.rotate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to rotate
+      squareRotation, // amount to rotate in radians
+      [0, 0, 1],
+    );
+
+    let buffers = this.initBuffers(gl);
+    // Tell WebGL how to pull out the positions from the position
+    // buffer into the vertexPosition attribute.
+    this.setPositionAttribute(gl, buffers, programInfo);
+  
+    // Tell WebGL to use our program when drawing
+    this.setColorAttribute(gl, buffers, programInfo);
+    gl.useProgram(programInfo.program);
+  
+    // Set the shader uniforms
+    gl.uniformMatrix4fv(
+      this.programInfo.uniformLocations.projectionMatrix,
+      false,
+      projectionMatrix,
+    );
+    gl.uniformMatrix4fv(
+      this.programInfo.uniformLocations.modelViewMatrix,
+      false,
+      modelViewMatrix,
+    );
+  
+    {
+      const offset = 0;
+      const vertexCount = 4;
+      this.#world.gl.drawArrays(this.#world.gl.TRIANGLE_STRIP, offset, vertexCount);
+    }
   }
 }
 
 class World {
+  #currentTime = 0;
+  #simulatables = [];
+  #drawables = [];
 
-    #currentTime = 0;
+  addSimulatable(simulatableToAdd) {
+    this.#simulatables.push(simulatableToAdd);
+  }
 
-    setTime(time) {
-      this.#currentTime = time;
-    }
+  addDrawable(drawableToAdd) {
+    this.#drawables.push(drawableToAdd);
+  }
 
-   loadShader(gl, type, source) {
-    const shader = gl.createShader(type);
-  
-    // Send the source to the shader object
-  
-    gl.shaderSource(shader, source);
-  
-    // Compile the shader program
-  
-    gl.compileShader(shader);
-  
-    // See if it compiled successfully
-  
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.log(
-        `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
-      );
-      gl.deleteShader(shader);
-      return null;
-    }
-  
-    return shader;
+  addDrawableAndSimulatable(drawableAndSimulatableToAdd) {
+    this.addSimulatable(drawableAndSimulatableToAdd);
+    this.addDrawable(drawableAndSimulatableToAdd);
+  }
+
+  setTime(time) {
+    this.#currentTime = time;
   }
 
   initializeGL() {
     var canvas = document.getElementById("test-canvas");
     if (!canvas) return;
     this.gl = canvas.getContext("webgl"); 
-    //each element
+    //initialize each drawable
+    this.#drawables.forEach((drawable) => {
+      drawable.initializeGL(this);
+    });
   }
 
   simulate(time) {
@@ -132,109 +289,13 @@ class World {
     }
     
     let interval = (time - this.#currentTime);
-
     this.#currentTime = time;
   }
 
     draw() {
-        function initBuffers(gl) {
-            const positionBuffer = initPositionBuffer(gl);
-            const colorBuffer = initColorBuffer(gl);
-          
-            return {
-              color: colorBuffer,
-              position: positionBuffer,
-            };
-        }
-
-        function initColorBuffer(gl) {
-          const colors = [
-            1.0,
-            1.0,
-            1.0,
-            1.0, // white
-            1.0,
-            0.0,
-            0.0,
-            1.0, // red
-            0.0,
-            1.0,
-            0.0,
-            1.0, // green
-            0.0,
-            0.0,
-            1.0,
-            1.0, // blue
-          ];
-        
-          const colorBuffer = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        
-          return colorBuffer;
-        }
-
-        function initPositionBuffer(gl) {
-            // Create a buffer for the square's positions.
-            const positionBuffer = gl.createBuffer();
-          
-            // Select the positionBuffer as the one to apply buffer
-            // operations to from here out.
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-          
-            // Now create an array of positions for the square.
-            const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
-          
-            // Now pass the list of positions into WebGL to build the
-            // shape. We do this by creating a Float32Array from the
-            // JavaScript array, then use it to fill the current buffer.
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-          
-            return positionBuffer;
-        } 
-
-        function setColorAttribute(gl, buffers, programInfo) {
-          const numComponents = 4;
-          const type = gl.FLOAT;
-          const normalize = false;
-          const stride = 0;
-          const offset = 0;
-          gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-          gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexColor,
-            numComponents,
-            type,
-            normalize,
-            stride,
-            offset,
-          );
-          gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-        }
-
-        // Tell WebGL how to pull out the positions from the position
-        // buffer into the vertexPosition attribute.
-        function setPositionAttribute(gl, buffers, programInfo) {
-            const numComponents = 2; // pull out 2 values per iteration
-            const type = gl.FLOAT; // the data in the buffer is 32bit floats
-            const normalize = false; // don't normalize
-            const stride = 0; // how many bytes to get from one set of values to the next
-            // 0 = use type and numComponents above
-            const offset = 0; // how many bytes inside the buffer to start from
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-            gl.vertexAttribPointer(
-                programInfo.attribLocations.vertexPosition,
-                numComponents,
-                type,
-                normalize,
-                stride,
-                offset,
-            );
-            gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-        }
-
         let dimensions = getWindowDimensions();
-
         var canvas = document.getElementById("test-canvas");
+
         if (canvas) {
             var gl = canvas.getContext("webgl"); 
 
@@ -259,71 +320,9 @@ class World {
             const zNear = 0.1;
             const zFar = 100.0;
             const projectionMatrix = glMatrix.mat4.create();
-          
-            const programInfo = {
-              program: this.shaderProgram,
-              attribLocations: {
-                vertexPosition: gl.getAttribLocation(this.shaderProgram, "aVertexPosition"),
-                vertexColor: gl.getAttribLocation(this.shaderProgram, "aVertexColor"),
-              },
-              uniformLocations: {
-                projectionMatrix: gl.getUniformLocation(this.shaderProgram, "uProjectionMatrix"),
-                modelViewMatrix: gl.getUniformLocation(this.shaderProgram, "uModelViewMatrix"),
-              },
-            };
-
             // note: glmatrix.js always has the first argument
             // as the destination to receive the result.
             glMatrix.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-          
-            // Set the drawing position to the "identity" point, which is
-            // the center of the scene.
-            const modelViewMatrix = glMatrix.mat4.create();
-          
-            // Now move the drawing position a bit to where we want to
-            // start drawing the square.
-            glMatrix.mat4.translate(
-              modelViewMatrix, // destination matrix
-              modelViewMatrix, // matrix to translate
-              [-0.0, 0.0, -6.0],
-            ); // amount to translate
-
-            const squareRotation = 0.5;
-
-            glMatrix.mat4.rotate(
-              modelViewMatrix, // destination matrix
-              modelViewMatrix, // matrix to rotate
-              squareRotation, // amount to rotate in radians
-              [0, 0, 1],
-            );
-          
-            let buffers = initBuffers(gl);
-            // Tell WebGL how to pull out the positions from the position
-            // buffer into the vertexPosition attribute.
-            setPositionAttribute(gl, buffers, programInfo);
-          
-            // Tell WebGL to use our program when drawing
-            setColorAttribute(gl, buffers, programInfo);
-            gl.useProgram(programInfo.program);
-          
-            // Set the shader uniforms
-            gl.uniformMatrix4fv(
-              programInfo.uniformLocations.projectionMatrix,
-              false,
-              projectionMatrix,
-            );
-            gl.uniformMatrix4fv(
-              programInfo.uniformLocations.modelViewMatrix,
-              false,
-              modelViewMatrix,
-            );
-          
-            {
-              const offset = 0;
-              const vertexCount = 4;
-              gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
-            }
-        
         }
     }
 }
@@ -388,7 +387,7 @@ function UAGComponent() {
     let cube = new RainbowCube();
 
     let world = new World();
-    world.add(cube);
+    world.addDrawableAndSimulatable(cube);
 
     function animate () {    
         if (!world.gl) {
