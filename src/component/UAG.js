@@ -107,6 +107,15 @@ class RainbowCube {
   }
 
   #position = [0,0,0];
+
+  get position() {
+    return this.#position;
+  }
+
+  set position(position) {
+    this.#position = position;
+  }
+
   #programInfo = null;
   #world = null;
   #angle = 0;
@@ -228,7 +237,7 @@ class RainbowCube {
     glMatrix.mat4.translate(
       modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to translate
-      [-0.0, 0.0, -6.0],
+      this.#position,
     ); // amount to translate
 
     glMatrix.mat4.rotate(
@@ -382,28 +391,15 @@ function Canvas(props) {
 let didInit = false;
 
 function UAGComponent() {
-    // document.addEventListener('mousemove', (e) => {
-    //   let dimensions = getWindowDimensions();
-    //   let xFromEvent = 2*e.clientX/dimensions.height - dimensions.width/dimensions.height,
-    //   yFromEvent = 2*e.clientY/dimensions.height - 1;
-
-    //   anchorParticle.position = [xFromEvent, yFromEvent, 0];
-    //   console.log('mouse move',e,anchorParticle.position);
-    // });
-
-    // document.addEventListener('mousedown', () => {
-    //   anchorParticle.repulsion = 100;
-    //   anchorParticle.gravity = 0;
-    // });
-
-    // document.addEventListener('mouseup', () => {
-    //   anchorParticle.repulsion = 1;
-    //   anchorParticle.gravity = 100;
-    // });
     let cube = new RainbowCube();
+    cube.position = [0,0,-24];
+
+    let cube2 = new RainbowCube();
+    cube2.position = [4,4,-24];
 
     let world = new World();
     world.addDrawableAndSimulatable(cube);
+    world.addDrawableAndSimulatable(cube2);
 
     function animate () {    
         if (!world.gl) {
