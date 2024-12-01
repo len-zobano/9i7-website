@@ -35,10 +35,23 @@ class World {
   #simulatables = [];
   #drawables = [];
   #controllables = [];
+  #selectables = [];
+  #selected = null;
   #projectionMatrix = null;
 
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
+    
+    //bracket - switch selected
+    if (keyCode === 221) {
+        let indexOfSelected = this.#selectables.indexOf(this.#selected);
+        let indexOfNextSelected = (indexOfSelected + 1) % this.#selectables.length;
+        let lastSelected = this.#selected;
+        this.#selected = this.#selectables[indexOfNextSelected];
+        lastSelected.select(false);
+        this.#selected.select(true);
+    }
+
     this.#controllables.forEach((controllable) => {
         controllable.keyIsUp(keyCode);
     });
@@ -65,6 +78,14 @@ class World {
 
   addControllable(controllableToAdd) {
     this.#controllables.push(controllableToAdd);
+  }
+
+  addSelectable(selectable) {
+    this.#selectables.push(selectable);
+    if (this.#selectables.length === 1) {
+        selectable.select(true);
+        this.#selected = selectable;
+    }
   }
 
   addDrawableAndSimulatable(drawableAndSimulatableToAdd) {

@@ -8,6 +8,7 @@ class RainbowCube {
   #YAxisTranslationsPerSecond = 0;
   #XAxisTranslationsPerSecond = 0;
   #ZAxisTranslationsPerSecond = 0;
+  #selected = false;    
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
@@ -31,14 +32,16 @@ class RainbowCube {
 
     #downKeys = {};
 
+    select(selected) {
+        console.log("select at cube");
+        this.#selected = selected;
+    }
+
     keyIsDown(keyCode) {
-        console.log('key is down at cube: ',keyCode);
         this.#downKeys[keyCode] = true;
-        console.log('down keys: ',this.#downKeys);
     }
 
     keyIsUp(keyCode) {
-        console.log('key is up at cube',keyCode);
         this.#downKeys[keyCode] = false;
     }
 
@@ -245,9 +248,6 @@ class RainbowCube {
     // See if it compiled successfully
   
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.log(
-        `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
-      );
       gl.deleteShader(shader);
       return null;
     }
@@ -304,54 +304,56 @@ class RainbowCube {
     if (this.#lastTime) {
       let interval = thisTime - this.#lastTime;
 
-        //a is down
-        if (this.#downKeys[65]) {
-            this.#YAxisRotationsPerSecond -= interval / 50;
-        }
-
-        //d is down
-        if (this.#downKeys[68]) {
-            this.#YAxisRotationsPerSecond += interval / 50;
-        }
-
-        //w
-        if (this.#downKeys[87]) {
-            this.#XAxisRotationsPerSecond -= interval / 50;
-        }
-
-        //w
-        if (this.#downKeys[83]) {
-            this.#XAxisRotationsPerSecond += interval / 50;
-        }
-
-        //right arrow
-        if (this.#downKeys[39]) {
-            this.#XAxisTranslationsPerSecond += interval / 20;
-        }
-
-        //up arrow
-        if (this.#downKeys[38]) {
-            if (this.#downKeys[16]) {
-                this.#ZAxisTranslationsPerSecond += interval / 20;
+        if (this.#selected) {
+            //a is down
+            if (this.#downKeys[65]) {
+                this.#YAxisRotationsPerSecond -= interval / 50;
             }
-            else {
-                this.#YAxisTranslationsPerSecond += interval / 20;
-            }
-        }
 
-        //down arrow
-        if (this.#downKeys[40]) {         
-            if (this.#downKeys[16]) {
-                this.#ZAxisTranslationsPerSecond -= interval / 20;
+            //d is down
+            if (this.#downKeys[68]) {
+                this.#YAxisRotationsPerSecond += interval / 50;
             }
-            else {
-                this.#YAxisTranslationsPerSecond -= interval / 20;
-            }
-        }
 
-        //left arrow
-        if (this.#downKeys[37]) {
-            this.#XAxisTranslationsPerSecond -= interval / 20;
+            //w
+            if (this.#downKeys[87]) {
+                this.#XAxisRotationsPerSecond -= interval / 50;
+            }
+
+            //w
+            if (this.#downKeys[83]) {
+                this.#XAxisRotationsPerSecond += interval / 50;
+            }
+
+            //right arrow
+            if (this.#downKeys[39]) {
+                this.#XAxisTranslationsPerSecond += interval / 20;
+            }
+
+            //up arrow
+            if (this.#downKeys[38]) {
+                if (this.#downKeys[16]) {
+                    this.#ZAxisTranslationsPerSecond += interval / 20;
+                }
+                else {
+                    this.#YAxisTranslationsPerSecond += interval / 20;
+                }
+            }
+
+            //down arrow
+            if (this.#downKeys[40]) {         
+                if (this.#downKeys[16]) {
+                    this.#ZAxisTranslationsPerSecond -= interval / 20;
+                }
+                else {
+                    this.#YAxisTranslationsPerSecond -= interval / 20;
+                }
+            }
+
+            //left arrow
+            if (this.#downKeys[37]) {
+                this.#XAxisTranslationsPerSecond -= interval / 20;
+            }
         }
 
         this.#XAxisRotationsPerSecond *= Math.pow(0.9,interval/100);

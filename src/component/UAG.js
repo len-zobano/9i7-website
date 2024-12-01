@@ -52,13 +52,16 @@ function UAGComponent() {
     let cube = new RainbowCube();
     cube.position = [0,0,-24];
 
-    // let cube2 = new RainbowCube();
-    // cube2.position = [1,1,-20];
+    let cube2 = new RainbowCube();
+    cube2.position = [1,1,-20];
 
     let world = new World();
     world.addDrawableAndSimulatable(cube);
     world.addControllable(cube);
-    // world.addDrawableAndSimulatable(cube2);
+    world.addSelectable(cube);
+    world.addDrawableAndSimulatable(cube2);
+    world.addControllable(cube2);
+    world.addSelectable(cube2);
     
     document.addEventListener('keydown', function(event) {
       world.keyIsDown(event.keyCode);
