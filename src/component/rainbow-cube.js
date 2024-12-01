@@ -2,12 +2,12 @@ import * as glMatrix from 'gl-matrix';
 
 class RainbowCube {
   #lastTime = 0;
+  #momentum = [0,0,0];
+  #collisionMomentum = [0,0,0];
+
   #YAxisRotationsPerSecond = 0;
   #XAxisRotationsPerSecond = 0;
   #ZAxisRotationsPerSecond = 0;
-  #YAxisTranslationsPerSecond = 0;
-  #XAxisTranslationsPerSecond = 0;
-  #ZAxisTranslationsPerSecond = 0;
   #selected = false;    
   get broadCollisionRadius () {
     return 1.2;
@@ -48,9 +48,32 @@ class RainbowCube {
     }
 
     onCollision(otherCollidable) {
-        this.#XAxisTranslationsPerSecond *= -1;
-        this.#YAxisTranslationsPerSecond *= -1;
-        this.#ZAxisTranslationsPerSecond *= -1;
+        //calculate magnitude of momentum
+        let combinedMomentum = [], magnitudeOfCombinedMomentum = 0;
+        for (let i = 0; i < 3; ++i) {
+            combinedMomentum[i] = otherCollidable.#momentum[i] - this.#momentum[i];
+            magnitudeOfCombinedMomentum += Math.pow(combinedMomentum[i],2);
+        }
+        magnitudeOfCombinedMomentum = Math.pow(magnitudeOfCombinedMomentum,0.5);
+        //divide it in two
+
+        //go in opposite direction of collision
+        let relativePositionOfOther = [], distanceFromOther = 0;
+        for (let i = 0; i < 3; ++i) {
+            relativePositionOfOther[i] = otherCollidable.#position[i] - this.#position[i];
+            distanceFromOther += Math.pow(relativePositionOfOther[i], 2);
+        }
+        distanceFromOther = Math.pow(distanceFromOther, 0.5);
+
+        //make it a vector of length 1
+        let normalizedPositionOfOther = relativePositionOfOther.map((relativePosition) => {
+            return relativePosition / distanceFromOther; 
+        });
+
+        //go away from the direction of the other with the magnitude of half the combined momentum
+        for (let i = 0; i < 3; ++i) {
+            this.#collisionMomentum[i] -= normalizedPositionOfOther[i] * magnitudeOfCombinedMomentum / 2;
+        }
     }
 
     select(selected) {
@@ -348,47 +371,54 @@ class RainbowCube {
 
             //right arrow
             if (this.#downKeys[39]) {
-                this.#XAxisTranslationsPerSecond += interval / 20;
+                this.#momentum[0] += interval / 20;
             }
 
             //up arrow
             if (this.#downKeys[38]) {
                 if (this.#downKeys[16]) {
-                    this.#ZAxisTranslationsPerSecond += interval / 20;
+                    this.#momentum[2] += interval / 20;
                 }
                 else {
-                    this.#YAxisTranslationsPerSecond += interval / 20;
+                    this.#momentum[1] += interval / 20;
                 }
             }
 
             //down arrow
             if (this.#downKeys[40]) {         
                 if (this.#downKeys[16]) {
-                    this.#ZAxisTranslationsPerSecond -= interval / 20;
+                    this.#momentum[2] -= interval / 20;
                 }
                 else {
-                    this.#YAxisTranslationsPerSecond -= interval / 20;
+                    this.#momentum[1] -= interval / 20;
                 }
             }
 
             //left arrow
             if (this.#downKeys[37]) {
-                this.#XAxisTranslationsPerSecond -= interval / 20;
+                this.#momentum[0] -= interval / 20;
             }
         }
 
         this.#XAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
         this.#YAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
-        this.#XAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
-        this.#YAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
-        this.#ZAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
+
+        //factor in the momentum change due to collision
+        for (let i = 0; i < 3; ++i) {
+            this.#momentum[i] += this.#collisionMomentum[i];
+            this.#collisionMomentum[i] = 0;
+        }
+
+        this.#momentum = this.#momentum.map((momentum) => {
+            return momentum * Math.pow(0.9,interval/100);
+        })
 
         this.#YAngle += this.#YAxisRotationsPerSecond/interval;
         this.#XAngle += this.#XAxisRotationsPerSecond/interval;
 
-        this.#position[0] += this.#XAxisTranslationsPerSecond/interval;
-        this.#position[1] += this.#YAxisTranslationsPerSecond/interval;
-        this.#position[2] += this.#ZAxisTranslationsPerSecond/interval;
+        for (let i = 0; i < 3; ++i) {
+            this.#position[i] += this.#momentum[i]/interval;
+        }
     }
 
     this.#lastTime = thisTime;
