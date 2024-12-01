@@ -4,6 +4,10 @@ class RainbowCube {
   #lastTime = 0;
   #YAxisRotationsPerSecond = 0;
   #XAxisRotationsPerSecond = 0;
+  #ZAxisRotationsPerSecond = 0;
+  #YAxisTranslationsPerSecond = 0;
+  #XAxisTranslationsPerSecond = 0;
+  #ZAxisTranslationsPerSecond = 0;
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
@@ -320,11 +324,48 @@ class RainbowCube {
             this.#XAxisRotationsPerSecond += interval / 50;
         }
 
+        //right arrow
+        if (this.#downKeys[39]) {
+            this.#XAxisTranslationsPerSecond += interval / 20;
+        }
+
+        //up arrow
+        if (this.#downKeys[38]) {
+            if (this.#downKeys[16]) {
+                this.#ZAxisTranslationsPerSecond += interval / 20;
+            }
+            else {
+                this.#YAxisTranslationsPerSecond += interval / 20;
+            }
+        }
+
+        //down arrow
+        if (this.#downKeys[40]) {         
+            if (this.#downKeys[16]) {
+                this.#ZAxisTranslationsPerSecond -= interval / 20;
+            }
+            else {
+                this.#YAxisTranslationsPerSecond -= interval / 20;
+            }
+        }
+
+        //left arrow
+        if (this.#downKeys[37]) {
+            this.#XAxisTranslationsPerSecond -= interval / 20;
+        }
+
         this.#XAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
         this.#YAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
+        this.#XAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
+        this.#YAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
+        this.#ZAxisTranslationsPerSecond *= Math.pow(0.9,interval/100);
 
         this.#YAngle += this.#YAxisRotationsPerSecond/interval;
         this.#XAngle += this.#XAxisRotationsPerSecond/interval;
+
+        this.#position[0] += this.#XAxisTranslationsPerSecond/interval;
+        this.#position[1] += this.#YAxisTranslationsPerSecond/interval;
+        this.#position[2] += this.#ZAxisTranslationsPerSecond/interval;
     }
 
     this.#lastTime = thisTime;
