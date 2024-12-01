@@ -63,6 +63,7 @@ function UAGComponent() {
       world.addDrawableAndSimulatable(cube);
       world.addControllable(cube);
       world.addSelectable(cube);
+      world.addCollidable(cube);
     }
     
     document.addEventListener('keydown', function(event) {

@@ -36,6 +36,7 @@ class World {
   #drawables = [];
   #controllables = [];
   #selectables = [];
+  #collidables = [];
   #selected = null;
   #projectionMatrix = null;
 
@@ -66,6 +67,10 @@ class World {
 
   get projectionMatrix() {
     return this.#projectionMatrix;
+  }
+
+  addCollidable(collidable) {
+    this.#collidables.push(collidable);
   }
 
   addSimulatable(simulatableToAdd) {
@@ -110,6 +115,16 @@ class World {
   simulate() {
     let thisTime = new Date().getTime();
 
+    this.#collidables.forEach((firstCollidable) => {
+        this.#collidables.forEach((secondCollidable) => {
+            if (!(firstCollidable === secondCollidable)) {
+                if (firstCollidable.detectCollision(secondCollidable)) {
+                    firstCollidable.onCollision(secondCollidable);
+                }
+            }
+        });
+    });
+    
     this.#simulatables.forEach((simulatable) => {
       simulatable.simulate(this, thisTime);
     });

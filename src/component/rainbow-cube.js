@@ -9,6 +9,9 @@ class RainbowCube {
   #XAxisTranslationsPerSecond = 0;
   #ZAxisTranslationsPerSecond = 0;
   #selected = false;    
+  get broadCollisionRadius () {
+    return 1.2;
+  }
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
@@ -31,6 +34,24 @@ class RainbowCube {
     }
 
     #downKeys = {};
+
+    detectCollision(otherCollidable) {
+        let distance = Math.pow(
+            Math.pow(otherCollidable.position[0] - this.position[0], 2) +
+            Math.pow(otherCollidable.position[1] - this.position[1], 2) +
+            Math.pow(otherCollidable.position[2] - this.position[2], 2)
+        ,0.5);
+        
+        let minimumDistance = otherCollidable.broadCollisionRadius + this.broadCollisionRadius;
+
+        return distance <= minimumDistance;
+    }
+
+    onCollision(otherCollidable) {
+        this.#XAxisTranslationsPerSecond *= -1;
+        this.#YAxisTranslationsPerSecond *= -1;
+        this.#ZAxisTranslationsPerSecond *= -1;
+    }
 
     select(selected) {
         console.log("select at cube");
