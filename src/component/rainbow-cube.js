@@ -10,6 +10,7 @@ class RainbowCube {
   #ZAxisRotationsPerSecond = 0;
   #selected = false;    
   #ID = null;
+  #speed = 5;
 
   get ID () {
     return this.#ID;
@@ -362,57 +363,57 @@ class RainbowCube {
         if (this.#selected) {
             //a is down
             if (this.#downKeys[65]) {
-                this.#YAxisRotationsPerSecond -= interval / 50;
+                this.#YAxisRotationsPerSecond -= this.#speed * interval / 50;
             }
 
             //d is down
             if (this.#downKeys[68]) {
-                this.#YAxisRotationsPerSecond += interval / 50;
+                this.#YAxisRotationsPerSecond += this.#speed * interval / 50;
             }
 
             //w
             if (this.#downKeys[87]) {
-                this.#XAxisRotationsPerSecond -= interval / 50;
+                this.#XAxisRotationsPerSecond -= this.#speed * interval / 50;
             }
 
             //w
             if (this.#downKeys[83]) {
-                this.#XAxisRotationsPerSecond += interval / 50;
+                this.#XAxisRotationsPerSecond += this.#speed * interval / 50;
             }
 
             //right arrow
             if (this.#downKeys[39]) {
-                this.#momentum[0] += interval / 20;
+                this.#momentum[0] += this.#speed * interval / 20;
             }
 
             //up arrow
             if (this.#downKeys[38]) {
                 if (this.#downKeys[16]) {
-                    this.#momentum[2] += interval / 20;
+                    this.#momentum[2] += this.#speed * interval / 20;
                 }
                 else {
-                    this.#momentum[1] += interval / 20;
+                    this.#momentum[1] += this.#speed * interval / 20;
                 }
             }
 
             //down arrow
             if (this.#downKeys[40]) {         
                 if (this.#downKeys[16]) {
-                    this.#momentum[2] -= interval / 20;
+                    this.#momentum[2] -= this.#speed * interval / 20;
                 }
                 else {
-                    this.#momentum[1] -= interval / 20;
+                    this.#momentum[1] -= this.#speed * interval / 20;
                 }
             }
 
             //left arrow
             if (this.#downKeys[37]) {
-                this.#momentum[0] -= interval / 20;
+                this.#momentum[0] -= this.#speed * interval / 20;
             }
         }
 
-        this.#XAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
-        this.#YAxisRotationsPerSecond *= Math.pow(0.9,interval/100);
+        this.#XAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
+        this.#YAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
 
         //factor in the momentum change due to collision
         for (let i = 0; i < 3; ++i) {
