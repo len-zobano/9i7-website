@@ -56,9 +56,9 @@ function UAGComponent() {
 
     let world = new World();
 
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 200; ++i) {
       let cube = new RainbowCube();
-      cube.position = [(i%5)*4-5,(Math.floor(i/5))*4-5,-30];
+      cube.position = [(i%5)*3-5,(Math.floor(i/5))*3-5,-30];
 
       world.addDrawableAndSimulatable(cube);
       world.addControllable(cube);

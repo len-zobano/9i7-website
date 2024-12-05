@@ -30,6 +30,120 @@ function useWindowDimensions() {
     return windowDimensions;
 }
 
+
+
+//maintains a table of tiles as well as a table of ID keys to tile values
+//the tiles track what iteration the elements were in. that way, a plottable is ignored in a tile if it isn't of the current iteration
+class GridSystem {
+    #iteration = 0;
+    #scale = 2.0;
+    #tiles = {};
+    #tileOffsets = [];
+    #plottablesToPrimaryTileCoordinates = {};
+
+    addPlottableToTile(plottable, coordinates) {
+        let tileContainer = this.#tiles;
+        for (let i = 0; i < 3; ++i) {
+            if (!tileContainer[coordinates[i]]) {
+                tileContainer[coordinates[i]] = {};
+            }
+            tileContainer = tileContainer[coordinates[i]];
+        }
+        return tileContainer[plottable.ID] = {
+            iteration: this.#iteration,
+            plottable
+        };
+    }
+
+    getPrimaryTileCoordinatesForPlottable(plottable) {
+        return this.#plottablesToPrimaryTileCoordinates[plottable.ID];
+    }
+
+    getTileForCoordinates(coordinates) {
+        let tileContainer = this.#tiles;
+        for (let i = 0; i < 3; ++i) {
+            if (!tileContainer[coordinates[i]]) {
+                tileContainer[coordinates[i]] = {};
+            }
+            tileContainer = tileContainer[coordinates[i]];
+        } 
+        return tileContainer;
+    }
+
+    getCurrentPlottablesForTileCoordinates (coordinates) {
+        let tileContainer = this.#tiles;
+        for (let i = 0; i < 3; ++i) {
+            if (!tileContainer[coordinates[i]]) {
+                tileContainer[coordinates[i]] = {};
+            }
+            tileContainer = tileContainer[coordinates[i]];
+        }
+
+        let tileContainerToReturn = {};
+        for (let key in tileContainer) {
+            //only return the plottables that are of the current iteration
+            if (tileContainer[key].iteration === this.#iteration) {
+                tileContainerToReturn[key] = tileContainer[key];
+            }
+            //clean up the plottable otherwise
+            else {
+                delete tileContainer[key];
+            }
+        }
+
+        //this array fill can probably be optimized if it's combined with the above
+        let arrayToReturn = [];
+        for (let key in tileContainerToReturn) {
+            arrayToReturn.push(tileContainerToReturn[key].plottable);
+        }
+
+        return arrayToReturn;
+    }
+
+    cleanPlottablesForTile(coordinates) {
+        let tileContainer = this.#tiles;
+        for (let i = 0; i < 3; ++i) {
+            if (!tileContainer[coordinates[i]]) {
+                //if it doesn't exist, it doesn't need to be cleaned
+                return;
+            }
+            tileContainer = tileContainer[coordinates[i]];
+        } 
+
+        for (let key in tileContainer) {
+            //delete if the plottable is of a previous iteration
+            if (tileContainer[key].iteration !== this.#iteration) {
+                delete tileContainer[key];
+            }
+        }
+    }
+
+    plot(plottable) {
+        //get coordinates of tile
+        let tileContainer = this.#tiles, tileCoordinates = [];
+        for (let i = 0; i < 3; ++i) {
+            tileCoordinates[i] = Math.floor(plottable.position[i]/this.#scale);
+        }
+
+        //set tile and all adjacent tiles
+        for (let i = 0; i < 27; ++i) {
+            this.addPlottableToTile(plottable, [
+                (i % 3) - 1 + tileCoordinates[0],
+                (Math.floor(i/3) % 3) - 1 + tileCoordinates[1],
+                (Math.floor(i/9) % 3) - 1 + tileCoordinates[2]
+            ]);
+        }
+        //put the reference to the primary tile into the table
+        this.#plottablesToPrimaryTileCoordinates[plottable.ID] = tileCoordinates;
+        //return the coordinates of the tile
+        return tileCoordinates;
+    }
+
+    iterate() {
+        ++this.#iteration;
+    }
+}
+
 class World {
   #currentTime = 0;
   #simulatables = [];
@@ -39,6 +153,7 @@ class World {
   #collidables = [];
   #selected = null;
   #projectionMatrix = null;
+  #gridSystem = null;
 
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
@@ -114,17 +229,42 @@ class World {
 
   simulate() {
     let thisTime = new Date().getTime();
-
-    this.#collidables.forEach((firstCollidable) => {
-        this.#collidables.forEach((secondCollidable) => {
-            if (!(firstCollidable === secondCollidable)) {
-                if (firstCollidable.detectCollision(secondCollidable)) {
-                    firstCollidable.onCollision(secondCollidable);
-                }
-            }
-        });
-    });
     
+    if (!this.#gridSystem) {
+        this.#gridSystem = new GridSystem();
+    }
+
+    //collision detection if optimized
+    if (this.#gridSystem ) {
+        this.#collidables.forEach((collidable) => {
+            this.#gridSystem.plot(collidable);
+        });
+
+        this.#collidables.forEach((collidable) => {
+            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(collidable);
+            let plottables = this.#gridSystem.getCurrentPlottablesForTileCoordinates(coordinates);
+            plottables.forEach((plottable) => {
+                if (collidable !== plottable && collidable.detectCollision(plottable)) {
+                    collidable.onCollision(plottable);
+                }
+            });
+        });
+
+        this.#gridSystem.iterate();
+    }   
+    //collision detection if not optimized
+    else {
+        this.#collidables.forEach((firstCollidable) => {
+            this.#collidables.forEach((secondCollidable) => {
+                if (!(firstCollidable === secondCollidable)) {
+                    if (firstCollidable.detectCollision(secondCollidable)) {
+                        firstCollidable.onCollision(secondCollidable);
+                    }
+                }
+            });
+        });
+    }
+
     this.#simulatables.forEach((simulatable) => {
       simulatable.simulate(this, thisTime);
     });

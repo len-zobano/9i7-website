@@ -9,9 +9,20 @@ class RainbowCube {
   #XAxisRotationsPerSecond = 0;
   #ZAxisRotationsPerSecond = 0;
   #selected = false;    
+  #ID = null;
+
+  get ID () {
+    return this.#ID;
+  }
+
   get broadCollisionRadius () {
     return 1.2;
   }
+
+  constructor() {
+    this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+  }
+
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute(gl, buffers, programInfo) {
