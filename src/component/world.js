@@ -9,7 +9,11 @@ function getWindowDimensions() {
       height
     };
   }
-  
+ 
+function vec3FromArray(a) {
+    return glMatrix.vec3.fromValues(a[0],a[1],a[2]);
+}
+
 function useWindowDimensions() {
     const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
   
@@ -158,14 +162,21 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #modelViewMatrix = null;//glMatrix.mat4.identity();
+  #downKeys = {};
 
     get modelViewMatrix () {
         return glMatrix.mat4.clone(this.#modelViewMatrix);
     }
 
+constructor() {
+        this.#cameraPlottable = new Plottable ([50,50,50]);
+        this.#upPlottable = new Plottable ([0,1000,0]);
+}
+
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
     
+    this.#downKeys[keyCode] = false;
     //bracket - switch selected
     if (keyCode === 221) {
         let indexOfSelected = this.#selectables.indexOf(this.#selected);
@@ -186,6 +197,7 @@ class World {
 
   keyIsDown(keyCode) {
     console.log('key down:',keyCode);
+    this.#downKeys[keyCode] = true;
     this.#controllables.forEach((controllable) => {
         controllable.keyIsDown(keyCode);
     });
@@ -224,10 +236,6 @@ class World {
     this.addDrawable(drawableAndSimulatableToAdd);
   }
 
-  setTime(time) {
-    this.#currentTime = time;
-  }
-
   initializeGL() {
     var canvas = document.getElementById("test-canvas");
     if (!canvas) return;
@@ -239,7 +247,12 @@ class World {
   }
 
   simulate() {
-    let thisTime = new Date().getTime();
+    if (!this.#currentTime) {
+        this.#currentTime = new Date().getTime();
+    }
+    let lastTime = this.#currentTime;
+    this.#currentTime = new Date().getTime();
+    let interval = this.#currentTime - lastTime;
     
     if (!this.#gridSystem) {
         this.#gridSystem = new GridSystem();
@@ -276,8 +289,76 @@ class World {
         });
     }
 
+    /*
+    * camera-relative control calculations
+    */
+        //let cameraPosition = this.#cameraPlottable.position
+        let cameraPosition = this.#cameraPlottable.position;
+        //let cameraDirection = normalize(this.#cameraPlottable.position - this.#focalPointPlottable.position)
+        let cameraDirection = glMatrix.vec3.create();
+        glMatrix.vec3.subtract(
+            cameraDirection, 
+            vec3FromArray(this.#cameraPlottable.position), 
+            vec3FromArray(this.#selected.position)               
+        );
+        glMatrix.vec3.normalize(cameraDirection, cameraDirection);
+        //a subtract operation, then a normalize operation
+        //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
+        let cameraRight = glMatrix.vec3.create();
+        glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPlottable.position), cameraDirection);
+        glMatrix.vec3.normalize(cameraRight, cameraRight);
+        //a cross operation, then a normalize operation
+        let cameraUp = glMatrix.vec3.create();
+        glMatrix.vec3.cross(cameraUp, cameraDirection, cameraRight)
+
+    /*
+    * end camera-relative control calculations
+    */
+
+    // //a is down
+    if (this.#downKeys[65]) {
+        this.#selected.changeMomentum(cameraRight.map((element) => {
+            return -element*interval;
+        }));
+    }
+
+    //d is down
+    if (this.#downKeys[68]) {
+        this.#selected.changeMomentum(cameraRight.map((element) => {
+            return element*interval;
+        }));
+    }
+
+    // //w
+    if (this.#downKeys[87]) {
+        this.#selected.changeMomentum(cameraUp.map((element) => {
+            return element*interval;
+        }));
+    }
+
+    // //s
+    if (this.#downKeys[83]) {
+        this.#selected.changeMomentum(cameraUp.map((element) => {
+            return -element*interval;
+        }));
+    }
+    
+    //z
+    if (this.#downKeys[88]) {
+        this.#selected.changeMomentum(cameraDirection.map((element) => {
+            return element*interval;
+        }));
+    }
+    
+    //x
+    if (this.#downKeys[90]) {
+        this.#selected.changeMomentum(cameraDirection.map((element) => {
+            return -element*interval;
+        }));
+    }
+
     this.#simulatables.forEach((simulatable) => {
-      simulatable.simulate(this, thisTime);
+      simulatable.simulate(this, this.#currentTime);
     });
   }
 
@@ -306,21 +387,12 @@ class World {
             // as the destination to receive the result.
             glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
-            function vec3FromArray(a) {
-                return glMatrix.vec3.fromValues(a[0],a[1],a[2]);
-            }
+
 
             /*
             Camera view
             */
 
-            if (!this.#cameraPlottable) {
-                this.#cameraPlottable = new Plottable ([50,50,50]);
-            }
-
-            if (!this.#upPlottable) {
-                this.#upPlottable = new Plottable ([0,1000,0]);
-            }
 
             if (this.#cameraPlottable && this.#selected && this.#upPlottable) {
                 //let cameraPosition = this.#cameraPlottable.position

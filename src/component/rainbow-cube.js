@@ -44,6 +44,12 @@ class RainbowCube {
   #speed = 5;
   #isCamera = false;
 
+  changeMomentum (momentum) {
+    for (let i = 0; i < 3; ++i) {
+        this.#momentum[i] += momentum[i];
+    }
+  }
+
   set isCamera (isCamera) {
     this.#isCamera = isCamera;
   }
@@ -143,7 +149,7 @@ class RainbowCube {
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bindBuffer(gl.ARRAY_BUFFER, [buffers.color, buffers.color2][this.#ID.slice(-3) % 2]);
     gl.vertexAttribPointer(
       programInfo.attribLocations.vertexColor,
       numComponents,
@@ -250,6 +256,29 @@ class RainbowCube {
     return positionBuffer;
 } 
 
+initColorBuffer2(gl) {
+      let faceColors = [];
+      for (let i = 0; i < 6; ++i) {
+        faceColors[i] = [Math.random(), Math.random(), Math.random(), 1.0];
+      }
+      
+      // Convert the array of colors into a table for all the vertices.
+
+    let colors = [];
+
+    for (var j = 0; j < faceColors.length; ++j) {
+        const c = faceColors[j];
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(c, c, c, c);
+    }// Convert the array of colors into a table for all the vertices.
+  
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+  
+    return colorBuffer;
+  }
+
   initColorBuffer(gl) {
     const faceColors = [
         [1.0, 1.0, 1.0, 1.0], // Front face: white
@@ -280,11 +309,13 @@ class RainbowCube {
   initBuffers(gl) {
     const positionBuffer = this.initPositionBuffer(gl);
     const colorBuffer = this.initColorBuffer(gl);
+    const colorBuffer2 = this.initColorBuffer2(gl);
     const indexBuffer = this.initIndexBuffer(gl);
 
     return {
       indices: indexBuffer,
       color: colorBuffer,
+      color2: colorBuffer2,
       position: positionBuffer,
     };
   }
@@ -379,26 +410,6 @@ class RainbowCube {
       let interval = thisTime - this.#lastTime;
 
         if (this.#selected) {
-
-            //a is down
-            if (this.#downKeys[65]) {
-                this.#YAxisRotationsPerSecond -= this.#speed * interval / 50;
-            }
-
-            //d is down
-            if (this.#downKeys[68]) {
-                this.#YAxisRotationsPerSecond += this.#speed * interval / 50;
-            }
-
-            //w
-            if (this.#downKeys[87]) {
-                this.#XAxisRotationsPerSecond -= this.#speed * interval / 50;
-            }
-
-            //w
-            if (this.#downKeys[83]) {
-                this.#XAxisRotationsPerSecond += this.#speed * interval / 50;
-            }
 
             //right arrow
             if (this.#downKeys[39]) {
