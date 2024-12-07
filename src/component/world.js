@@ -150,10 +150,11 @@ class World {
   #drawables = [];
   #controllables = [];
   #selectables = [];
-  #collidables = [];
+  #plottables = [];
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
+  #currentCamera = null;
 
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
@@ -184,8 +185,8 @@ class World {
     return this.#projectionMatrix;
   }
 
-  addCollidable(collidable) {
-    this.#collidables.push(collidable);
+  addPlottable(plottable) {
+    this.#plottables.push(plottable);
   }
 
   addSimulatable(simulatableToAdd) {
@@ -236,16 +237,16 @@ class World {
 
     //collision detection if optimized
     if (this.#gridSystem ) {
-        this.#collidables.forEach((collidable) => {
-            this.#gridSystem.plot(collidable);
+        this.#plottables.forEach((plottable) => {
+            this.#gridSystem.plot(plottable);
         });
 
-        this.#collidables.forEach((collidable) => {
-            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(collidable);
+        this.#plottables.forEach((plottable) => {
+            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(plottable);
             let plottables = this.#gridSystem.getCurrentPlottablesForTileCoordinates(coordinates);
             plottables.forEach((plottable) => {
-                if (collidable !== plottable && collidable.detectCollision(plottable)) {
-                    collidable.onCollision(plottable);
+                if (plottable !== plottable && plottable.detectCollision(plottable)) {
+                    plottable.onCollision(plottable);
                 }
             });
         });
@@ -254,11 +255,11 @@ class World {
     }   
     //collision detection if not optimized
     else {
-        this.#collidables.forEach((firstCollidable) => {
-            this.#collidables.forEach((secondCollidable) => {
-                if (!(firstCollidable === secondCollidable)) {
-                    if (firstCollidable.detectCollision(secondCollidable)) {
-                        firstCollidable.onCollision(secondCollidable);
+        this.#plottables.forEach((firstPlottable) => {
+            this.#plottables.forEach((secondPlottable) => {
+                if (!(firstPlottable === secondPlottable)) {
+                    if (firstPlottable.detectCollision(secondPlottable)) {
+                        firstPlottable.onCollision(secondPlottable);
                     }
                 }
             });
@@ -286,21 +287,31 @@ class World {
           
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
           
-            // Create a perspective matrix, a special matrix that is
-            // used to simulate the distortion of perspective in a camera.
-            // Our field of view is 45 degrees, with a width/height
-            // ratio that matches the display size of the canvas
-            // and we only want to see objects between 0.1 units
-            // and 100 units away from the camera.
-          
             const fieldOfView = (45 * Math.PI) / 180; // in radians
             const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
             const zNear = 0.1;
-            const zFar = 100.0;
+            const zFar = 1000.0;
             this.#projectionMatrix = glMatrix.mat4.create();
             // note: glmatrix.js always has the first argument
             // as the destination to receive the result.
             glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
+
+            /*
+            Camera view
+            Do transformations to all coordinates in the world that are the inverse of the camera movement
+            If the camera moves forward, move the modelview matrix backward toward the camera
+            */
+
+            if (this.#cameraPlottable && this.#focusedPlottable && this.#upPlottable) {
+                //let cameraDirection = normalize(this.#cameraPlottable.position - this.#focalPointPlottable.position)
+                //let up = 
+
+            }
+
+            /*
+            End camera view
+            */
+
             this.#drawables.forEach((drawable) => {
               drawable.draw(this);
             }); 

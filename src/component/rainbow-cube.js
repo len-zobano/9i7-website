@@ -1,5 +1,36 @@
 import * as glMatrix from 'gl-matrix';
 
+let 
+    globalBuffers = null, 
+    globalColorAttributes = null, 
+    globalShaderProgram = null, 
+    globalVertexShader = null, 
+    globalFragmentShader = null,
+    globalProgramInfo = null,
+
+globalVertexShaderSource = `
+attribute vec4 aVertexPosition;
+attribute vec4 aVertexColor;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+varying lowp vec4 vColor;
+
+void main() {
+  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+  vColor = aVertexColor;
+}
+`,
+
+globalFragmentShaderSource = `
+varying lowp vec4 vColor;
+
+void main(void) {
+  gl_FragColor = vColor;
+}
+`;
+
 class RainbowCube {
   #lastTime = 0;
   #momentum = [0,0,0];
@@ -47,23 +78,23 @@ class RainbowCube {
 
     #downKeys = {};
 
-    detectCollision(otherCollidable) {
+    detectCollision(otherPlottable) {
         let distance = Math.pow(
-            Math.pow(otherCollidable.position[0] - this.position[0], 2) +
-            Math.pow(otherCollidable.position[1] - this.position[1], 2) +
-            Math.pow(otherCollidable.position[2] - this.position[2], 2)
+            Math.pow(otherPlottable.position[0] - this.position[0], 2) +
+            Math.pow(otherPlottable.position[1] - this.position[1], 2) +
+            Math.pow(otherPlottable.position[2] - this.position[2], 2)
         ,0.5);
         
-        let minimumDistance = otherCollidable.broadCollisionRadius + this.broadCollisionRadius;
+        let minimumDistance = otherPlottable.broadCollisionRadius + this.broadCollisionRadius;
 
         return distance <= minimumDistance;
     }
 
-    onCollision(otherCollidable) {
+    onCollision(otherPlottable) {
         //calculate magnitude of momentum
         let combinedMomentum = [], magnitudeOfCombinedMomentum = 0;
         for (let i = 0; i < 3; ++i) {
-            combinedMomentum[i] = otherCollidable.#momentum[i] - this.#momentum[i];
+            combinedMomentum[i] = otherPlottable.#momentum[i] - this.#momentum[i];
             magnitudeOfCombinedMomentum += Math.pow(combinedMomentum[i],2);
         }
         magnitudeOfCombinedMomentum = Math.pow(magnitudeOfCombinedMomentum,0.5);
@@ -72,7 +103,7 @@ class RainbowCube {
         //go in opposite direction of collision
         let relativePositionOfOther = [], distanceFromOther = 0;
         for (let i = 0; i < 3; ++i) {
-            relativePositionOfOther[i] = otherCollidable.#position[i] - this.#position[i];
+            relativePositionOfOther[i] = otherPlottable.#position[i] - this.#position[i];
             distanceFromOther += Math.pow(relativePositionOfOther[i], 2);
         }
         distanceFromOther = Math.pow(distanceFromOther, 0.5);
@@ -269,29 +300,6 @@ class RainbowCube {
   #YAngle = 0;
   #buffers = null;
 
-  get vertexShaderSource () {return `
-  attribute vec4 aVertexPosition;
-  attribute vec4 aVertexColor;
-
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
-
-  varying lowp vec4 vColor;
-
-  void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    vColor = aVertexColor;
-  }
-`;}
-
-  get fragmentShaderSource ()  { return `
-  varying lowp vec4 vColor;
-
-  void main(void) {
-    gl_FragColor = vColor;
-  }
-  `;}
-
   loadShader(gl, type, source) {
     const shader = gl.createShader(type);
   
@@ -313,47 +321,52 @@ class RainbowCube {
 
   initializeGL(world) {
     this.#world = world;
-    const vertexShader = this.loadShader(world.gl, world.gl.VERTEX_SHADER, this.vertexShaderSource);
-    const fragmentShader = this.loadShader(world.gl, world.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
-  
+    if (!globalVertexShader) {
+        globalVertexShader = this.loadShader(world.gl, world.gl.VERTEX_SHADER, globalVertexShaderSource);
+    }
+    if (!globalFragmentShader) {
+        globalFragmentShader = this.loadShader(world.gl, world.gl.FRAGMENT_SHADER, globalFragmentShaderSource);
+    }
     // Create the shader program
   
-    const shaderProgram = world.gl.createProgram();
-    this.shaderProgram = shaderProgram;
-    world.gl.attachShader(shaderProgram, vertexShader);
-    world.gl.attachShader(shaderProgram, fragmentShader);
-    world.gl.linkProgram(shaderProgram);
-  
-    // If creating the shader program failed, console.log
-  
-    if (!world.gl.getProgramParameter(shaderProgram, world.gl.LINK_STATUS)) {
-      console.log(
-        `Unable to initialize the shader program: ${world.gl.getProgramInfoLog(
-          shaderProgram,
-        )}`,
-      );
-      return null;
+    if (!globalShaderProgram) {
+        globalShaderProgram = world.gl.createProgram();
+        world.gl.attachShader(globalShaderProgram, globalVertexShader);
+        world.gl.attachShader(globalShaderProgram, globalFragmentShader);
+        world.gl.linkProgram(globalShaderProgram);
+
+        // If creating the shader program failed, console.log
+        if (!world.gl.getProgramParameter(globalShaderProgram, world.gl.LINK_STATUS)) {
+            console.log(
+            `Unable to initialize the shader program: ${world.gl.getProgramInfoLog(
+                globalShaderProgram,
+            )}`,
+            );
+            return null;
+        }
     }
 
-    this.#buffers = this.initBuffers(this.#world.gl);
+    if (!globalBuffers) {
+        globalBuffers = this.initBuffers(this.#world.gl);
+    }
 
     /*
         Initialize the shape buffer
     */
     
-    this.#programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-            vertexPosition: world.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-            vertexColor: world.gl.getAttribLocation(shaderProgram, "aVertexColor"),
-        },
-        uniformLocations: {
-            projectionMatrix: world.gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-            modelViewMatrix: world.gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-        },
-    };
-
-
+    if (!globalProgramInfo) {
+        globalProgramInfo = {
+            program: globalShaderProgram,
+            attribLocations: {
+                vertexPosition: world.gl.getAttribLocation(globalShaderProgram, "aVertexPosition"),
+                vertexColor: world.gl.getAttribLocation(globalShaderProgram, "aVertexColor"),
+            },
+            uniformLocations: {
+                projectionMatrix: world.gl.getUniformLocation(globalShaderProgram, "uProjectionMatrix"),
+                modelViewMatrix: world.gl.getUniformLocation(globalShaderProgram, "uModelViewMatrix"),
+            },
+        };
+    }
   }
 
   simulate(world, thisTime) {
@@ -361,6 +374,7 @@ class RainbowCube {
       let interval = thisTime - this.#lastTime;
 
         if (this.#selected) {
+
             //a is down
             if (this.#downKeys[65]) {
                 this.#YAxisRotationsPerSecond -= this.#speed * interval / 50;
@@ -470,22 +484,22 @@ class RainbowCube {
         [1, 0, 0],
     );
 
-    this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
-    this.#world.gl.useProgram(this.#programInfo.program);
+    this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, globalBuffers.indices);
+    this.#world.gl.useProgram(globalProgramInfo.program);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
+    this.setPositionAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
     // Tell WebGL to use our program when drawing
-    this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
+    this.setColorAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
     
     // Set the shader uniforms
     this.#world.gl.uniformMatrix4fv(
-      this.#programInfo.uniformLocations.projectionMatrix,
+      globalProgramInfo.uniformLocations.projectionMatrix,
       false,
       this.#world.projectionMatrix,
     );
     this.#world.gl.uniformMatrix4fv(
-      this.#programInfo.uniformLocations.modelViewMatrix,
+      globalProgramInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix,
     );
