@@ -57,7 +57,7 @@ function UAGComponent() {
 
     let world = new World();
 
-    for (let i = 0; i < 512; ++i) {
+    for (let i = 0; i < 511; ++i) {
       let cube = new RainbowCube();
       cube.position = [
         (i%8)*3-5,

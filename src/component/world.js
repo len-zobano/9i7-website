@@ -157,7 +157,11 @@ class World {
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
-  #currentCamera = null;
+  #modelViewMatrix = null;//glMatrix.mat4.identity();
+
+    get modelViewMatrix () {
+        return glMatrix.mat4.clone(this.#modelViewMatrix);
+    }
 
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
@@ -169,6 +173,9 @@ class World {
         let lastSelected = this.#selected;
         this.#selected = this.#selectables[indexOfNextSelected];
         lastSelected.select(false);
+        this.#cameraPlottable.isCamera = false;
+        this.#cameraPlottable = lastSelected;
+        lastSelected.isCamera = true;
         this.#selected.select(true);
     }
 
@@ -308,7 +315,7 @@ class World {
             */
 
             if (!this.#cameraPlottable) {
-                this.#cameraPlottable = new Plottable ([50,0,0]);
+                this.#cameraPlottable = new Plottable ([50,50,50]);
             }
 
             if (!this.#upPlottable) {
@@ -358,7 +365,8 @@ class World {
                 * [ 0, 0, 1, -cameraPosition[2] ]
                 * [ 0, 0, 0, 1 ]
                 */
-
+               this.#modelViewMatrix = glMatrix.mat4.create();
+               glMatrix.mat4.multiply(this.#modelViewMatrix, lookAtLeft, lookAtRight);
             }
 
             /*

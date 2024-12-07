@@ -42,6 +42,11 @@ class RainbowCube {
   #selected = false;    
   #ID = null;
   #speed = 5;
+  #isCamera = false;
+
+  set isCamera (isCamera) {
+    this.#isCamera = isCamera;
+  }
 
   get ID () {
     return this.#ID;
@@ -451,9 +456,13 @@ class RainbowCube {
   }
 
   draw(world) {
+    if (this.#isCamera) {
+        return;
+    }
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
-    const modelViewMatrix = glMatrix.mat4.create();
+    // const modelViewMatrix = glMatrix.mat4.create();
+    const modelViewMatrix = this.#world.modelViewMatrix;
   
     // Now move the drawing position a bit to where we want to
     // start drawing the square.
