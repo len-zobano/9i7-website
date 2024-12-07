@@ -1,5 +1,6 @@
 import * as glMatrix from 'gl-matrix';
 import { useState, useEffect } from 'react';
+import Plottable from './plottable';
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -151,6 +152,8 @@ class World {
   #controllables = [];
   #selectables = [];
   #plottables = [];
+  #cameraPlottable = null;
+  #upPlottable = null;
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
@@ -241,18 +244,18 @@ class World {
             this.#gridSystem.plot(plottable);
         });
 
-        this.#plottables.forEach((plottable) => {
-            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(plottable);
-            let plottables = this.#gridSystem.getCurrentPlottablesForTileCoordinates(coordinates);
-            plottables.forEach((plottable) => {
-                if (plottable !== plottable && plottable.detectCollision(plottable)) {
-                    plottable.onCollision(plottable);
+        this.#plottables.forEach((worldPlottable) => {
+            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(worldPlottable);
+            let tilePlottables = this.#gridSystem.getCurrentPlottablesForTileCoordinates(coordinates);
+            tilePlottables.forEach((tilePlottable) => {
+                if (worldPlottable !== tilePlottable && worldPlottable.detectCollision(tilePlottable)) {
+                    worldPlottable.onCollision(tilePlottable);
                 }
             });
         });
 
         this.#gridSystem.iterate();
-    }   
+    }
     //collision detection if not optimized
     else {
         this.#plottables.forEach((firstPlottable) => {
@@ -296,15 +299,65 @@ class World {
             // as the destination to receive the result.
             glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
+            function vec3FromArray(a) {
+                return glMatrix.vec3.fromValues(a[0],a[1],a[2]);
+            }
+
             /*
             Camera view
-            Do transformations to all coordinates in the world that are the inverse of the camera movement
-            If the camera moves forward, move the modelview matrix backward toward the camera
             */
 
-            if (this.#cameraPlottable && this.#focusedPlottable && this.#upPlottable) {
+            if (!this.#cameraPlottable) {
+                this.#cameraPlottable = new Plottable ([50,0,0]);
+            }
+
+            if (!this.#upPlottable) {
+                this.#upPlottable = new Plottable ([0,1000,0]);
+            }
+
+            if (this.#cameraPlottable && this.#selected && this.#upPlottable) {
+                //let cameraPosition = this.#cameraPlottable.position
+                let cameraPosition = this.#cameraPlottable.position;
                 //let cameraDirection = normalize(this.#cameraPlottable.position - this.#focalPointPlottable.position)
-                //let up = 
+                let cameraDirection = glMatrix.vec3.create();
+                glMatrix.vec3.subtract(
+                    cameraDirection, 
+                    vec3FromArray(this.#cameraPlottable.position), 
+                    vec3FromArray(this.#selected.position)               
+                );
+                glMatrix.vec3.normalize(cameraDirection, cameraDirection);
+                //a subtract operation, then a normalize operation
+                //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
+                let cameraRight = glMatrix.vec3.create();
+                glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPlottable.position), cameraDirection);
+                glMatrix.vec3.normalize(cameraRight, cameraRight);
+                //a cross operation, then a normalize operation
+                let cameraUp = glMatrix.vec3.create();
+                glMatrix.vec3.cross(cameraUp, cameraDirection, cameraRight)
+                let lookAtLeft = glMatrix.mat4.fromValues(
+                    cameraRight[0], cameraUp[0], cameraDirection[0], 0,
+                    cameraRight[1], cameraUp[1], cameraDirection[1], 0,
+                    cameraRight[2], cameraUp[2], cameraDirection[2], 0,
+                    0, 0, 0, 1
+                );
+                /* lookatleft = 
+                * [ cameraRight, 0 ]
+                * [ cameraUp, 0 ]
+                * [ cameraDirection, 0 ]
+                * [ 0, 0, 0, 1 ]
+                */
+                let lookAtRight = glMatrix.mat4.fromValues(
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    -cameraPosition[0], -cameraPosition[1], -cameraPosition[2], 1
+                );
+                /* lookAtRight = 
+                * [ 1, 0, 0, -cameraPosition[0] ]
+                * [ 0, 1, 0, -cameraPosition[1] ]
+                * [ 0, 0, 1, -cameraPosition[2] ]
+                * [ 0, 0, 0, 1 ]
+                */
 
             }
 
