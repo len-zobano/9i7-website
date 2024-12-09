@@ -50,26 +50,29 @@ let didInit = false;
 
 function UAGComponent() {
 
+    let world = null;
+
+    function initializeWorld() {
+      world = new World();
+
+      for (let i = 0; i < 511; ++i) {
+        let cube = new RainbowCube(world);
+        cube.position = [
+          (i%8)*3-5,
+          ((Math.floor(i/8))%8)*3-5,
+          ((Math.floor(i/64))%8)*3-100,
+        ];
+  
+        world.addDrawableAndSimulatable(cube);
+        world.addControllable(cube);
+        world.addSelectable(cube);
+        world.addPlottable(cube);
+      }
+    }
 
     let ID = Math.floor(1000000*Math.random());
     // let cube2 = new RainbowCube();
     // cube2.position = [1,1,-20];
-
-    let world = new World();
-
-    for (let i = 0; i < 511; ++i) {
-      let cube = new RainbowCube();
-      cube.position = [
-        (i%8)*3-5,
-        ((Math.floor(i/8))%8)*3-5,
-        ((Math.floor(i/64))%8)*3-100,
-      ];
-
-      world.addDrawableAndSimulatable(cube);
-      world.addControllable(cube);
-      world.addSelectable(cube);
-      world.addPlottable(cube);
-    }
     
     document.addEventListener('keydown', function(event) {
       world.keyIsDown(event.keyCode);
@@ -89,30 +92,34 @@ function UAGComponent() {
       iterationsSinceStat = 0;
 
     function animate () {   
-        if (!world.gl) {
-            world.initializeGL();
+
+        if (!world) {
+          if (document.getElementById("test-canvas")) {
+            initializeWorld();
+          }
         }
+        else {
+          simulateTime = new Date().getTime(); 
+          world.simulate();
+          drawTime = new Date().getTime();
+          world.draw();
+          doneTime = new Date().getTime();
 
-        simulateTime = new Date().getTime(); 
-        world.simulate();
-        drawTime = new Date().getTime();
-        world.draw();
-        doneTime = new Date().getTime();
+          averageSimulationDuration += drawTime - simulateTime;
+          averageDrawDuration += doneTime - drawTime;
+          ++iterationsSinceStat;
 
-        averageSimulationDuration += drawTime - simulateTime;
-        averageDrawDuration += doneTime - drawTime;
-        ++iterationsSinceStat;
-
-        if (doneTime - lastStatTime > 1000) {
-          console.log(`
-          Stats for instance of world execution:
-          ID: ${ID}
-          Simulation took an average of ${averageSimulationDuration / iterationsSinceStat} ms
-          Draw took an average of ${averageDrawDuration / iterationsSinceStat} ms
-          There were ${iterationsSinceStat} iterations this interval
-          `);
-          lastStatTime = doneTime;
-          iterationsSinceStat = averageDrawDuration = averageSimulationDuration = 0;
+          if (doneTime - lastStatTime > 1000) {
+            console.log(`
+            Stats for instance of world execution:
+            ID: ${ID}
+            Simulation took an average of ${averageSimulationDuration / iterationsSinceStat} ms
+            Draw took an average of ${averageDrawDuration / iterationsSinceStat} ms
+            There were ${iterationsSinceStat} iterations this interval
+            `);
+            lastStatTime = doneTime;
+            iterationsSinceStat = averageDrawDuration = averageSimulationDuration = 0;
+          }
         }
 
         window.requestAnimationFrame(animate);

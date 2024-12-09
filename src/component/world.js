@@ -171,6 +171,9 @@ class World {
 constructor() {
         this.#cameraPlottable = new Plottable ([50,50,50]);
         this.#upPlottable = new Plottable ([0,1000,0]);
+
+        var canvas = document.getElementById("test-canvas");
+        this.gl = canvas.getContext("webgl"); 
 }
 
   keyIsUp(keyCode) {
@@ -234,16 +237,6 @@ constructor() {
   addDrawableAndSimulatable(drawableAndSimulatableToAdd) {
     this.addSimulatable(drawableAndSimulatableToAdd);
     this.addDrawable(drawableAndSimulatableToAdd);
-  }
-
-  initializeGL() {
-    var canvas = document.getElementById("test-canvas");
-    if (!canvas) return;
-    this.gl = canvas.getContext("webgl"); 
-    //initialize each drawable
-    this.#drawables.forEach((drawable) => {
-      drawable.initializeGL(this);
-    });
   }
 
   simulate() {
