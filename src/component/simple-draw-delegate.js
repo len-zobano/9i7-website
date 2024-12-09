@@ -86,6 +86,13 @@ class SimpleDrawDelegate {
         return indexBuffer;
       }
 
+      initColorBuffer(colors) {
+        const colorBuffer = this.#world.gl.createBuffer();
+        this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, colorBuffer);
+        this.#world.gl.bufferData(this.#world.gl.ARRAY_BUFFER, new Float32Array(colors), this.#world.gl.STATIC_DRAW);
+        return colorBuffer;
+      }
+
     initPositionBuffer(positions) {
         // Create a buffer for the square's positions.
         const positionBuffer = this.#world.gl.createBuffer();
@@ -101,7 +108,26 @@ class SimpleDrawDelegate {
         return positionBuffer;
     } 
 
-    draw(world) {
+    loadShader(type, source) {
+      const shader = this.#world.gl.createShader(type);
+    
+      // Send the source to the shader object
+      this.#world.gl.shaderSource(shader, source);
+    
+      // Compile the shader program
+      this.#world.gl.compileShader(shader);
+    
+      // See if it compiled successfully
+    
+      if (!this.#world.gl.getShaderParameter(shader, this.#world.gl.COMPILE_STATUS)) {
+        this.#world.gl.deleteShader(shader);
+        return null;
+      }
+    
+      return shader;
+    }
+
+    draw() {
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
         // Tell WebGL how to pull out the positions from the position
@@ -133,13 +159,25 @@ class SimpleDrawDelegate {
         }
       }
 
-    constructor(world) {
+      initBuffers() {
+        const positionBuffer = this.initPositionBuffer(this.#world.gl);
+        const colorBuffer = this.initColorBuffer(this.#world.gl);
+        const indexBuffer = this.initIndexBuffer(this.#world.gl);
+    
+        return {
+          indices: indexBuffer,
+          color: colorBuffer,
+          position: positionBuffer,
+        };
+      }
+
+    constructor(world, positions, colors, indices) {
         this.#world = world;
         if (!globalVertexShader) {
-            globalVertexShader = this.loadShader(world.gl, world.gl.VERTEX_SHADER, globalVertexShaderSource);
+            globalVertexShader = this.loadShader(world.gl.VERTEX_SHADER, globalVertexShaderSource);
         }
         if (!globalFragmentShader) {
-            globalFragmentShader = this.loadShader(world.gl, world.gl.FRAGMENT_SHADER, globalFragmentShaderSource);
+            globalFragmentShader = this.loadShader(world.gl.FRAGMENT_SHADER, globalFragmentShaderSource);
         }
         // Create the shader program
       
@@ -161,7 +199,11 @@ class SimpleDrawDelegate {
         }
     
         if (!this.#buffers) {
-            this.#buffers = this.initBuffers(this.#world.gl);
+            this.#buffers = {
+              position: this.initPositionBuffer(positions),
+              indices: this.initIndexBuffer(indices),
+              color: this.initColorBuffer(colors)
+            };
         }
     
         /*
