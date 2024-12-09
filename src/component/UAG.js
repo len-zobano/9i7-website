@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import * as glMatrix from 'gl-matrix';
 import RainbowCube from './rainbow-cube';
 import World from './world';
+import Sculpted from './sculpted';
 
 import {
   BrowserRouter as Router,
@@ -55,8 +56,8 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      for (let i = 0; i < 511; ++i) {
-        let cube = new RainbowCube(world);
+      for (let i = 0; i < 512; ++i) {
+        let cube = new Sculpted(world);
         cube.position = [
           (i%8)*3-5,
           ((Math.floor(i/8))%8)*3-5,

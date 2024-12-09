@@ -1,60 +1,181 @@
 import * as glMatrix from 'gl-matrix';
+import SimpleDrawDelegate from './simple-draw-delegate';
+
+//3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
 class Sculpted {
   #lastTime = 0;
+  #momentum = [0,0,0];
+  #collisionMomentum = [0,0,0];
+
+  #YAxisRotationsPerSecond = 0;
+  #XAxisRotationsPerSecond = 0;
+  #ZAxisRotationsPerSecond = 0;
   #selected = false;    
   #ID = null;
+  #speed = 5;
+  #isCamera = false;
+  #drawDelegate = null;
+
+  changeMomentum (momentum) {
+    for (let i = 0; i < 3; ++i) {
+        this.#momentum[i] += momentum[i];
+    }
+  }
+
+  set isCamera (isCamera) {
+    this.#isCamera = isCamera;
+  }
 
   get ID () {
     return this.#ID;
   }
 
-  constructor() {
+  get broadCollisionRadius () {
+    return 1.2;
+  }
+
+  constructor(world) {
+    this.#world = world;
     this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
-  }
 
 
-
-
-
-  initColorBuffer(gl) {
-    const faceColors = [
-        [1.0, 1.0, 1.0, 1.0], // Front face: white
-        [1.0, 0.0, 0.0, 1.0], // Back face: red
-        [0.0, 1.0, 0.0, 1.0], // Top face: green
-        [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
-        [1.0, 1.0, 0.0, 1.0], // Right face: yellow
-        [1.0, 0.0, 1.0, 1.0], // Left face: purple
-      ];
-      
-      // Convert the array of colors into a table for all the vertices.
-
-    let colors = [];
-
-    for (var j = 0; j < faceColors.length; ++j) {
-        const c = faceColors[j];
-        // Repeat each color four times for the four vertices of the face
-        colors = colors.concat(c, c, c, c);
-    }// Convert the array of colors into a table for all the vertices.
+const positions = [
+  // Front face
+  -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
   
-    const colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+  // Back face
+  -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
   
-    return colorBuffer;
+  // Top face
+  -1.0, 1.0, -1.0, -1.0, 3.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+  
+  // Bottom face
+  -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
+  
+  // Right face
+  1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+  
+  // Left face
+  -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+  ];
+  
+  const indices = [
+      0,
+      1,
+      2,
+      0,
+      2,
+      3, // front
+      4,
+      5,
+      6,
+      4,
+      6,
+      7, // back
+      8,
+      9,
+      10,
+      8,
+      10,
+      11, // top
+      12,
+      13,
+      14,
+      12,
+      14,
+      15, // bottom
+      16,
+      17,
+      18,
+      16,
+      18,
+      19, // right
+      20,
+      21,
+      22,
+      20,
+      22,
+      23, // left
+  ];
+  
+  const faceColors = [
+  [1.0, 1.0, 1.0, 1.0], // Front face: white
+  [1.0, 0.0, 0.0, 1.0], // Back face: red
+  [0.0, 1.0, 0.0, 1.0], // Top face: green
+  [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
+  [1.0, 1.0, 0.0, 1.0], // Right face: yellow
+  [1.0, 0.0, 1.0, 1.0], // Left face: purple
+  ];
+
+
+  let colors = [];
+
+  for (var j = 0; j < faceColors.length; ++j) {
+      const c = faceColors[j];
+      // Repeat each color four times for the four vertices of the face
+      colors = colors.concat(c, c, c, c);
+  }// Convert the array of colors into a table for all the vertices.
+
+
+    this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
   }
 
-  initBuffers(gl) {
-    const positionBuffer = this.initPositionBuffer(gl);
-    const colorBuffer = this.initColorBuffer(gl);
-    const indexBuffer = this.initIndexBuffer(gl);
+    #downKeys = {};
 
-    return {
-      indices: indexBuffer,
-      color: colorBuffer,
-      position: positionBuffer,
-    };
-  }
+    detectCollision(otherPlottable) {
+        let distance = Math.pow(
+            Math.pow(otherPlottable.position[0] - this.position[0], 2) +
+            Math.pow(otherPlottable.position[1] - this.position[1], 2) +
+            Math.pow(otherPlottable.position[2] - this.position[2], 2)
+        ,0.5);
+        
+        let minimumDistance = otherPlottable.broadCollisionRadius + this.broadCollisionRadius;
+
+        return distance <= minimumDistance;
+    }
+
+    onCollision(otherPlottable) {
+        //calculate magnitude of momentum
+        let combinedMomentum = [], magnitudeOfCombinedMomentum = 0;
+        for (let i = 0; i < 3; ++i) {
+            combinedMomentum[i] = otherPlottable.#momentum[i] - this.#momentum[i];
+            magnitudeOfCombinedMomentum += Math.pow(combinedMomentum[i],2);
+        }
+        magnitudeOfCombinedMomentum = Math.pow(magnitudeOfCombinedMomentum,0.5);
+        //divide it in two
+
+        //go in opposite direction of collision
+        let relativePositionOfOther = [], distanceFromOther = 0;
+        for (let i = 0; i < 3; ++i) {
+            relativePositionOfOther[i] = otherPlottable.#position[i] - this.#position[i];
+            distanceFromOther += Math.pow(relativePositionOfOther[i], 2);
+        }
+        distanceFromOther = Math.pow(distanceFromOther, 0.5);
+
+        //make it a vector of length 1
+        let normalizedPositionOfOther = relativePositionOfOther.map((relativePosition) => {
+            return relativePosition / distanceFromOther; 
+        });
+
+        //go away from the direction of the other with the magnitude of half the combined momentum
+        for (let i = 0; i < 3; ++i) {
+            this.#collisionMomentum[i] -= normalizedPositionOfOther[i] * magnitudeOfCombinedMomentum / 2;
+        }
+    }
+
+    select(selected) {
+        console.log("select at cube");
+        this.#selected = selected;
+    }
+
+    keyIsDown(keyCode) {
+        this.#downKeys[keyCode] = true;
+    }
+
+    keyIsUp(keyCode) {
+        this.#downKeys[keyCode] = false;
+    }
 
   #position = [0,0,0];
 
@@ -68,28 +189,9 @@ class Sculpted {
 
   #programInfo = null;
   #world = null;
+  #XAngle = 0;
+  #YAngle = 0;
   #buffers = null;
-
-  loadShader(gl, type, source) {
-    const shader = gl.createShader(type);
-  
-    // Send the source to the shader object
-    gl.shaderSource(shader, source);
-  
-    // Compile the shader program
-    gl.compileShader(shader);
-  
-    // See if it compiled successfully
-  
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      gl.deleteShader(shader);
-      return null;
-    }
-  
-    return shader;
-  }
-
-
 
   simulate(world, thisTime) {
     if (this.#lastTime) {
@@ -152,7 +254,7 @@ class Sculpted {
     this.#lastTime = thisTime;
   }
 
-  draw(world) {
+  draw() {
     if (this.#isCamera) {
         return;
     }
@@ -190,33 +292,8 @@ class Sculpted {
         [1, 0, 0],
     );
 
-    this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, globalBuffers.indices);
-    this.#world.gl.useProgram(globalProgramInfo.program);
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
-    // Tell WebGL to use our program when drawing
-    this.setColorAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
-    
-    // Set the shader uniforms
-    this.#world.gl.uniformMatrix4fv(
-      globalProgramInfo.uniformLocations.projectionMatrix,
-      false,
-      this.#world.projectionMatrix,
-    );
-    this.#world.gl.uniformMatrix4fv(
-      globalProgramInfo.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix,
-    );
-  
-    {
-      const offset = 0;
-      const vertexCount = 36;
-      const type = this.#world.gl.UNSIGNED_SHORT;
-      this.#world.gl.drawElements(this.#world.gl.TRIANGLES, vertexCount, type, offset);
-    }
+    this.#drawDelegate.draw(glMatrix.mat4.clone(modelViewMatrix));
   }
 }
 
-export default RainbowCube;
+export default Sculpted;
