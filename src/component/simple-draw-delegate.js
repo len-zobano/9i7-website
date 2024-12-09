@@ -32,6 +32,9 @@ class SimpleDrawDelegate {
     #shaderProgram = null;
     #programInfo = null;
     #world = null;
+    #positions = null;
+    #colors = null;
+    #indices = null;
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -127,7 +130,73 @@ class SimpleDrawDelegate {
       return shader;
     }
 
-    draw() {
+    // draw(world) {
+    //   if (this.#isCamera) {
+    //       return;
+    //   }
+    //   // Set the drawing position to the "identity" point, which is
+    //   // the center of the scene.
+    //   // const modelViewMatrix = glMatrix.mat4.create();
+    //   const modelViewMatrix = this.#world.modelViewMatrix;
+    
+    //   // Now move the drawing position a bit to where we want to
+    //   // start drawing the square.
+    //   glMatrix.mat4.translate(
+    //     modelViewMatrix, // destination matrix
+    //     modelViewMatrix, // matrix to translate
+    //     this.#position,
+    //   ); // amount to translate
+  
+    //   // glMatrix.mat4.rotate(
+    //   //   modelViewMatrix, // destination matrix
+    //   //   modelViewMatrix, // matrix to rotate
+    //   //   this.#angle, // amount to rotate in radians
+    //   //   [0, 0, 1],
+    //   // );
+  
+    //   glMatrix.mat4.rotate(
+    //       modelViewMatrix, // destination matrix
+    //       modelViewMatrix, // matrix to rotate
+    //       this.#YAngle, // amount to rotate in radians
+    //       [0, 1, 0],
+    //   );
+  
+    //   glMatrix.mat4.rotate(
+    //       modelViewMatrix, // destination matrix
+    //       modelViewMatrix, // matrix to rotate
+    //       this.#XAngle, // amount to rotate in radians
+    //       [1, 0, 0],
+    //   );
+  
+    //   this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, globalBuffers.indices);
+    //   this.#world.gl.useProgram(globalProgramInfo.program);
+    //   // Tell WebGL how to pull out the positions from the position
+    //   // buffer into the vertexPosition attribute.
+    //   this.setPositionAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
+    //   // Tell WebGL to use our program when drawing
+    //   this.setColorAttribute(this.#world.gl, globalBuffers, globalProgramInfo);
+      
+    //   // Set the shader uniforms
+    //   this.#world.gl.uniformMatrix4fv(
+    //     globalProgramInfo.uniformLocations.projectionMatrix,
+    //     false,
+    //     this.#world.projectionMatrix,
+    //   );
+    //   this.#world.gl.uniformMatrix4fv(
+    //     globalProgramInfo.uniformLocations.modelViewMatrix,
+    //     false,
+    //     modelViewMatrix,
+    //   );
+    
+    //   {
+    //     const offset = 0;
+    //     const vertexCount = 36;
+    //     const type = this.#world.gl.UNSIGNED_SHORT;
+    //     this.#world.gl.drawElements(this.#world.gl.TRIANGLES, vertexCount, type, offset);
+    //   }
+    // }
+
+    draw(modelViewMatrix) {
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
         // Tell WebGL how to pull out the positions from the position
@@ -145,14 +214,14 @@ class SimpleDrawDelegate {
         this.#world.gl.uniformMatrix4fv(
             this.#programInfo.uniformLocations.modelViewMatrix,
           false,
-          this.#world.modelViewMatrix,
+          modelViewMatrix,
         );
       
         {
           const type = this.#world.gl.UNSIGNED_SHORT;
           this.#world.gl.drawElements(
             this.#world.gl.TRIANGLES, 
-            this.#buffers.indices.length, 
+            this.#indices.length,
             type, 
             0 
           );
@@ -173,6 +242,10 @@ class SimpleDrawDelegate {
 
     constructor(world, positions, colors, indices) {
         this.#world = world;
+        this.#positions = positions;
+        this.#colors = colors;
+        this.#indices = indices; 
+
         if (!globalVertexShader) {
             globalVertexShader = this.loadShader(world.gl.VERTEX_SHADER, globalVertexShaderSource);
         }

@@ -254,7 +254,7 @@ class RainbowCube {
     this.#lastTime = thisTime;
   }
 
-  draw(world) {
+  draw() {
     if (this.#isCamera) {
         return;
     }
@@ -292,7 +292,7 @@ class RainbowCube {
         [1, 0, 0],
     );
 
-    globalDrawDelegate.draw();
+    globalDrawDelegate.draw(glMatrix.mat4.clone(modelViewMatrix));
   }
 }
 
