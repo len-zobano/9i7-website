@@ -1,5 +1,6 @@
 import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
+import OBJFile from 'obj-file-parser';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
@@ -39,86 +40,39 @@ class Sculpted {
     this.#world = world;
     this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
 
+    let objFile = require('../models/blah.obj');
 
-const positions = [
-  // Front face
-  -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-  
-  // Back face
-  -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
-  
-  // Top face
-  -1.0, 1.0, -1.0, -1.0, 3.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
-  
-  // Bottom face
-  -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
-  
-  // Right face
-  1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
-  
-  // Left face
-  -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
-  ];
-  
-  const indices = [
-      0,
-      1,
-      2,
-      0,
-      2,
-      3, // front
-      4,
-      5,
-      6,
-      4,
-      6,
-      7, // back
-      8,
-      9,
-      10,
-      8,
-      10,
-      11, // top
-      12,
-      13,
-      14,
-      12,
-      14,
-      15, // bottom
-      16,
-      17,
-      18,
-      16,
-      18,
-      19, // right
-      20,
-      21,
-      22,
-      20,
-      22,
-      23, // left
-  ];
-  
-  const faceColors = [
-  [1.0, 1.0, 1.0, 1.0], // Front face: white
-  [1.0, 0.0, 0.0, 1.0], // Back face: red
-  [0.0, 1.0, 0.0, 1.0], // Top face: green
-  [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
-  [1.0, 1.0, 0.0, 1.0], // Right face: yellow
-  [1.0, 0.0, 1.0, 1.0], // Left face: purple
-  ];
+    fetch(objFile)
+      .then(response => response.text())
+      .then((text) => {
+        let objFile = new OBJFile (text);
+        let objOutput = objFile.parse();
+        let positions = objOutput.models[0].vertices.map((vertex) => {
+          return [vertex.x, vertex.y, vertex.z];
+        }).reduce((a,b) => {
+          return a.concat(b);
+        });
 
+        let colors = objOutput.models[0].vertices.map((vertex) => {
+          return [Math.random(), Math.random(), Math.random(), 1.0];
+        }).reduce((a,b) => {
+          return a.concat(b);
+        });
 
-  let colors = [];
+        let indices = objOutput.models[0].faces.map((face) => {
+          let ret = face.vertices.map((vertex) => {
+            return vertex.vertexIndex - 1;
+          });
 
-  for (var j = 0; j < faceColors.length; ++j) {
-      const c = faceColors[j];
-      // Repeat each color four times for the four vertices of the face
-      colors = colors.concat(c, c, c, c);
-  }// Convert the array of colors into a table for all the vertices.
+          return ret;
+        }).reduce((a, b) => {
+          return a.concat(b);
+        });
 
+        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
+        // debugger;
+      });
 
-    this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
   }
 
     #downKeys = {};
@@ -255,7 +209,8 @@ const positions = [
   }
 
   draw() {
-    if (this.#isCamera) {
+
+    if (!this.#drawDelegate || this.#isCamera) {
         return;
     }
     // Set the drawing position to the "identity" point, which is

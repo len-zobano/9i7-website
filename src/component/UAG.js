@@ -56,7 +56,7 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      for (let i = 0; i < 512; ++i) {
+      for (let i = 0; i < 10; ++i) {
         let cube = new Sculpted(world);
         cube.position = [
           (i%8)*3-5,
