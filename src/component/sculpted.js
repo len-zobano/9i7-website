@@ -1,27 +1,24 @@
 import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
+import ControlPoint from './control-point';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
 class Sculpted {
   #lastTime = 0;
-  #momentum = [0,0,0];
-  #collisionMomentum = [0,0,0];
-
-  #YAxisRotationsPerSecond = 0;
-  #XAxisRotationsPerSecond = 0;
-  #ZAxisRotationsPerSecond = 0;
   #selected = false;    
   #ID = null;
   #speed = 5;
   #isCamera = false;
   #drawDelegate = null;
 
+  #positionPoint = null; 
+  #upPoint = null;
+  #rightPoint = null;
+
   changeMomentum (momentum) {
-    for (let i = 0; i < 3; ++i) {
-        this.#momentum[i] += momentum[i];
-    }
+    this.#positionPoint.changeMomentum(momentum);
   }
 
   set isCamera (isCamera) {
@@ -90,32 +87,7 @@ class Sculpted {
     }
 
     onCollision(otherPlottable) {
-        //calculate magnitude of momentum
-        let combinedMomentum = [], magnitudeOfCombinedMomentum = 0;
-        for (let i = 0; i < 3; ++i) {
-            combinedMomentum[i] = otherPlottable.#momentum[i] - this.#momentum[i];
-            magnitudeOfCombinedMomentum += Math.pow(combinedMomentum[i],2);
-        }
-        magnitudeOfCombinedMomentum = Math.pow(magnitudeOfCombinedMomentum,0.5);
-        //divide it in two
-
-        //go in opposite direction of collision
-        let relativePositionOfOther = [], distanceFromOther = 0;
-        for (let i = 0; i < 3; ++i) {
-            relativePositionOfOther[i] = otherPlottable.#position[i] - this.#position[i];
-            distanceFromOther += Math.pow(relativePositionOfOther[i], 2);
-        }
-        distanceFromOther = Math.pow(distanceFromOther, 0.5);
-
-        //make it a vector of length 1
-        let normalizedPositionOfOther = relativePositionOfOther.map((relativePosition) => {
-            return relativePosition / distanceFromOther; 
-        });
-
-        //go away from the direction of the other with the magnitude of half the combined momentum
-        for (let i = 0; i < 3; ++i) {
-            this.#collisionMomentum[i] -= normalizedPositionOfOther[i] * magnitudeOfCombinedMomentum / 2;
-        }
+      //this collision function should only be used for object interaction, not physics
     }
 
     select(selected) {
@@ -131,15 +103,15 @@ class Sculpted {
         this.#downKeys[keyCode] = false;
     }
 
-  #position = [0,0,0];
+    //get position out of control point
+    get position () {
+      return this.#positionPoint.position;
+    }
 
-  get position() {
-    return this.#position;
-  }
-
-  set position(position) {
-    this.#position = position;
-  }
+    //convert position to control point
+    set position(position) {
+      this.#positionPoint = new ControlPoint(this.#world, position);
+    }
 
   #programInfo = null;
   #world = null;
@@ -155,54 +127,56 @@ class Sculpted {
 
             //right arrow
             if (this.#downKeys[39]) {
-                this.#momentum[0] += this.#speed * interval / 20;
+                this.#positionPoint.changeMomentum([this.#speed * interval / 20, 0, 0]);
             }
 
             //up arrow
             if (this.#downKeys[38]) {
                 if (this.#downKeys[16]) {
-                    this.#momentum[2] += this.#speed * interval / 20;
+                    this.#positionPoint.changeMomentum([0,0,this.#speed * interval / 20]);
                 }
                 else {
-                    this.#momentum[1] += this.#speed * interval / 20;
+                    // this.#momentum[1] += this.#speed * interval / 20;
+                    this.#positionPoint.changeMomentum([0,this.#speed * interval / 20,0]);
                 }
             }
 
             //down arrow
             if (this.#downKeys[40]) {         
                 if (this.#downKeys[16]) {
-                    this.#momentum[2] -= this.#speed * interval / 20;
+                    // this.#momentum[2] -= this.#speed * interval / 20;
+                    this.#positionPoint.changeMomentum([0,0,-this.#speed * interval / 20]);
                 }
                 else {
-                    this.#momentum[1] -= this.#speed * interval / 20;
+                    // this.#momentum[1] -= this.#speed * interval / 20;
+                    this.#positionPoint.changeMomentum([0,-this.#speed * interval / 20,0]);
                 }
             }
 
             //left arrow
             if (this.#downKeys[37]) {
-                this.#momentum[0] -= this.#speed * interval / 20;
+                // this.#momentum[0] -= this.#speed * interval / 20;
+                this.#positionPoint.changeMomentum([-this.#speed * interval / 20, 0, 0]);
             }
         }
 
-        this.#XAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
-        this.#YAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
+        // this.#XAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
+        // this.#YAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
 
         //factor in the momentum change due to collision
-        for (let i = 0; i < 3; ++i) {
-            this.#momentum[i] += this.#collisionMomentum[i];
-            this.#collisionMomentum[i] = 0;
-        }
+        // for (let i = 0; i < 3; ++i) {
+        //     this.#momentum[i] += this.#collisionMomentum[i];
+        //     this.#collisionMomentum[i] = 0;
+        // }
 
-        this.#momentum = this.#momentum.map((momentum) => {
-            return momentum * Math.pow(0.9,interval/100);
-        })
+        // this.#momentum = this.#momentum.map((momentum) => {
+        //     return momentum * Math.pow(0.9,interval/100);
+        // })
 
-        this.#YAngle += this.#YAxisRotationsPerSecond/interval;
-        this.#XAngle += this.#XAxisRotationsPerSecond/interval;
-
-        for (let i = 0; i < 3; ++i) {
-            this.#position[i] += this.#momentum[i]/interval;
-        }
+        // for (let i = 0; i < 3; ++i) {
+        //     this.#position[i] += this.#momentum[i]/interval;
+        // }
+        this.#positionPoint.simulate(interval/10000, null);
     }
 
     this.#lastTime = thisTime;
@@ -223,7 +197,7 @@ class Sculpted {
     glMatrix.mat4.translate(
       modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to translate
-      this.#position,
+      this.#positionPoint.position,
     ); // amount to translate
 
     // glMatrix.mat4.rotate(
