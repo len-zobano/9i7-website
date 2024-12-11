@@ -222,6 +222,8 @@ class Sculpted {
     );
 
     this.#drawDelegate.draw(glMatrix.mat4.clone(modelViewMatrix));
+
+    this.#positionPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
   }
 }
 
