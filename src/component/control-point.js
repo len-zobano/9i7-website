@@ -7,6 +7,11 @@ let globalDrawDelegate = null;
 class ControlPoint {
     #world = null;
     #position = null;
+
+    get positionAsVector () {
+        return glMatrix.vec3.clone(this.#position);
+    }
+
     get position () {
         return this.#position.slice(0);
     }
@@ -14,14 +19,22 @@ class ControlPoint {
     #bonds = [];
     #momentum = null;
     #repulsion = 1.0;
+    get repulsion () {
+        return this.#repulsion;
+    }
+    #plottable = null;
     //the distance past which the particle won't repel another
-    #radius = 1.0;
-    #inertia = 1.0;
+    #radius = 1.2;
+    get radius () {
+        return this.#radius;
+    }
 
+    #inertia = 1.0;
     #drawDelegate = null;
 
-    constructor(world, position) {
+    constructor(world, plottable, position) {
         this.#world = world;
+        this.#plottable = plottable;
         this.#position = glMatrix.vec3.fromValues(
             position[0],
             position[1],
@@ -32,6 +45,7 @@ class ControlPoint {
     }
 
     bondTo(other, strength, isReciprocalBond) {
+        //TODO: make a bond a shared object between the two particles rather than a different reference for each
         this.#bonds.push({
             controlPoint: other,
             strength
@@ -43,23 +57,57 @@ class ControlPoint {
     }
 
     //calculate the bond strength needed to equal the repulsion at the given distance
-    bondToInPlace(other, isReciprocalBond) {
-
+    bondToInPlace(other) {
+        this.bondTo(other, 1, false);
     }
     
     //simulate against all control points in a tile
-    simulate(interval, tile) {
+    simulate(interval) {
         // //calculate attraction by bonds
-        // this.#bonds.forEach((bond) => {
-        //     //momentum += relativeLocation (this, bond.controlPoint) * bond.strength * interval
-        // });
+        this.#bonds.forEach((bond) => {
+            let distance = glMatrix.vec3.distance(this.#position, bond.controlPoint.position);
+            let magnitude = interval * bond.strength * distance;
 
-        // //calculate repulsion by local control points
-        // let localControlPoints = tile.getControlPoints();
-        // localControlPoints.forEach((otherControlPoint) => {
-        //     //magnitude = interval * otherControlPoint.repulsion / distance (this, otherControlPoint) - (otherControlPoint.repulsion / otherControlPoint.radius)
-        //     //momentum -= relativeLocation (this, otherControlPoint) * magnitude
-        // });
+            let relativePosition = glMatrix.vec3.create();
+            glMatrix.vec3.subtract(relativePosition, bond.controlPoint.positionAsVector, this.#position); 
+            glMatrix.vec3.scale(relativePosition, relativePosition, magnitude);
+            glMatrix.vec3.add(this.#momentum, this.#momentum, relativePosition);
+        });
+
+        //calculate repulsion by local control points
+        let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForPlottable(this.#plottable);
+        let plottables = this.#world.gridSystem.getCurrentPlottablesForTileCoordinates(tile);
+        //optimize this by indexing the control points on the tile
+        let localControlPoints = [];
+        plottables.forEach((plottable) => {
+            localControlPoints = localControlPoints.concat(plottable.controlPoints || []);
+        }); 
+
+        localControlPoints.forEach((otherControlPoint) => {
+            if (otherControlPoint != this) {
+
+                let distance = glMatrix.vec3.distance(this.#position, otherControlPoint.position);
+
+                let magnitude = 
+                    interval *(
+                        otherControlPoint.repulsion / 
+                        distance/* -
+                        otherControlPoint.repulsion /
+                        otherControlPoint.radius*/
+                    );
+
+                if (distance < otherControlPoint.radius) {
+                    let relativePosition = glMatrix.vec3.create();
+                    glMatrix.vec3.subtract(relativePosition, otherControlPoint.positionAsVector, this.#position);
+                    glMatrix.vec3.scale(relativePosition, relativePosition, magnitude);
+        
+                    glMatrix.vec3.subtract(this.#momentum, this.#momentum, relativePosition);
+                }
+            }
+            //magnitude = interval * otherControlPoint.repulsion / distance (this, otherControlPoint) - (otherControlPoint.repulsion / otherControlPoint.radius)
+            //momentum -= relativeLocation (this, otherControlPoint) * magnitude
+
+        });
 
         // //calculate gravity from world
         // this.#world.calculateGravityVectorForCoordinate(this.#position);
@@ -68,11 +116,11 @@ class ControlPoint {
         let scaledMomentum = glMatrix.vec3.create();
         glMatrix.vec3.scale(scaledMomentum, this.#momentum, interval);
         //add momentum to position
-        glMatrix.vec3.add(this.#position, this.#position, scaledMomentum);
+        glMatrix.vec3.add(this.#position, this.#position, this.#momentum);
         // console.log('simulating control point',this.#position);
 
 
-        glMatrix.vec3.scale(this.#momentum, this.#momentum, Math.pow(0.001,interval));
+        glMatrix.vec3.scale(this.#momentum, this.#momentum, Math.pow(0.1,interval));
     }
 
     initializeGlobalDrawDelegate () {

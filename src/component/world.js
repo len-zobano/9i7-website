@@ -161,6 +161,11 @@ class World {
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
+
+  get gridSystem () {
+    return this.#gridSystem;
+  }
+
   #modelViewMatrix = null;//glMatrix.mat4.identity();
   #downKeys = {};
 
@@ -169,7 +174,7 @@ class World {
     }
 
 constructor() {
-        this.#cameraPlottable = new Plottable ([50,50,50]);
+        this.#cameraPlottable = new Plottable ([0,0,-100]);
         this.#upPlottable = new Plottable ([0,1000,0]);
 
         var canvas = document.getElementById("test-canvas");
@@ -245,7 +250,7 @@ constructor() {
     }
     let lastTime = this.#currentTime;
     this.#currentTime = new Date().getTime();
-    let interval = this.#currentTime - lastTime;
+    let interval = (this.#currentTime - lastTime)/1000;
     
     if (!this.#gridSystem) {
         this.#gridSystem = new GridSystem();
@@ -266,8 +271,6 @@ constructor() {
                 }
             });
         });
-
-        this.#gridSystem.iterate();
     }
     //collision detection if not optimized
     else {
@@ -351,8 +354,13 @@ constructor() {
     }
 
     this.#simulatables.forEach((simulatable) => {
-      simulatable.simulate(this, this.#currentTime);
+        simulatable.simulate(this, this.#currentTime);
     });
+
+    //only iterate after all other collisions are calculated
+    if (this.#gridSystem) {
+        this.#gridSystem.iterate();
+    }
   }
 
     draw() {

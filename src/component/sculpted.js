@@ -16,6 +16,11 @@ class Sculpted {
   #positionPoint = null; 
   #upPoint = null;
   #rightPoint = null;
+  #towardPoint = null;
+
+  get controlPoints () {
+    return [this.#positionPoint, this.#upPoint, this.#rightPoint, this.#towardPoint];
+  }
 
   changeMomentum (momentum) {
     this.#positionPoint.changeMomentum(momentum);
@@ -67,7 +72,6 @@ class Sculpted {
         });
 
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
-        // debugger;
       });
 
   }
@@ -110,7 +114,30 @@ class Sculpted {
 
     //convert position to control point
     set position(position) {
-      this.#positionPoint = new ControlPoint(this.#world, position);
+      this.#positionPoint = new ControlPoint(this.#world, this, position);
+      this.#upPoint = new ControlPoint(this.#world, this, [
+        position[0],
+        position[1] + 1.0,
+        position[2]
+      ]);
+      this.#rightPoint = new ControlPoint(this.#world, this, [
+        position[0] + 1.0,
+        position[1],
+        position[2]
+      ]);
+      this.#towardPoint = new ControlPoint(this.#world, this, [
+        position[0],
+        position[1],
+        position[2] + 1.0
+      ]);
+
+      this.#positionPoint.bondToInPlace(this.#upPoint);
+      this.#upPoint.bondToInPlace(this.#rightPoint);
+      this.#rightPoint.bondToInPlace(this.#positionPoint);
+
+      this.#towardPoint.bondToInPlace(this.#positionPoint);
+      this.#towardPoint.bondToInPlace(this.#upPoint);
+      this.#towardPoint.bondToInPlace(this.#rightPoint);
     }
 
   #programInfo = null;
@@ -123,60 +150,9 @@ class Sculpted {
     if (this.#lastTime) {
       let interval = thisTime - this.#lastTime;
 
-        if (this.#selected) {
-
-            //right arrow
-            if (this.#downKeys[39]) {
-                this.#positionPoint.changeMomentum([this.#speed * interval / 20, 0, 0]);
-            }
-
-            //up arrow
-            if (this.#downKeys[38]) {
-                if (this.#downKeys[16]) {
-                    this.#positionPoint.changeMomentum([0,0,this.#speed * interval / 20]);
-                }
-                else {
-                    // this.#momentum[1] += this.#speed * interval / 20;
-                    this.#positionPoint.changeMomentum([0,this.#speed * interval / 20,0]);
-                }
-            }
-
-            //down arrow
-            if (this.#downKeys[40]) {         
-                if (this.#downKeys[16]) {
-                    // this.#momentum[2] -= this.#speed * interval / 20;
-                    this.#positionPoint.changeMomentum([0,0,-this.#speed * interval / 20]);
-                }
-                else {
-                    // this.#momentum[1] -= this.#speed * interval / 20;
-                    this.#positionPoint.changeMomentum([0,-this.#speed * interval / 20,0]);
-                }
-            }
-
-            //left arrow
-            if (this.#downKeys[37]) {
-                // this.#momentum[0] -= this.#speed * interval / 20;
-                this.#positionPoint.changeMomentum([-this.#speed * interval / 20, 0, 0]);
-            }
-        }
-
-        // this.#XAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
-        // this.#YAxisRotationsPerSecond *= Math.pow(0.9,this.#speed * interval/100);
-
-        //factor in the momentum change due to collision
-        // for (let i = 0; i < 3; ++i) {
-        //     this.#momentum[i] += this.#collisionMomentum[i];
-        //     this.#collisionMomentum[i] = 0;
-        // }
-
-        // this.#momentum = this.#momentum.map((momentum) => {
-        //     return momentum * Math.pow(0.9,interval/100);
-        // })
-
-        // for (let i = 0; i < 3; ++i) {
-        //     this.#position[i] += this.#momentum[i]/interval;
-        // }
-        this.#positionPoint.simulate(interval/10000, null);
+      this.controlPoints.forEach((controlPoint) => {
+        controlPoint.simulate(interval/10000);
+      });
     }
 
     this.#lastTime = thisTime;
@@ -194,34 +170,49 @@ class Sculpted {
   
     // Now move the drawing position a bit to where we want to
     // start drawing the square.
+    let drawPosition = this.#positionPoint.position;
+    drawPosition[0] += 1;
+    drawPosition[1] += 1;
+    drawPosition[2] += 1;
+
     glMatrix.mat4.translate(
       modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to translate
-      this.#positionPoint.position,
+      drawPosition,
     ); // amount to translate
 
-    // glMatrix.mat4.rotate(
-    //   modelViewMatrix, // destination matrix
-    //   modelViewMatrix, // matrix to rotate
-    //   this.#angle, // amount to rotate in radians
-    //   [0, 0, 1],
-    // );
+    let normalizedUp = this.#upPoint.positionAsVector;
+    glMatrix.vec3.subtract(normalizedUp, normalizedUp, this.#positionPoint.positionAsVector);
+    glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
-    glMatrix.mat4.rotate(
-        modelViewMatrix, // destination matrix
-        modelViewMatrix, // matrix to rotate
-        this.#YAngle, // amount to rotate in radians
-        [0, 1, 0],
+    let normalizedRight = this.#rightPoint.positionAsVector;
+    glMatrix.vec3.subtract(normalizedRight, normalizedRight, this.#positionPoint.positionAsVector);
+    glMatrix.vec3.normalize(normalizedRight, normalizedRight);
+
+    let normalizedToward = glMatrix.vec3.create();
+    glMatrix.vec3.cross(normalizedToward, normalizedRight, normalizedUp);
+    glMatrix.vec3.normalize(normalizedToward, normalizedToward);
+    glMatrix.vec3.subtract(normalizedToward, glMatrix.vec3.create(), normalizedToward);
+    
+    glMatrix.vec3.cross(normalizedRight, normalizedUp, normalizedToward);
+    glMatrix.vec3.normalize(normalizedRight, normalizedRight);
+    glMatrix.vec3.subtract(normalizedRight, glMatrix.vec3.create(), normalizedRight);
+
+    let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
+    let drawDelegateRotationMatrix = glMatrix.mat4.fromValues(
+      normalizedRight[0], normalizedUp[0], normalizedToward[0], 0,
+      normalizedRight[1], normalizedUp[1], normalizedToward[1], 0,
+      normalizedRight[2], normalizedUp[2], normalizedToward[2], 0,
+      0, 0, 0, 1
     );
 
-    glMatrix.mat4.rotate(
-        modelViewMatrix, // destination matrix
-        modelViewMatrix, // matrix to rotate
-        this.#XAngle, // amount to rotate in radians
-        [1, 0, 0],
-    );
+    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
 
-    this.#drawDelegate.draw(glMatrix.mat4.clone(modelViewMatrix));
+    this.#drawDelegate.draw(drawDelegateMatrix);
+
+    this.controlPoints.forEach((controlPoint) => {
+      controlPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
+    });
 
     this.#positionPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
   }

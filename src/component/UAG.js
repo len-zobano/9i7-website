@@ -56,12 +56,15 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      for (let i = 0; i < 3; ++i) {
+      let cubeSize = 2;
+      let distance = 0.1;
+
+      for (let i = 0; i < 1; ++i) {
         let cube = new Sculpted(world);
         cube.position = [
-          (i%8)*3-5,
-          ((Math.floor(i/8))%8)*3-5,
-          ((Math.floor(i/64))%8)*3-100,
+          (i%cubeSize)*distance-5,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance-5,
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-100
         ];
   
         world.addDrawableAndSimulatable(cube);
