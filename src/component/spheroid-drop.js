@@ -53,7 +53,7 @@ class SpheroidDrop {
         });
 
         let colors = objOutput.models[0].vertices.map((vertex) => {
-          return [Math.random(), 0.2,0.2,1.0];
+          return [Math.random(),Math.random(),Math.random(),0.5];
         }).reduce((a,b) => {
           return a.concat(b);
         });

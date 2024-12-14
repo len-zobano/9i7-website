@@ -161,6 +161,11 @@ class World {
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
+  #gl = null;
+
+  get gl () {
+    return this.#gl;
+  }
 
   get gridSystem () {
     return this.#gridSystem;
@@ -178,7 +183,7 @@ constructor() {
         this.#upPlottable = new Plottable ([0,1000,0]);
 
         var canvas = document.getElementById("test-canvas");
-        this.gl = canvas.getContext("webgl"); 
+        this.#gl = canvas.getContext("webgl", {alpha: false}); 
 }
 
   keyIsUp(keyCode) {
@@ -378,13 +383,17 @@ constructor() {
         var canvas = document.getElementById("test-canvas");
 
         if (canvas) {
-            var gl = canvas.getContext("webgl"); 
+            var gl = this.#gl; 
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-            gl.clearDepth(1.0); // Clear everything
+            gl.enable( gl.BLEND );
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.DEPTH_TEST); // Enable depth testing
             gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-          
+
+            
+            gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
+            gl.clearDepth(1.0); // Clear everything
+
             // Clear the canvas before we start drawing on it.
           
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

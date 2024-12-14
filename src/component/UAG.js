@@ -44,7 +44,7 @@ function useWindowDimensions() {
 
 function Canvas(props) {
   const { height, width } = useWindowDimensions();
-  return <canvas id="test-canvas" width={width} height={height}></canvas>;
+  return <canvas id="test-canvas" width={width} height={height} style={{background: 'red'}}></canvas>;
 }
 
 //not the right way to run a one-time init function, but I don't know the React way yet
