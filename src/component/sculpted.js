@@ -1,7 +1,7 @@
 import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
-import ControlPoint from './control-point';
+import ParticleControlPoint from './particle-control-point';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
@@ -114,18 +114,18 @@ class Sculpted {
 
     //convert position to control point
     set position(position) {
-      this.#positionPoint = new ControlPoint(this.#world, this, position);
-      this.#upPoint = new ControlPoint(this.#world, this, [
+      this.#positionPoint = new ParticleControlPoint(this.#world, this, position);
+      this.#upPoint = new ParticleControlPoint(this.#world, this, [
         position[0],
         position[1] + 1.0,
         position[2]
       ]);
-      this.#rightPoint = new ControlPoint(this.#world, this, [
+      this.#rightPoint = new ParticleControlPoint(this.#world, this, [
         position[0] + 1.0,
         position[1],
         position[2]
       ]);
-      this.#towardPoint = new ControlPoint(this.#world, this, [
+      this.#towardPoint = new ParticleControlPoint(this.#world, this, [
         position[0],
         position[1],
         position[2] + 1.0

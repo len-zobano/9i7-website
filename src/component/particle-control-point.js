@@ -4,7 +4,7 @@ import OBJFile from 'obj-file-parser';
 
 let globalDrawDelegate = null;
 
-class ControlPoint {
+class ParticleControlPoint {
     #world = null;
     #position = null;
 
@@ -58,7 +58,7 @@ class ControlPoint {
 
     //calculate the bond strength needed to equal the repulsion at the given distance
     bondToInPlace(other) {
-        this.bondTo(other, 1, false);
+        this.bondTo(other, 0.1, false);
     }
     
     //simulate against all control points in a tile
@@ -78,34 +78,34 @@ class ControlPoint {
         let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForPlottable(this.#plottable);
         let plottables = this.#world.gridSystem.getCurrentPlottablesForTileCoordinates(tile);
         //optimize this by indexing the control points on the tile
-        let localControlPoints = [];
+        let localParticleControlPoints = [];
         plottables.forEach((plottable) => {
-            localControlPoints = localControlPoints.concat(plottable.controlPoints || []);
+            localParticleControlPoints = localParticleControlPoints.concat(plottable.controlPoints || []);
         }); 
 
-        localControlPoints.forEach((otherControlPoint) => {
-            if (otherControlPoint != this) {
+        localParticleControlPoints.forEach((otherParticleControlPoint) => {
+            if (otherParticleControlPoint != this) {
 
-                let distance = glMatrix.vec3.distance(this.#position, otherControlPoint.position);
+                let distance = glMatrix.vec3.distance(this.#position, otherParticleControlPoint.position);
 
                 let magnitude = 
                     interval *(
-                        otherControlPoint.repulsion / 
+                        otherParticleControlPoint.repulsion / 
                         distance/* -
-                        otherControlPoint.repulsion /
-                        otherControlPoint.radius*/
+                        otherParticleControlPoint.repulsion /
+                        otherParticleControlPoint.radius*/
                     );
 
-                if (distance < otherControlPoint.radius) {
+                if (distance < otherParticleControlPoint.radius) {
                     let relativePosition = glMatrix.vec3.create();
-                    glMatrix.vec3.subtract(relativePosition, otherControlPoint.positionAsVector, this.#position);
+                    glMatrix.vec3.subtract(relativePosition, otherParticleControlPoint.positionAsVector, this.#position);
                     glMatrix.vec3.scale(relativePosition, relativePosition, magnitude);
         
                     glMatrix.vec3.subtract(this.#momentum, this.#momentum, relativePosition);
                 }
             }
-            //magnitude = interval * otherControlPoint.repulsion / distance (this, otherControlPoint) - (otherControlPoint.repulsion / otherControlPoint.radius)
-            //momentum -= relativeLocation (this, otherControlPoint) * magnitude
+            //magnitude = interval * otherParticleControlPoint.repulsion / distance (this, otherParticleControlPoint) - (otherParticleControlPoint.repulsion / otherParticleControlPoint.radius)
+            //momentum -= relativeLocation (this, otherParticleControlPoint) * magnitude
 
         });
 
@@ -120,7 +120,7 @@ class ControlPoint {
         // console.log('simulating control point',this.#position);
 
 
-        glMatrix.vec3.scale(this.#momentum, this.#momentum, Math.pow(0.1,interval));
+        glMatrix.vec3.scale(this.#momentum, this.#momentum, 0.99);
     }
 
     initializeGlobalDrawDelegate () {
@@ -196,4 +196,4 @@ class ControlPoint {
     }
 }
 
-export default ControlPoint;
+export default ParticleControlPoint;

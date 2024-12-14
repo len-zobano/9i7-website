@@ -388,12 +388,9 @@ constructor() {
             // as the destination to receive the result.
             glMatrix.mat4.perspective(this.#projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
-
-
             /*
             Camera view
             */
-
 
             if (this.#cameraPlottable && this.#selected && this.#upPlottable) {
                 //let cameraPosition = this.#cameraPlottable.position
