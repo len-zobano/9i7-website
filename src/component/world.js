@@ -179,7 +179,7 @@ class World {
     }
 
 constructor() {
-        this.#cameraPlottable = new Plottable ([0,0,-100]);
+        this.#cameraPlottable = new Plottable ([0,0,0]);
         this.#upPlottable = new Plottable ([0,1000,0]);
 
         var canvas = document.getElementById("test-canvas");
@@ -293,9 +293,7 @@ constructor() {
     /*
     * camera-relative control calculations
     */
-        //let cameraPosition = this.#cameraPlottable.position
         let cameraPosition = this.#cameraPlottable.position;
-        //let cameraDirection = normalize(this.#cameraPlottable.position - this.#focalPointPlottable.position)
         let cameraDirection = glMatrix.vec3.create();
         glMatrix.vec3.subtract(
             cameraDirection, 
@@ -385,8 +383,8 @@ constructor() {
         if (canvas) {
             var gl = this.#gl; 
 
-            gl.enable( gl.BLEND );
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            // gl.enable( gl.BLEND );
+            // gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.DEPTH_TEST); // Enable depth testing
             gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
@@ -412,9 +410,7 @@ constructor() {
             */
 
             if (this.#cameraPlottable && this.#selected && this.#upPlottable) {
-                //let cameraPosition = this.#cameraPlottable.position
                 let cameraPosition = this.#cameraPlottable.position;
-                //let cameraDirection = normalize(this.#cameraPlottable.position - this.#focalPointPlottable.position)
                 let cameraDirection = glMatrix.vec3.create();
                 glMatrix.vec3.subtract(
                     cameraDirection, 

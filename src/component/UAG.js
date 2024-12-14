@@ -63,9 +63,9 @@ function UAGComponent() {
       for (let i = 0; i < 1; ++i) {
         let cube = new SpheroidDrop(world);
         cube.position = [
-          (i%cubeSize)*distance-5,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance-5,
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-100
+          (i%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-10
         ];
   
         world.addDrawableAndSimulatable(cube);

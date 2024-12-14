@@ -2,7 +2,11 @@ import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 
-let globalDrawDelegate = null;
+let drawDelegates = {
+    red: null,
+    green: null,
+    blue: null
+};
 
 class SphericalControlPoint {
     #world = null;
@@ -148,9 +152,12 @@ class SphericalControlPoint {
         });
 
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.99);
+        this.#angularMomentum = this.#angularMomentum.map((element) => {
+            return element*0.99;
+        });
     }
 
-    initializeGlobalDrawDelegate () {
+    initializeDrawDelegates () {
         let objFile = require('../models/controlPoint.obj');
 
         fetch(objFile)
@@ -164,11 +171,23 @@ class SphericalControlPoint {
               return a.concat(b);
             });
     
-            let colors = objOutput.models[0].vertices.map((vertex) => {
-              return [1.0,0.0,0.0,1.0];
-            }).reduce((a,b) => {
-              return a.concat(b);
-            });
+            let colors = {
+                red: objOutput.models[0].vertices.map((vertex) => {
+                    return [1.0,0.0,0.0,1.0];
+                }).reduce((a,b) => {
+                    return a.concat(b);
+                }),
+                green: objOutput.models[0].vertices.map((vertex) => {
+                    return [0.0,1.0,0.0,1.0];
+                }).reduce((a,b) => {
+                    return a.concat(b);
+                }),
+                blue: objOutput.models[0].vertices.map((vertex) => {
+                    return [0.0,0.0,1.0,1.0];
+                }).reduce((a,b) => {
+                    return a.concat(b);
+                }),
+            };
     
             let indices = objOutput.models[0].faces.map((face) => {
               let ret = face.vertices.map((vertex) => {
@@ -180,36 +199,53 @@ class SphericalControlPoint {
               return a.concat(b);
             });
     
-            globalDrawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
+            drawDelegates = {
+                red: new SimpleDrawDelegate(this.#world, positions, colors.red, indices),
+                green: new SimpleDrawDelegate(this.#world, positions, colors.green, indices),
+                blue: new SimpleDrawDelegate(this.#world, positions, colors.blue, indices),
+            }
           });
+    }
+
+    drawReferencePoint(matrix, coordinates, color) {
+        glMatrix.mat4.translate(
+            matrix, // destination matrix
+            matrix, // matrix to translate
+            coordinates.map((coordinate) => {
+              return coordinate;
+            })
+        ); 
+
+        glMatrix.mat4.scale(
+            matrix,
+            matrix,
+            glMatrix.vec3.fromValues(0.2,0.2,0.2)
+        );
+
+        if (!drawDelegates.red && this.#world) {
+            this.initializeDrawDelegates();
+        }
+
+        if (drawDelegates[color]) {
+            drawDelegates[color].draw(glMatrix.mat4.clone(matrix));
+        }
     }
 
     draw() {
         const modelViewMatrix = this.#world.modelViewMatrix;
-  
         // Now move the drawing position a bit to where we want to
         // start drawing the square.
         glMatrix.mat4.translate(
           modelViewMatrix, // destination matrix
           modelViewMatrix, // matrix to translate
           this.#position.map((coordinate) => {
-            return coordinate + 1.0;
+            return coordinate;
           })
-        ); // amount to translate
+        ); 
 
-        glMatrix.mat4.scale(
-            modelViewMatrix,
-            modelViewMatrix,
-            glMatrix.vec3.fromValues(0.2,0.2,0.2)
-        );
-
-        if (!globalDrawDelegate && this.#world) {
-            this.initializeGlobalDrawDelegate();
-        }
-
-        if (globalDrawDelegate) {
-            globalDrawDelegate.draw(glMatrix.mat4.clone(modelViewMatrix));
-        }
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#right, 'blue');
     }
 
     changeLinearMomentum(momentumChangeArray) {

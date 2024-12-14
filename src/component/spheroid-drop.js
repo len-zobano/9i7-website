@@ -53,7 +53,7 @@ class SpheroidDrop {
         });
 
         let colors = objOutput.models[0].vertices.map((vertex) => {
-          return [Math.random(),Math.random(),Math.random(),0.5];
+          return [Math.random(),Math.random(),Math.random(),1.0];
         }).reduce((a,b) => {
           return a.concat(b);
         });
@@ -143,9 +143,6 @@ class SpheroidDrop {
     // Now move the drawing position a bit to where we want to
     // start drawing the square.
     let drawPosition = this.#positionPoint.position;
-    drawPosition[0] += 1;
-    drawPosition[1] += 1;
-    drawPosition[2] += 1;
 
     glMatrix.mat4.translate(
       modelViewMatrix, // destination matrix
@@ -181,12 +178,13 @@ class SpheroidDrop {
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix);
-
+    // this.#world.gl.depthMask(false);
+    this.#world.gl.disable(this.#world.gl.DEPTH_TEST); 
     this.controlPoints.forEach((controlPoint) => {
-      controlPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
+        controlPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
     });
-
-    this.#positionPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
+    this.#world.gl.enable(this.#world.gl.DEPTH_TEST); 
+    // this.#world.gl.depthMask(true);
   }
 }
 
