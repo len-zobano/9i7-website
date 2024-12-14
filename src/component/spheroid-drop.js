@@ -178,7 +178,7 @@ class SpheroidDrop {
       0, 0, 0, 1
     );
 
-    // glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
+    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix);
 

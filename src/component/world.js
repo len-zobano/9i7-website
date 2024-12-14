@@ -312,11 +312,20 @@ constructor() {
     */
     let speed = 5;
 
+    //change this from setting vertex, sign, type from downKeys rather than custom line for each one
+
     // //a is down
     if (this.#downKeys[65]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
-            return -element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+                return -element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+                return -element*speed;
+            }));
+        }
     }
 
     //d is down

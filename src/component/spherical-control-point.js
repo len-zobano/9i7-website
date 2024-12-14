@@ -125,21 +125,21 @@ class SphericalControlPoint {
         ];
 
         let rotationMatrices = [
-            glMatrix.mat3.fromValues([
+            glMatrix.mat3.fromValues(
                 1, 0, 0,
                 0, angleCosines[0], -angleSines[0],
                 0, angleSines[0], angleCosines[0]
-            ]),
-            glMatrix.mat3.fromValues([
+            ),
+            glMatrix.mat3.fromValues(
                 angleCosines[1], 0, angleSines[1],
                 0, 1, 0,
                 -angleSines[1], 0, angleCosines[1]
-            ]),
-            glMatrix.mat3.fromValues([
+            ),
+            glMatrix.mat3.fromValues(
                 angleCosines[2], -angleSines[2], 0,
                 angleSines[2], angleCosines[2], 0,
                 0, 0, 1
-            ])
+            )
         ];
 
         rotationMatrices.forEach((matrix) => {
@@ -225,6 +225,7 @@ class SphericalControlPoint {
         for (let i = 0; i < 3; ++i) {
             this.#angularMomentum[i] += momentumChangeArray[i];
         }
+        console.log('change angular momentum to', this.#angularMomentum);
     }
 }
 
