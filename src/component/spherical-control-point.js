@@ -103,7 +103,40 @@ class SphericalControlPoint {
         //add scaled linear momentum to position
         glMatrix.vec3.add(this.#position, this.#position, scaledLinearMomentum);
         //rotate top and right by scaled angular momentum
+        let angleSines = [
+            Math.sin(scaledAngularMomentum[0]),
+            Math.sin(scaledAngularMomentum[1]),
+            Math.sin(scaledAngularMomentum[2])
+        ];
 
+        let angleCosines= [
+            Math.cos(scaledAngularMomentum[0]),
+            Math.cos(scaledAngularMomentum[1]),
+            Math.cos(scaledAngularMomentum[2])
+        ];
+
+        let rotationMatrices = [
+            glMatrix.mat3.fromValues([
+                1, 0, 0,
+                0, angleCosines[0], -angleSines[0],
+                0, angleSines[0], angleCosines[0]
+            ]),
+            glMatrix.mat3.fromValues([
+                angleCosines[1], 0, angleSines[1],
+                0, 1, 0,
+                -angleSines[1], 0, angleCosines[1]
+            ]),
+            glMatrix.mat3.fromValues([
+                angleCosines[2], -angleSines[2], 0,
+                angleSines[2], angleCosines[2], 0,
+                0, 0, 1
+            ])
+        ];
+
+        rotationMatrices.forEach((matrix) => {
+            glMatrix.mat3.transformMat3(this.#top, this.#top, matrix);
+            glMatrix.mat3.transformMat3(this.#right, this.#right, matrix);
+        });
 
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.99);
     }
