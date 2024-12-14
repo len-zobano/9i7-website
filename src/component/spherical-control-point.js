@@ -22,8 +22,14 @@ class SphericalControlPoint {
     #angularMomentum = null;
     //top is a normal pointing in the direction of the top of the object (representing angular position)
     #top = null;
+    get top () {
+        return glMatrix.vec3.clone(this.#top);
+    }
     //right is a normal pointing in the direction of the right of the object (representing angular position)
     #right = null;
+    get right () {
+        return glMatrix.vec3.clone(this.#right);
+    }
     #friction = 0.0;
     #plottable = null;
     #radius = 1.2;
@@ -71,11 +77,14 @@ class SphericalControlPoint {
     simulate(interval) {
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
-            //calculate angular momentum by angle of bond
+            //for your bond to the other,
+                //calculate angular momentum by angle of bond
 
-            //calculate linear momentum using a comparison of the length of the vectors
-            //linear momentum should only be proportional to the distance when angle is corrected for
-            //so the difference in distance from center is corrected for angle
+                //calculate linear momentum using a comparison of the length of the vectors
+                //linear momentum should only be proportional to the distance when angle is corrected for
+                //so the difference in distance from center is corrected for angle
+            //for the other bond to you,
+                //calculate the linear momentum based on the other position
         });
 
         //calculate collision by local control points
@@ -134,8 +143,8 @@ class SphericalControlPoint {
         ];
 
         rotationMatrices.forEach((matrix) => {
-            glMatrix.mat3.transformMat3(this.#top, this.#top, matrix);
-            glMatrix.mat3.transformMat3(this.#right, this.#right, matrix);
+            glMatrix.vec3.transformMat3(this.#top, this.#top, matrix);
+            glMatrix.vec3.transformMat3(this.#right, this.#right, matrix);
         });
 
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.99);
@@ -204,7 +213,6 @@ class SphericalControlPoint {
     }
 
     changeLinearMomentum(momentumChangeArray) {
-        console.log('changemomentum at control point');
         let momentumChange = glMatrix.vec3.fromValues(
             momentumChangeArray[0],
             momentumChangeArray[1],

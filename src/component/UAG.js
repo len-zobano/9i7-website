@@ -3,6 +3,7 @@ import * as glMatrix from 'gl-matrix';
 import RainbowCube from './rainbow-cube';
 import World from './world';
 import Sculpted from './sculpted';
+import SpheroidDrop from './spheroid-drop'
 
 import {
   BrowserRouter as Router,
@@ -60,7 +61,7 @@ function UAGComponent() {
       let distance = 0.1;
 
       for (let i = 0; i < 1; ++i) {
-        let cube = new Sculpted(world);
+        let cube = new SpheroidDrop(world);
         cube.position = [
           (i%cubeSize)*distance-5,
           ((Math.floor(i/(cubeSize)))%cubeSize)*distance-5,

@@ -310,46 +310,47 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
+    let speed = 5;
 
     // //a is down
     if (this.#downKeys[65]) {
-        this.#selected.changeMomentum(cameraRight.map((element) => {
-            return -element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+            return -element*speed;
         }));
     }
 
     //d is down
     if (this.#downKeys[68]) {
-        this.#selected.changeMomentum(cameraRight.map((element) => {
-            return element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+            return element*speed;
         }));
     }
 
     // //w
     if (this.#downKeys[87]) {
-        this.#selected.changeMomentum(cameraUp.map((element) => {
-            return element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+            return element*speed;
         }));
     }
 
     // //s
     if (this.#downKeys[83]) {
-        this.#selected.changeMomentum(cameraUp.map((element) => {
-            return -element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+            return -element*speed;
         }));
     }
     
     //z
     if (this.#downKeys[88]) {
-        this.#selected.changeMomentum(cameraDirection.map((element) => {
-            return element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+            return element*speed;
         }));
     }
     
     //x
     if (this.#downKeys[90]) {
-        this.#selected.changeMomentum(cameraDirection.map((element) => {
-            return -element*interval;
+        this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+            return -element*speed;
         }));
     }
 
