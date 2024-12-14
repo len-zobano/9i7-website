@@ -22,6 +22,8 @@ class SphericalControlPoint {
     #angularMomentum = null;
     //top is a normal pointing in the direction of the top of the object (representing angular position)
     #top = null;
+    //right is a normal pointing in the direction of the right of the object (representing angular position)
+    #right = null;
     #friction = 0.0;
     #plottable = null;
     #radius = 1.2;
@@ -47,6 +49,7 @@ class SphericalControlPoint {
         this.#linearMomentum = glMatrix.vec3.create();
         this.#angularMomentum = [0,0,0];
         this.#top = glMatrix.vec3.fromValues(0.0,1.0,0.0);
+        this.#right = glMatrix.vec3.fromValues(1.0,0.0,0.0);
     }
 
     bondTo(other, strength, isReciprocalBond) {
@@ -68,7 +71,11 @@ class SphericalControlPoint {
     simulate(interval) {
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
-            
+            //calculate angular momentum by angle of bond
+
+            //calculate linear momentum using a comparison of the length of the vectors
+            //linear momentum should only be proportional to the distance when angle is corrected for
+            //so the difference in distance from center is corrected for angle
         });
 
         //calculate collision by local control points
@@ -86,17 +93,19 @@ class SphericalControlPoint {
             }
         });
 
-        //scale momentum by interval
-        let scaledMomentum = glMatrix.vec3.create();
-        glMatrix.vec3.scale(scaledMomentum, this.#momentum, interval);
-        //add momentum to position
-        glMatrix.vec3.add(this.#position, this.#position, this.#momentum);
+        //scale linear momentum by interval
+        let scaledLinearMomentum = glMatrix.vec3.create();
+        glMatrix.vec3.scale(scaledLinearMomentum, this.#linearMomentum, interval);
         //scale angular momentum by interval
+        let scaledAngularMomentum = this.#angularMomentum.map((angle) => {
+            return angle*interval;
+        });
+        //add scaled linear momentum to position
+        glMatrix.vec3.add(this.#position, this.#position, scaledLinearMomentum);
+        //rotate top and right by scaled angular momentum
 
-        //rotate top by angular momentum
 
-
-        glMatrix.vec3.scale(this.#momentum, this.#momentum, 0.99);
+        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.99);
     }
 
     initializeGlobalDrawDelegate () {
