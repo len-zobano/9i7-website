@@ -321,7 +321,7 @@ constructor() {
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
-                return -element*speed;
+                return element*speed;
             })); 
         }
         else {
@@ -335,7 +335,7 @@ constructor() {
     if (this.#downKeys[68]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
-                return element*speed;
+                return -element*speed;
             })); 
         }
         else {

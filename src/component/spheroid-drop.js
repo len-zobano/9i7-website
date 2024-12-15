@@ -151,21 +151,15 @@ class SpheroidDrop {
     ); // amount to translate
 
     let normalizedUp = this.#positionPoint.top;
-    glMatrix.vec3.subtract(normalizedUp, normalizedUp, this.#positionPoint.positionAsVector);
     glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
     let normalizedRight = this.#positionPoint.right;
-    glMatrix.vec3.subtract(normalizedRight, normalizedRight, this.#positionPoint.positionAsVector);
     glMatrix.vec3.normalize(normalizedRight, normalizedRight);
 
     let normalizedToward = glMatrix.vec3.create();
     glMatrix.vec3.cross(normalizedToward, normalizedRight, normalizedUp);
-    glMatrix.vec3.normalize(normalizedToward, normalizedToward);
     glMatrix.vec3.subtract(normalizedToward, glMatrix.vec3.create(), normalizedToward);
-    
-    glMatrix.vec3.cross(normalizedRight, normalizedUp, normalizedToward);
-    glMatrix.vec3.normalize(normalizedRight, normalizedRight);
-    glMatrix.vec3.subtract(normalizedRight, glMatrix.vec3.create(), normalizedRight);
+    glMatrix.vec3.normalize(normalizedToward, normalizedToward);
 
     let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
     let drawDelegateRotationMatrix = glMatrix.mat4.fromValues(
@@ -174,6 +168,8 @@ class SpheroidDrop {
       normalizedRight[2], normalizedUp[2], normalizedToward[2], 0,
       0, 0, 0, 1
     );
+
+    glMatrix.mat4.invert(drawDelegateRotationMatrix, drawDelegateRotationMatrix);
 
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
 

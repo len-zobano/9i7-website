@@ -205,6 +205,8 @@ class Sculpted {
       normalizedRight[2], normalizedUp[2], normalizedToward[2], 0,
       0, 0, 0, 1
     );
+    
+    glMatrix.mat4.invert(drawDelegateRotationMatrix, drawDelegateRotationMatrix);
 
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
 

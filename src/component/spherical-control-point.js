@@ -216,10 +216,11 @@ class SphericalControlPoint {
             })
         ); 
 
+        let pointScale = 0.1;
         glMatrix.mat4.scale(
             matrix,
             matrix,
-            glMatrix.vec3.fromValues(0.2,0.2,0.2)
+            glMatrix.vec3.fromValues(pointScale, pointScale, pointScale)
         );
 
         if (!drawDelegates.red && this.#world) {
