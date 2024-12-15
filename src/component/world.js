@@ -313,19 +313,22 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
-    let speed = 5;
+    let speed = this.#downKeys[18] ? 100 : 5;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
 
+    let manupulationType = this.#downKeys[18] ? 'Acceleration' : 'Momentum';
+    let angularFunctionName = `changeAngular${manupulationType}`;
+    let linearFunctionName = `changeLinear${manupulationType}`;
     // //a is down
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
                 return element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraRight.map((element) => {
                 return -element*speed;
             }));
         }
@@ -334,12 +337,12 @@ constructor() {
     //d is down
     if (this.#downKeys[68]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
                 return -element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraRight.map((element) => {
                 return element*speed;
             }));
         }
@@ -348,12 +351,12 @@ constructor() {
     // //w
     if (this.#downKeys[87]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
                 return element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraUp.map((element) => {
                 return element*speed;
             }));
         }
@@ -362,12 +365,12 @@ constructor() {
     // //s
     if (this.#downKeys[83]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
                 return -element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraUp.map((element) => {
                 return -element*speed;
             }));
         }
@@ -376,12 +379,12 @@ constructor() {
     //x
     if (this.#downKeys[88]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraDirection.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
                 return element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraDirection.map((element) => {
                 return element*speed;
             }));
         }
@@ -390,12 +393,12 @@ constructor() {
     //x
     if (this.#downKeys[90]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraDirection.map((element) => {
+            this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
                 return -element*speed;
             })); 
         }
         else {
-            this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+            this.#selected.positionPoint[linearFunctionName](cameraDirection.map((element) => {
                 return -element*speed;
             }));
         }

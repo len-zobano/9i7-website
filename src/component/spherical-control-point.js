@@ -22,8 +22,10 @@ class SphericalControlPoint {
 
     #bonds = [];
     #linearMomentum = null;
+    #linearAcceleration = null;
     //angular momentum is an array of three angles to rotate, one for the x, y, and z axis
     #angularMomentum = null;
+    #angularAcceleration = null;
     //top is a normal pointing in the direction of the top of the object (representing angular position)
     #top = null;
     get top () {
@@ -58,6 +60,8 @@ class SphericalControlPoint {
         }
         this.#linearMomentum = glMatrix.vec3.create();
         this.#angularMomentum = [0,0,0];
+        this.#linearAcceleration = glMatrix.vec3.create();
+        this.#angularAcceleration = glMatrix.vec3.create();
         this.#top = glMatrix.vec3.fromValues(0.0,1.0,0.0);
         this.#right = glMatrix.vec3.fromValues(1.0,0.0,0.0);
     }
@@ -106,9 +110,20 @@ class SphericalControlPoint {
             }
         });
 
+        //add linear acceleration to linear momentum
+        let scaledLinearAcceleration = glMatrix.vec3.create();
+        glMatrix.vec3.scale(scaledLinearAcceleration, this.#linearAcceleration, interval);
+        glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearAcceleration);
         //scale linear momentum by interval
         let scaledLinearMomentum = glMatrix.vec3.create();
         glMatrix.vec3.scale(scaledLinearMomentum, this.#linearMomentum, interval);
+        //add angular acceleration to angular momentum
+        let scaledAngularAcceleration = this.#angularAcceleration.map((angle) => {
+            return angle*interval;
+        });
+        for (let i = 0; i < 3; ++i) {
+            this.#angularMomentum[i] += scaledAngularAcceleration[i];
+        }
         //scale angular momentum by interval
         let scaledAngularMomentum = this.#angularMomentum.map((angle) => {
             return angle*interval;
@@ -151,9 +166,16 @@ class SphericalControlPoint {
             glMatrix.vec3.transformMat3(this.#right, this.#right, matrix);
         });
 
-        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.99);
+        let scaledMomentumDecay = Math.pow(0.01,interval);
+        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
-            return element*0.99;
+            return element*scaledMomentumDecay;
+        });
+
+        let scaledAccelerationDecay = Math.pow(0.00001,interval);
+        glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
+        this.#angularAcceleration = this.#angularAcceleration.map((element) => {
+            return element*scaledAccelerationDecay;
         });
     }
 
@@ -262,7 +284,22 @@ class SphericalControlPoint {
         for (let i = 0; i < 3; ++i) {
             this.#angularMomentum[i] += momentumChangeArray[i];
         }
-        console.log('change angular momentum to', this.#angularMomentum);
+    }
+
+    changeLinearAcceleration (accelerationChangeArray) {
+        let accelerationChange = glMatrix.vec3.fromValues(
+            accelerationChangeArray[0],
+            accelerationChangeArray[1],
+            accelerationChangeArray[2]
+        );
+        glMatrix.vec3.add(this.#linearAcceleration , this.#linearAcceleration, accelerationChange);
+    }
+
+    changeAngularAcceleration(accelerationChangeArray) {
+        for (let i = 0; i < 3; ++i) {
+            this.#angularAcceleration[i] += accelerationChangeArray[i];
+        }
+        console.log('new angular acceleration',this.#angularAcceleration);
     }
 }
 
