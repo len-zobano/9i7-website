@@ -58,10 +58,12 @@ function UAGComponent() {
       world = new World();
 
       let cubeSize = 2;
-      let distance = 0.1;
+      let distance = 2;
+      let cubes = [];
 
-      for (let i = 0; i < 1; ++i) {
+      for (let i = 0; i < 2; ++i) {
         let cube = new SpheroidDrop(world);
+        cubes[i] = cube;
         cube.position = [
           (i%cubeSize)*distance,
           ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
@@ -72,6 +74,10 @@ function UAGComponent() {
         world.addControllable(cube);
         world.addSelectable(cube);
         world.addPlottable(cube);
+
+        if (i > 0) {
+          cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+        }
       }
     }
 

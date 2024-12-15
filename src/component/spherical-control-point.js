@@ -8,6 +8,50 @@ let drawDelegates = {
     blue: null
 };
 
+function angleIsImmesurable (a, c) {
+    let b = glMatrix.vec3.create();
+    
+    let ret =  
+        glMatrix.vec3.equals(a, c) || 
+        glMatrix.vec3.equals(a, b) || 
+        glMatrix.vec3.equals(b, c);
+
+    if (ret === false) {
+        // debugger;
+    }
+
+    return ret;
+}
+
+function angleBetweenTwoVectors (a, c) {
+    //turn them to 3 2D angles
+    let 
+        AXY = glMatrix.vec3.fromValues(a[0], a[1], 0.0), 
+        CXY = glMatrix.vec3.fromValues(c[0], c[1], 0.0),
+        AYZ = glMatrix.vec3.fromValues(0.0, a[1], a[2]),
+        CYZ = glMatrix.vec3.fromValues(0.0, c[1], c[2]),
+        AXZ = glMatrix.vec3.fromValues(a[0], 0.0, a[2]),
+        CXZ = glMatrix.vec3.fromValues(c[0], 0.0, c[2]);
+
+
+
+    //x,y,z
+    let ret = [
+        angleIsImmesurable(AYZ, CYZ) ? 0.0 : glMatrix.vec3.angle(AYZ, CYZ),//yz
+        angleIsImmesurable(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXZ, CXZ),//xz
+        angleIsImmesurable(AXY, CXY) ? 0.0 : glMatrix.vec3.angle(AXY, CXY)//xy
+    ];
+
+    //z,y,x
+    // let ret = [
+    //     glMatrix.vec3.equals(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXY, CXY),//xy
+    //     glMatrix.vec3.equals(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXZ, CXZ),//xz
+    //     glMatrix.vec3.equals(AYZ, CYZ) ? 0.0 : glMatrix.vec3.angle(AYZ, CYZ)//yz
+    // ];
+
+    return ret;
+}
+
 class SphericalControlPoint {
     #world = null;
     #position = null;
@@ -67,12 +111,15 @@ class SphericalControlPoint {
     }
 
     bondTo(other, strength, isReciprocalBond) {
+        if (!strength) {
+            strength = 1.0;
+        }
         let relativePosition = glMatrix.vec3.create();
         glMatrix.vec3.sub(relativePosition, other.positionAsVector, this.#position);
 
         this.#bonds.push({
             controlPoint: other,
-            relativePosition,
+            idealRelativePosition: relativePosition,
             strength
         });
 
@@ -86,7 +133,31 @@ class SphericalControlPoint {
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
             //for your bond to the other,
-                //calculate angular momentum by angle of bond
+                //calculate angular momentum by angle of bond   
+            let positionOfOther = bond.controlPoint.position;
+            let realRelativePosition = glMatrix.vec3.fromValues(
+                positionOfOther[0] - this.#position[0],
+                positionOfOther[1] - this.#position[1],
+                positionOfOther[2] - this.#position[2]
+            );
+
+            let scaledAngleOfBondToOther = angleBetweenTwoVectors(
+                bond.idealRelativePosition,
+                realRelativePosition
+            ).map((angle) => {
+                return angle*interval*bond.strength*10;
+            });
+
+            console.log(`
+                Angle between vectors: ${scaledAngleOfBondToOther}
+                Real relative position: ${realRelativePosition}
+                Ideal relative position: ${bond.idealRelativePosition}
+            `);
+            //add bond angle to angular momentum
+            //interval * bondStrength * angle
+            for (let i = 0; i <  3; ++i) {
+                this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
+            }
 
                 //calculate linear momentum using a comparison of the length of the vectors
                 //linear momentum should only be proportional to the distance when angle is corrected for
@@ -166,13 +237,14 @@ class SphericalControlPoint {
             glMatrix.vec3.transformMat3(this.#right, this.#right, matrix);
         });
 
+        console.log('angular momentum:',this.#angularMomentum);
         let scaledMomentumDecay = Math.pow(0.01,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay;
         });
 
-        let scaledAccelerationDecay = Math.pow(0.00001,interval);
+        let scaledAccelerationDecay = Math.pow(0.000000001,interval);
         glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
         this.#angularAcceleration = this.#angularAcceleration.map((element) => {
             return element*scaledAccelerationDecay;

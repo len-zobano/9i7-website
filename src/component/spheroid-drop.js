@@ -109,6 +109,10 @@ class SpheroidDrop {
       return this.#positionPoint.position;
     }
 
+    get positionPoint () {
+        return this.#positionPoint;
+    }
+
     //convert position to control point
     set position(position) {
       this.#positionPoint = new SphericalControlPoint(this.#world, this, position);
