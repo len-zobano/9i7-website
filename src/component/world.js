@@ -189,7 +189,7 @@ constructor() {
   keyIsUp(keyCode) {
     console.log('key up:',keyCode);
     
-    this.#downKeys[keyCode] = false;
+    delete this.#downKeys[keyCode];
     //bracket - switch selected
     if (keyCode === 221) {
         let indexOfSelected = this.#selectables.indexOf(this.#selected);
@@ -320,7 +320,7 @@ constructor() {
     // //a is down
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+            this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
                 return -element*speed;
             })); 
         }
@@ -333,37 +333,72 @@ constructor() {
 
     //d is down
     if (this.#downKeys[68]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
-            return element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraUp.map((element) => {
+                return element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraRight.map((element) => {
+                return element*speed;
+            }));
+        }
     }
 
     // //w
     if (this.#downKeys[87]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
-            return element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+                return element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+                return element*speed;
+            }));
+        }
     }
 
     // //s
     if (this.#downKeys[83]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
-            return -element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraRight.map((element) => {
+                return -element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraUp.map((element) => {
+                return -element*speed;
+            }));
+        }
     }
     
-    //z
+    //x
     if (this.#downKeys[88]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
-            return element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraDirection.map((element) => {
+                return element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+                return element*speed;
+            }));
+        }
     }
     
     //x
     if (this.#downKeys[90]) {
-        this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
-            return -element*speed;
-        }));
+        if (this.#downKeys[16]) {
+            this.#selected.positionPoint.changeAngularMomentum(cameraDirection.map((element) => {
+                return -element*speed;
+            })); 
+        }
+        else {
+            this.#selected.positionPoint.changeLinearMomentum(cameraDirection.map((element) => {
+                return -element*speed;
+            }));
+        }
     }
 
     this.#simulatables.forEach((simulatable) => {
