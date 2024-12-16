@@ -2,7 +2,7 @@ import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 
-let globalSpeed = 1000;
+let globalSpeed = 10;
 let drawDelegates = {
     red: null,
     green: null,
@@ -346,13 +346,13 @@ class SphericalControlPoint {
             this.#angularMomentum[i] += scaledAngularAcceleration[i];
         }
 
-        let scaledMomentumDecay = Math.pow(1e-16,interval);
+        let scaledMomentumDecay = Math.pow(0.1,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay;
         });
 
-        let scaledAccelerationDecay = Math.pow(1e-16,interval);
+        let scaledAccelerationDecay = Math.pow(0.5,interval);
         glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
         this.#angularAcceleration = this.#angularAcceleration.map((element) => {
             return element*scaledAccelerationDecay;

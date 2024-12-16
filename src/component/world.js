@@ -314,6 +314,7 @@ constructor() {
     * end camera-relative control calculations
     */
     let speed = this.#downKeys[18] ? 100 : 5;
+    let angularSpeedFactor = 0.01;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
 
@@ -327,7 +328,7 @@ constructor() {
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
-                return element*speed;
+                return element*speed*angularSpeedFactor;
             })); 
         }
         else {
@@ -341,7 +342,7 @@ constructor() {
     if (this.#downKeys[68]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
-                return -element*speed;
+                return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
@@ -355,7 +356,7 @@ constructor() {
     if (this.#downKeys[87]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
-                return element*speed;
+                return element*speed*angularSpeedFactor;
             })); 
         }
         else {
@@ -369,7 +370,7 @@ constructor() {
     if (this.#downKeys[83]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
-                return -element*speed;
+                return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
@@ -383,7 +384,7 @@ constructor() {
     if (this.#downKeys[88]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
-                return element*speed;
+                return element*speed*angularSpeedFactor;
             })); 
         }
         else {
@@ -397,7 +398,7 @@ constructor() {
     if (this.#downKeys[90]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
-                return -element*speed;
+                return -element*speed*angularSpeedFactor;
             })); 
         }
         else {

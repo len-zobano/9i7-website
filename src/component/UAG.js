@@ -63,13 +63,13 @@ function UAGComponent() {
 
       let spheroids = [
         new SpheroidDrop(world),
+        new SpheroidDrop(world),
         new SpheroidDrop(world)
-        // new SpheroidDrop(world)
       ];
 
       spheroids[0].position = [0,0,-50];
       spheroids[1].position = [0,10,-50];
-      // spheroids[2].position = [10,0,-50];
+      spheroids[2].position = [10,0,-50];
 
       for (let i = 0; i < spheroids.length; ++i) {
         world.addDrawableAndSimulatable(spheroids[i]);
