@@ -166,16 +166,7 @@ class SpheroidDrop {
     glMatrix.vec3.normalize(normalizedToward, normalizedToward);
 
     let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
-    let drawDelegateRotationMatrix = glMatrix.mat4.fromValues(
-      normalizedRight[0], normalizedUp[0], normalizedToward[0], 0,
-      normalizedRight[1], normalizedUp[1], normalizedToward[1], 0,
-      normalizedRight[2], normalizedUp[2], normalizedToward[2], 0,
-      0, 0, 0, 1
-    );
-
-    glMatrix.mat4.invert(drawDelegateRotationMatrix, drawDelegateRotationMatrix);
-
-    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawDelegateRotationMatrix);
+    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, this.#positionPoint.drawMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix);
     // this.#world.gl.depthMask(false);

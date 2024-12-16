@@ -8,6 +8,11 @@ let drawDelegates = {
     blue: null
 };
 
+let 
+    centerVector = glMatrix.vec3.create(),
+    topVector = glMatrix.vec3.fromValues(0.0,1.0,0.0),
+    rightVector = glMatrix.vec3.fromValues(1.0,0.0,0.0);
+
 function transformVectorByAngle (vector, angle) {
     let angleSines = [
         Math.sin(angle[0]),
@@ -44,40 +49,45 @@ function transformVectorByAngle (vector, angle) {
     });
 }
 
-function angleIsImmesurable (a, c) {
-    let b = glMatrix.vec3.create();
-    
-    let ret =  
-        glMatrix.vec3.equals(a, c) || 
-        glMatrix.vec3.equals(a, b) || 
-        glMatrix.vec3.equals(b, c);
+function angleOfOne2DVector (a, b) {
+    if (a === -0) a = 0;
+    if (b === -0) b = 0;
+    console.log('angle of 1 2d vector',a,',',b,'is ',Math.atan2(b, a));
+    return Math.atan2(b, a);
+}
 
-    if (ret === false) {
-        // debugger;
-    }
-
+function angleBetweenTwo2DVectors (a, c) {
+    if (a[0] === 0 && a[1] === 0) return 0;
+    if (c[0] === 0 && c[1] === 0) return 0;
+    let ret = angleOfOne2DVector(c[1],c[0]) - angleOfOne2DVector(a[1],a[0]);
+    console.log('angle between 2d vectors',a,' and ',c,'is ',ret);
     return ret;
 }
 
 function angleBetweenTwoVectors (a, c) {
     //turn them to 3 2D angles
     let 
-        AXY = glMatrix.vec3.fromValues(a[0], a[1], 0.0), 
-        CXY = glMatrix.vec3.fromValues(c[0], c[1], 0.0),
-        AYZ = glMatrix.vec3.fromValues(0.0, a[1], a[2]),
-        CYZ = glMatrix.vec3.fromValues(0.0, c[1], c[2]),
-        AXZ = glMatrix.vec3.fromValues(a[0], 0.0, a[2]),
-        CXZ = glMatrix.vec3.fromValues(c[0], 0.0, c[2]);
+        AXY = glMatrix.vec2.fromValues(a[0], a[1]), 
+        CXY = glMatrix.vec2.fromValues(c[0], c[1]),
+        AZY = glMatrix.vec2.fromValues(-a[2], a[1]),
+        CZY = glMatrix.vec2.fromValues(-c[2], c[1]),
+        AXZ = glMatrix.vec2.fromValues(a[0], a[2]),
+        CXZ = glMatrix.vec2.fromValues(c[0], c[2]);
 
+    // console.log('azy',AZY,'and CZY',CZY);
 
-
-    //x,y,z
     let ret = [
-        angleIsImmesurable(AYZ, CYZ) ? 0.0 : glMatrix.vec3.angle(AYZ, CYZ),//yz
-        angleIsImmesurable(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXZ, CXZ),//xz
-        angleIsImmesurable(AXY, CXY) ? 0.0 : glMatrix.vec3.angle(AXY, CXY)//xy
+        angleBetweenTwo2DVectors(AZY, CZY),
+        -angleBetweenTwo2DVectors(AXZ, CXZ),
+        angleBetweenTwo2DVectors(AXY, CXY)
     ];
 
+    //x,y,z
+    // let ret = [
+    //     angleIsImmesurable(AYZ, CYZ) ? 0.0 : glMatrix.vec2.angle(AYZ, CYZ),//yz
+    //     angleIsImmesurable(AXZ, CXZ) ? 0.0 : glMatrix.vec2.angle(AXZ, CXZ),//xz
+    //     angleIsImmesurable(AXY, CXY) ? 0.0 : glMatrix.vec2.angle(AXY, CXY)//xy
+    // ];
     //z,y,x
     // let ret = [
     //     glMatrix.vec3.equals(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXY, CXY),//xy
@@ -91,6 +101,32 @@ function angleBetweenTwoVectors (a, c) {
 class SphericalControlPoint {
     #world = null;
     #position = null;
+
+    get cameraMatrix () {
+        let normalizedUp = this.top;
+        glMatrix.vec3.normalize(normalizedUp, normalizedUp);
+
+        let normalizedRight = this.right;
+        glMatrix.vec3.normalize(normalizedRight, normalizedRight);
+
+        let normalizedToward = glMatrix.vec3.create();
+        glMatrix.vec3.cross(normalizedToward, normalizedRight, normalizedUp);
+        glMatrix.vec3.subtract(normalizedToward, glMatrix.vec3.create(), normalizedToward);
+        glMatrix.vec3.normalize(normalizedToward, normalizedToward);
+
+        return glMatrix.mat4.fromValues(
+            normalizedRight[0], normalizedUp[0], normalizedToward[0], 0,
+            normalizedRight[1], normalizedUp[1], normalizedToward[1], 0,
+            normalizedRight[2], normalizedUp[2], normalizedToward[2], 0,
+            0, 0, 0, 1
+        );
+    }
+
+    get drawMatrix () {
+        let matrix = this.cameraMatrix;
+        glMatrix.mat4.invert(matrix, matrix);
+        return matrix;
+    }
 
     get positionAsVector () {
         return glMatrix.vec3.clone(this.#position);
@@ -146,6 +182,13 @@ class SphericalControlPoint {
         this.#right = glMatrix.vec3.fromValues(1.0,0.0,0.0);
     }
 
+    freeze() {
+        this.#linearMomentum = glMatrix.vec3.create();
+        this.#linearAcceleration = glMatrix.vec3.create();
+        this.#angularMomentum = [0,0,0];
+        this.#angularAcceleration = [0,0,0];
+    }
+
     bondTo(other, strength, isReciprocalBond) {
         if (!strength) {
             strength = 1.0;
@@ -177,17 +220,31 @@ class SphericalControlPoint {
                 positionOfOther[2] - this.#position[2]
             );
 
+            let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
+
+            glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
+
+            // let test1 = angleBetweenTwoVectors([1,0,0],[0,-1,0]); //>0
+            // let test2 = angleBetweenTwoVectors([1,0,0],[0,0,1]); //>0
+            // let test3 = angleBetweenTwoVectors([0,1,0],[0,0,-1]); //>0
+            // let test4 = angleBetweenTwoVectors([1,0,0],[-1,0,0]); //-pi or pi
+            // let test5 = angleBetweenTwoVectors([1,0,0],[0,1,0]); // <0
+
+            // debugger;
+
             let scaledAngleOfBondToOther = angleBetweenTwoVectors(
-                bond.idealRelativePosition,
+                idealRelativePosition,
                 realRelativePosition
             ).map((angle) => {
-                return angle*interval*bond.strength*10;
+                if (angle > Math.PI/2) angle = Math.PI - angle;
+                if (angle < -Math.PI/2) angle = -Math.PI - angle;
+                return angle*interval*bond.strength*1000;
             });
 
             console.log(`
                 Angle between vectors: ${scaledAngleOfBondToOther}
                 Real relative position: ${realRelativePosition}
-                Ideal relative position: ${bond.idealRelativePosition}
+                Ideal relative position: ${idealRelativePosition}
             `);
             //add bond angle to angular momentum
             //interval * bondStrength * angle
@@ -240,6 +297,7 @@ class SphericalControlPoint {
         //rotate top and right by scaled angular momentum
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);
+        
 
         console.log('angular momentum:',this.#angularMomentum);
         let scaledMomentumDecay = Math.pow(0.01,interval);
@@ -341,6 +399,12 @@ class SphericalControlPoint {
             return coordinate;
           })
         ); 
+
+        this.#bonds.forEach((bond) => {
+            let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
+            glMatrix.vec3.transformMat3(idealRelativePosition, idealRelativePosition, this.drawMatrix);
+            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
+        });
 
         this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
         this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');

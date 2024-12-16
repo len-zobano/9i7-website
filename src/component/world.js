@@ -320,6 +320,9 @@ constructor() {
     let manupulationType = this.#downKeys[18] ? 'Acceleration' : 'Momentum';
     let angularFunctionName = `changeAngular${manupulationType}`;
     let linearFunctionName = `changeLinear${manupulationType}`;
+    if (this.#downKeys[32]) {
+        this.#selected.positionPoint.freeze();
+    }
     // //a is down
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
@@ -390,7 +393,7 @@ constructor() {
         }
     }
     
-    //x
+    //z
     if (this.#downKeys[90]) {
         if (this.#downKeys[16]) {
             this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
