@@ -2,6 +2,7 @@ import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 
+let globalSpeed = 1000;
 let drawDelegates = {
     red: null,
     green: null,
@@ -52,16 +53,24 @@ function transformVectorByAngle (vector, angle) {
 function angleOfOne2DVector (a, b) {
     if (a === -0) a = 0;
     if (b === -0) b = 0;
-    console.log('angle of 1 2d vector',a,',',b,'is ',Math.atan2(b, a));
+    console.log('angle of 2d vector between ',a,'and',b,'is',Math.atan2(b,a));
     return Math.atan2(b, a);
 }
 
-function angleBetweenTwo2DVectors (a, c) {
+function shortestAngleBetweenTwo2DVectors (a, c) {
     if (a[0] === 0 && a[1] === 0) return 0;
     if (c[0] === 0 && c[1] === 0) return 0;
-    let ret = angleOfOne2DVector(c[1],c[0]) - angleOfOne2DVector(a[1],a[0]);
-    console.log('angle between 2d vectors',a,' and ',c,'is ',ret);
-    return ret;
+    let angle = angleOfOne2DVector(c[1],c[0]) - angleOfOne2DVector(a[1],a[0]);
+    //if the angle is over 180, make it angle-360
+    if (angle > Math.PI) {
+        angle -= 2*Math.PI;
+    }
+    //if the angle is under -180, make it angle+360
+    else if (angle < -Math.PI) {
+        angle += 2*Math.PI;
+    }
+    
+    return angle;
 }
 
 function angleBetweenTwoVectors (a, c) {
@@ -74,14 +83,19 @@ function angleBetweenTwoVectors (a, c) {
         AXZ = glMatrix.vec2.fromValues(a[0], a[2]),
         CXZ = glMatrix.vec2.fromValues(c[0], c[2]);
 
-    // console.log('azy',AZY,'and CZY',CZY);
+    // let ret = [
+    //     angleBetweenTwo2DVectors(AZY, CZY),
+    //     -angleBetweenTwo2DVectors(AXZ, CXZ),
+    //     angleBetweenTwo2DVectors(AXY, CXY)
+    // ];
 
-    let ret = [
-        angleBetweenTwo2DVectors(AZY, CZY),
-        -angleBetweenTwo2DVectors(AXZ, CXZ),
-        angleBetweenTwo2DVectors(AXY, CXY)
-    ];
-
+    let ret = [];
+    console.log('calculating zy angle',AZY, CZY);
+    ret[0] = shortestAngleBetweenTwo2DVectors(AZY, CZY);
+    console.log('calculating xz angle',AXZ, CXZ);
+    ret[1] = -shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
+    console.log('calculating XY angle ',AXY,CXY);
+    ret[2] = shortestAngleBetweenTwo2DVectors(AXY, CXY);
     //x,y,z
     // let ret = [
     //     angleIsImmesurable(AYZ, CYZ) ? 0.0 : glMatrix.vec2.angle(AYZ, CYZ),//yz
@@ -95,7 +109,12 @@ function angleBetweenTwoVectors (a, c) {
     //     glMatrix.vec3.equals(AYZ, CYZ) ? 0.0 : glMatrix.vec3.angle(AYZ, CYZ)//yz
     // ];
 
-    return ret;
+    return ret.map((element) => {
+        if (element === -0) {
+            element = 0;
+        }
+        return element;
+    });
 }
 
 class SphericalControlPoint {
@@ -229,23 +248,36 @@ class SphericalControlPoint {
             // let test3 = angleBetweenTwoVectors([0,1,0],[0,0,-1]); //>0
             // let test4 = angleBetweenTwoVectors([1,0,0],[-1,0,0]); //-pi or pi
             // let test5 = angleBetweenTwoVectors([1,0,0],[0,1,0]); // <0
+            // let test6 = angleBetweenTwoVectors([0,1,0],[0,-1,0]);
+            // let test7 = angleBetweenTwoVectors([0,1,0],[0,0,1]);
+            // let test8 = angleBetweenTwoVectors([0,0,1],[0,0,-1]);
 
-            // debugger;
-
-            let scaledAngleOfBondToOther = angleBetweenTwoVectors(
+            let angleOfBondToOther = angleBetweenTwoVectors(
                 idealRelativePosition,
                 realRelativePosition
-            ).map((angle) => {
-                if (angle > Math.PI/2) angle = Math.PI - angle;
-                if (angle < -Math.PI/2) angle = -Math.PI - angle;
-                return angle*interval*bond.strength*1000;
+            )
+
+            // angleOfBondToOther.forEach((element) => {
+            //     if (Math.abs(element) > Math.PI) {
+            //         debugger;
+            //     }
+            // })
+            
+            let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
+                // if (angle > Math.PI/2) angle = Math.PI - angle;
+                // if (angle < -Math.PI/2) angle = -Math.PI - angle;
+                return angle*interval*bond.strength*globalSpeed;
             });
 
-            console.log(`
-                Angle between vectors: ${scaledAngleOfBondToOther}
-                Real relative position: ${realRelativePosition}
-                Ideal relative position: ${idealRelativePosition}
-            `);
+            if (this.#plottable.selected) {
+                console.log(`
+                    For selected control point:
+                        Angle between vectors: ${angleOfBondToOther}
+                        Scaled angle between vectors: ${scaledAngleOfBondToOther}
+                        Real relative position: ${realRelativePosition}
+                        Ideal relative position: ${idealRelativePosition}
+                `);
+            }
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
@@ -253,8 +285,13 @@ class SphericalControlPoint {
             }
 
                 //calculate linear momentum using a comparison of the length of the vectors
+            let distanceFromIdeal = glMatrix.vec3.length(realRelativePosition) - glMatrix.vec3.length(idealRelativePosition);
                 //linear momentum should only be proportional to the distance when angle is corrected for
+            let relativePositionNormal = glMatrix.vec3.clone(realRelativePosition);
+            glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, distanceFromIdeal*interval*bond.strength*globalSpeed);
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
             //for the other bond to you,
                 //calculate the linear momentum based on the other position
         });
@@ -298,8 +335,6 @@ class SphericalControlPoint {
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);
         
-
-        console.log('angular momentum:',this.#angularMomentum);
         let scaledMomentumDecay = Math.pow(0.01,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
@@ -400,15 +435,17 @@ class SphericalControlPoint {
           })
         ); 
 
-        this.#bonds.forEach((bond) => {
-            let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
-            glMatrix.vec3.transformMat3(idealRelativePosition, idealRelativePosition, this.drawMatrix);
-            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
-        });
+        if (this.#plottable.selected) {
+            this.#bonds.forEach((bond) => {
+                let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
+                glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
+                this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
+            });
 
-        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
-        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');
-        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#right, 'blue');
+            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
+            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');
+            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#right, 'blue');
+        }
     }
 
     changeLinearMomentum(momentumChangeArray) {
@@ -439,7 +476,6 @@ class SphericalControlPoint {
         for (let i = 0; i < 3; ++i) {
             this.#angularAcceleration[i] += accelerationChangeArray[i];
         }
-        console.log('new angular acceleration',this.#angularAcceleration);
     }
 }
 

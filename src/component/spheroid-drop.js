@@ -8,6 +8,9 @@ import SphericalControlPoint from './spherical-control-point';
 class SpheroidDrop {
   #lastTime = 0;
   #selected = false;    
+  get selected () {
+    return this.#selected;
+  }
   #ID = null;
   #speed = 5;
   #isCamera = false;

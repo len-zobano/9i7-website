@@ -197,9 +197,9 @@ constructor() {
         let lastSelected = this.#selected;
         this.#selected = this.#selectables[indexOfNextSelected];
         lastSelected.select(false);
-        this.#cameraPlottable.isCamera = false;
-        this.#cameraPlottable = lastSelected;
-        lastSelected.isCamera = true;
+        // this.#cameraPlottable.isCamera = false;
+        // this.#cameraPlottable = lastSelected;
+        // lastSelected.isCamera = true;
         this.#selected.select(true);
     }
 

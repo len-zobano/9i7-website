@@ -61,24 +61,45 @@ function UAGComponent() {
       let distance = 2;
       let cubes = [];
 
-      for (let i = 0; i < 2; ++i) {
-        let cube = new SpheroidDrop(world);
-        cubes[i] = cube;
-        cube.position = [
-          (i%cubeSize)*distance,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-10
-        ];
-  
-        world.addDrawableAndSimulatable(cube);
-        world.addControllable(cube);
-        world.addSelectable(cube);
-        world.addPlottable(cube);
+      let spheroids = [
+        new SpheroidDrop(world),
+        new SpheroidDrop(world)
+        // new SpheroidDrop(world)
+      ];
 
-        if (i > 0) {
-          cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+      spheroids[0].position = [0,0,-50];
+      spheroids[1].position = [0,10,-50];
+      // spheroids[2].position = [10,0,-50];
+
+      for (let i = 0; i < spheroids.length; ++i) {
+        world.addDrawableAndSimulatable(spheroids[i]);
+        world.addControllable(spheroids[i]);
+        world.addSelectable(spheroids[i]);
+        world.addPlottable(spheroids[i]);
+
+        if (i === 0 || spheroids.length > 2) {
+          spheroids[i].positionPoint.bondTo(spheroids[(i+1)%spheroids.length].positionPoint);
         }
       }
+
+      // for (let i = 0; i < 2; ++i) {
+      //   let cube = new SpheroidDrop(world);
+      //   cubes[i] = cube;
+      //   cube.position = [
+      //     (i%cubeSize)*distance,
+      //     ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
+      //     ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-10
+      //   ];
+  
+      //   world.addDrawableAndSimulatable(cube);
+      //   world.addControllable(cube);
+      //   world.addSelectable(cube);
+      //   world.addPlottable(cube);
+
+      //   if (i > 0) {
+      //     cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+      //   }
+      // }
     }
 
     let ID = Math.floor(1000000*Math.random());
