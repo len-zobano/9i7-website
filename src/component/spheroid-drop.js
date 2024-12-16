@@ -125,6 +125,17 @@ class SpheroidDrop {
   #world = null;
   #buffers = null;
 
+  calculateTrajectory(world, thisTime) {
+    if (this.#lastTime) {
+      let interval = thisTime - this.#lastTime;
+
+      this.controlPoints.forEach((controlPoint) => {
+        //TODO: this interval value is calculated incorrectly. should be 1000.
+        controlPoint.calculateTrajectory(interval/10000);
+      });
+    }
+  }
+
   simulate(world, thisTime) {
     if (this.#lastTime) {
       let interval = thisTime - this.#lastTime;

@@ -214,20 +214,27 @@ class SphericalControlPoint {
         }
         let relativePosition = glMatrix.vec3.create();
         glMatrix.vec3.sub(relativePosition, other.positionAsVector, this.#position);
-
-        this.#bonds.push({
+        
+        let bond = {
             controlPoint: other,
             idealRelativePosition: relativePosition,
             strength
-        });
+        };
 
+        this.#bonds.push(bond);
+
+        //create reciprocal bonds and update properties
         if (!isReciprocalBond) {
-            other.bondTo(this, strength, true);
+            let reciprocalBond = other.bondTo(this, strength, true);
+            bond.reciprocalBond = reciprocalBond;
+            reciprocalBond.reciprocalBond = bond;
         }
+
+        return bond;
     }
     
     //simulate against all control points in a tile
-    simulate(interval) {
+    calculateTrajectory(interval) {
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
             //for your bond to the other,
@@ -264,8 +271,8 @@ class SphericalControlPoint {
             // })
             
             let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
-                // if (angle > Math.PI/2) angle = Math.PI - angle;
-                // if (angle < -Math.PI/2) angle = -Math.PI - angle;
+                if (angle > Math.PI/2) angle = Math.PI - angle;
+                if (angle < -Math.PI/2) angle = -Math.PI - angle;
                 return angle*interval*bond.strength*globalSpeed;
             });
 
@@ -292,8 +299,23 @@ class SphericalControlPoint {
                 //so the difference in distance from center is corrected for angle
             glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, distanceFromIdeal*interval*bond.strength*globalSpeed);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
+
+
+
+
             //for the other bond to you,
-                //calculate the linear momentum based on the other position
+                //get the ideal position of your own particle relative to that bond
+            let idealPositionOfThisFromOther = glMatrix.vec3.clone(bond.reciprocalBond.idealRelativePosition);
+                //transform the ideal postion by the other particle's draw matrix
+            glMatrix.vec3.transformMat4(idealPositionOfThisFromOther, idealPositionOfThisFromOther, bond.controlPoint.drawMatrix);
+                //get your real position by subtracting your position by theirs
+            let realPositionOfThisFromOther = glMatrix.vec3.clone(this.position);
+            glMatrix.vec3.subtract(realPositionOfThisFromOther, realPositionOfThisFromOther, bond.controlPoint.position);
+                //subtract real from ideal to get the momentum vector for this one
+            let scaledMomentumTowardIdeal = glMatrix.vec3.create();
+            glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
+            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, interval*bond.strength*globalSpeed);
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
         //calculate collision by local control points
@@ -315,9 +337,7 @@ class SphericalControlPoint {
         let scaledLinearAcceleration = glMatrix.vec3.create();
         glMatrix.vec3.scale(scaledLinearAcceleration, this.#linearAcceleration, interval);
         glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearAcceleration);
-        //scale linear momentum by interval
-        let scaledLinearMomentum = glMatrix.vec3.create();
-        glMatrix.vec3.scale(scaledLinearMomentum, this.#linearMomentum, interval);
+
         //add angular acceleration to angular momentum
         let scaledAngularAcceleration = this.#angularAcceleration.map((angle) => {
             return angle*interval;
@@ -325,6 +345,24 @@ class SphericalControlPoint {
         for (let i = 0; i < 3; ++i) {
             this.#angularMomentum[i] += scaledAngularAcceleration[i];
         }
+
+        let scaledMomentumDecay = Math.pow(1e-16,interval);
+        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
+        this.#angularMomentum = this.#angularMomentum.map((element) => {
+            return element*scaledMomentumDecay;
+        });
+
+        let scaledAccelerationDecay = Math.pow(1e-16,interval);
+        glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
+        this.#angularAcceleration = this.#angularAcceleration.map((element) => {
+            return element*scaledAccelerationDecay;
+        });
+    }
+
+    simulate(interval) {
+        //scale linear momentum by interval
+        let scaledLinearMomentum = glMatrix.vec3.create();
+        glMatrix.vec3.scale(scaledLinearMomentum, this.#linearMomentum, interval);
         //scale angular momentum by interval
         let scaledAngularMomentum = this.#angularMomentum.map((angle) => {
             return angle*interval;
@@ -334,18 +372,6 @@ class SphericalControlPoint {
         //rotate top and right by scaled angular momentum
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);
-        
-        let scaledMomentumDecay = Math.pow(0.01,interval);
-        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
-        this.#angularMomentum = this.#angularMomentum.map((element) => {
-            return element*scaledMomentumDecay;
-        });
-
-        let scaledAccelerationDecay = Math.pow(0.000000001,interval);
-        glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
-        this.#angularAcceleration = this.#angularAcceleration.map((element) => {
-            return element*scaledAccelerationDecay;
-        });
     }
 
     initializeDrawDelegates () {

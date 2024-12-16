@@ -408,6 +408,12 @@ constructor() {
     }
 
     this.#simulatables.forEach((simulatable) => {
+        if (simulatable.calculateTrajectory) {
+            simulatable.calculateTrajectory(this, this.#currentTime);
+        }
+    });
+    
+    this.#simulatables.forEach((simulatable) => {
         simulatable.simulate(this, this.#currentTime);
     });
 
