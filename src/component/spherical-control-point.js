@@ -53,7 +53,6 @@ function transformVectorByAngle (vector, angle) {
 function angleOfOne2DVector (a, b) {
     if (a === -0) a = 0;
     if (b === -0) b = 0;
-    console.log('angle of 2d vector between ',a,'and',b,'is',Math.atan2(b,a));
     return Math.atan2(b, a);
 }
 
@@ -90,11 +89,8 @@ function angleBetweenTwoVectors (a, c) {
     // ];
 
     let ret = [];
-    console.log('calculating zy angle',AZY, CZY);
     ret[0] = shortestAngleBetweenTwo2DVectors(AZY, CZY);
-    console.log('calculating xz angle',AXZ, CXZ);
     ret[1] = -shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
-    console.log('calculating XY angle ',AXY,CXY);
     ret[2] = shortestAngleBetweenTwo2DVectors(AXY, CXY);
     //x,y,z
     // let ret = [
@@ -250,25 +246,10 @@ class SphericalControlPoint {
 
             glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
 
-            // let test1 = angleBetweenTwoVectors([1,0,0],[0,-1,0]); //>0
-            // let test2 = angleBetweenTwoVectors([1,0,0],[0,0,1]); //>0
-            // let test3 = angleBetweenTwoVectors([0,1,0],[0,0,-1]); //>0
-            // let test4 = angleBetweenTwoVectors([1,0,0],[-1,0,0]); //-pi or pi
-            // let test5 = angleBetweenTwoVectors([1,0,0],[0,1,0]); // <0
-            // let test6 = angleBetweenTwoVectors([0,1,0],[0,-1,0]);
-            // let test7 = angleBetweenTwoVectors([0,1,0],[0,0,1]);
-            // let test8 = angleBetweenTwoVectors([0,0,1],[0,0,-1]);
-
             let angleOfBondToOther = angleBetweenTwoVectors(
                 idealRelativePosition,
                 realRelativePosition
             )
-
-            // angleOfBondToOther.forEach((element) => {
-            //     if (Math.abs(element) > Math.PI) {
-            //         debugger;
-            //     }
-            // })
             
             let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
                 if (angle > Math.PI/2) angle = Math.PI - angle;
@@ -276,15 +257,15 @@ class SphericalControlPoint {
                 return angle*interval*bond.strength*globalSpeed;
             });
 
-            if (this.#plottable.selected) {
-                console.log(`
-                    For selected control point:
-                        Angle between vectors: ${angleOfBondToOther}
-                        Scaled angle between vectors: ${scaledAngleOfBondToOther}
-                        Real relative position: ${realRelativePosition}
-                        Ideal relative position: ${idealRelativePosition}
-                `);
-            }
+            // if (this.#plottable.selected) {
+            //     console.log(`
+            //         For selected control point:
+            //             Angle between vectors: ${angleOfBondToOther}
+            //             Scaled angle between vectors: ${scaledAngleOfBondToOther}
+            //             Real relative position: ${realRelativePosition}
+            //             Ideal relative position: ${idealRelativePosition}
+            //     `);
+            // }
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
@@ -330,6 +311,16 @@ class SphericalControlPoint {
         localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
             if (otherSphericalControlPoint != this) {
                 let distance = glMatrix.vec3.distance(this.#position, otherSphericalControlPoint.position);
+                let sharedDistance = this.radius + otherSphericalControlPoint.radius;
+                if (distance < sharedDistance) {
+                    let magnitude = interval*globalSpeed*(sharedDistance/distance-1)*100;
+                    let repulsionMomentum = glMatrix.vec3.create();
+                    glMatrix.vec3.sub(repulsionMomentum, otherSphericalControlPoint.position, this.#position);
+                    //repulsion is away, so this has to be subtracted from zero
+                    glMatrix.vec3.sub(repulsionMomentum,centerVector,repulsionMomentum);
+                    glMatrix.vec3.scale(repulsionMomentum, repulsionMomentum, magnitude);
+                    glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, repulsionMomentum);
+                }
             }
         });
 

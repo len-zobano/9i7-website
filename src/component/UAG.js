@@ -57,49 +57,54 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 2;
-      let distance = 2;
+      let cubeSize = 6;
+      let distance = 3;
       let cubes = [];
 
-      let spheroids = [
-        new SpheroidDrop(world),
-        new SpheroidDrop(world),
-        new SpheroidDrop(world)
-      ];
+      // let spheroids = [
+      //   new SpheroidDrop(world),
+      //   new SpheroidDrop(world),
+      //   new SpheroidDrop(world),
+      //   new SpheroidDrop(world)
+      // ];
 
-      spheroids[0].position = [0,0,-50];
-      spheroids[1].position = [0,10,-50];
-      spheroids[2].position = [10,0,-50];
+      // spheroids[0].position = [0,0,-50];
+      // spheroids[1].position = [0,10,-50];
+      // spheroids[2].position = [10,0,-50];
+      // spheroids[3].position = [10,10,-50];
 
-      for (let i = 0; i < spheroids.length; ++i) {
-        world.addDrawableAndSimulatable(spheroids[i]);
-        world.addControllable(spheroids[i]);
-        world.addSelectable(spheroids[i]);
-        world.addPlottable(spheroids[i]);
+      // // spheroids[0].positionPoint.bondTo(spheroids[2].positionPoint);
+      // // spheroids[1].positionPoint.bondTo(spheroids[3].positionPoint);
 
-        if (i === 0 || spheroids.length > 2) {
-          spheroids[i].positionPoint.bondTo(spheroids[(i+1)%spheroids.length].positionPoint);
-        }
-      }
+      // for (let i = 0; i < spheroids.length; ++i) {
+      //   world.addDrawableAndSimulatable(spheroids[i]);
+      //   world.addControllable(spheroids[i]);
+      //   world.addSelectable(spheroids[i]);
+      //   world.addPlottable(spheroids[i]);
 
-      // for (let i = 0; i < 2; ++i) {
-      //   let cube = new SpheroidDrop(world);
-      //   cubes[i] = cube;
-      //   cube.position = [
-      //     (i%cubeSize)*distance,
-      //     ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
-      //     ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-10
-      //   ];
-  
-      //   world.addDrawableAndSimulatable(cube);
-      //   world.addControllable(cube);
-      //   world.addSelectable(cube);
-      //   world.addPlottable(cube);
-
-      //   if (i > 0) {
-      //     cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+      //   if (i === 0 || spheroids.length > 2) {
+      //     // spheroids[i].positionPoint.bondTo(spheroids[(i+1)%spheroids.length].positionPoint);
       //   }
       // }
+
+      for (let i = 0; i < 64; ++i) {
+        let cube = new SpheroidDrop(world);
+        cubes[i] = cube;
+        cube.position = [
+          (i%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-50
+        ];
+  
+        world.addDrawableAndSimulatable(cube);
+        world.addControllable(cube);
+        world.addSelectable(cube);
+        world.addPlottable(cube);
+
+        if (i > 0) {
+          // cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+        }
+      }
     }
 
     let ID = Math.floor(1000000*Math.random());
