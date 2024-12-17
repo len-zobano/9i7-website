@@ -123,6 +123,9 @@ class SpheroidDrop {
 
   #programInfo = null;
   #world = null;
+  get world() {
+    return this.#world;
+  }
   #buffers = null;
 
   calculateTrajectory(world, thisTime) {

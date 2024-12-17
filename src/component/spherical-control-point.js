@@ -340,6 +340,29 @@ class SphericalControlPoint {
             }
         });
 
+        //add gravity to linear momentum
+        let gravity = this.#plottable.world.getGravityForLocation(this.#position);
+        glMatrix.vec3.scale(gravity, gravity, interval);
+        glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
+
+        //TEMPORARY: if below y=0, reverse linear y momentum
+        if (this.#position[1] < 0 && this.#linearMomentum[1] < 0) {
+            
+            // //bounce
+            this.#linearMomentum = glMatrix.vec3.fromValues(
+                this.#linearMomentum[0],
+                -this.#linearMomentum[1]*0.5,
+                this.#linearMomentum[2]
+            );
+
+            //constant pressure
+            // this.#linearMomentum = glMatrix.vec3.fromValues(
+            //     this.#linearMomentum[0],
+            //     this.#linearMomentum[1]+100.0*interval,
+            //     this.#linearMomentum[2]
+            // );
+        }
+
         //add linear acceleration to linear momentum
         let scaledLinearAcceleration = glMatrix.vec3.create();
         glMatrix.vec3.scale(scaledLinearAcceleration, this.#linearAcceleration, interval);

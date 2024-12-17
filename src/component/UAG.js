@@ -58,8 +58,9 @@ function UAGComponent() {
       world = new World();
 
       let cubeSize = 6;
-      let distance = 2.5;
+      let distance = 4;
       let cubes = [];
+      let jitter = 1;
 
       // let spheroids = [
       //   new SpheroidDrop(world),
@@ -92,9 +93,11 @@ function UAGComponent() {
         cubes[i] = cube;
         cube.position = [
           (i%cubeSize)*distance,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+2,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-50
-        ];
+        ].map((element) => {
+          return element+Math.random()*jitter;
+        });
   
         world.addDrawableAndSimulatable(cube);
         world.addControllable(cube);
