@@ -153,6 +153,9 @@ class SphericalControlPoint {
 
     #bonds = [];
     #linearMomentum = null;
+    get linearMomentum () {
+        return glMatrix.vec3.clone(this.#linearMomentum);
+    }
     #linearAcceleration = null;
     //angular momentum is an array of three angles to rotate, one for the x, y, and z axis
     #angularMomentum = null;
@@ -313,13 +316,26 @@ class SphericalControlPoint {
                 let distance = glMatrix.vec3.distance(this.#position, otherSphericalControlPoint.position);
                 let sharedDistance = this.radius + otherSphericalControlPoint.radius;
                 if (distance < sharedDistance) {
+                    //calculate the momentum of repulsion
                     let magnitude = interval*globalSpeed*(sharedDistance/distance-1)*100;
-                    let repulsionMomentum = glMatrix.vec3.create();
-                    glMatrix.vec3.sub(repulsionMomentum, otherSphericalControlPoint.position, this.#position);
+                    let relativePositionOfOther = glMatrix.vec3.create();
+                    glMatrix.vec3.sub(relativePositionOfOther, otherSphericalControlPoint.position, this.#position);
+                    let repulsionMomentum = glMatrix.vec3.clone(relativePositionOfOther);
                     //repulsion is away, so this has to be subtracted from zero
                     glMatrix.vec3.sub(repulsionMomentum,centerVector,repulsionMomentum);
                     glMatrix.vec3.scale(repulsionMomentum, repulsionMomentum, magnitude);
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, repulsionMomentum);
+
+                    //calculate the creation of angular momentum from impact
+                    //the momentum vector of this should be subtracted with the momentum vector of other
+                    let combinedLinearMomentum = glMatrix.vec3.create();
+                    glMatrix.vec3.subtract(combinedLinearMomentum, this.#linearMomentum, otherSphericalControlPoint.linearMomentum);
+                    let angularMomentumMagnitude = glMatrix.vec3.length(combinedLinearMomentum);
+                    //the magnitude of the angular momentum should be the same as the angle between the combined momentum vector and (max abs pi/2)
+                    let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
+                        return element*globalSpeed*interval*2;
+                    });
+                    this.changeAngularMomentum(angularMomentumChange);
                 }
             }
         });
