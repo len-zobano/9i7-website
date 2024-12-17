@@ -333,7 +333,7 @@ class SphericalControlPoint {
                     let angularMomentumMagnitude = glMatrix.vec3.length(combinedLinearMomentum);
                     //the magnitude of the angular momentum should be the same as the angle between the combined momentum vector and (max abs pi/2)
                     let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
-                        return element*globalSpeed*interval*2;
+                        return element*globalSpeed*interval*angularMomentumMagnitude*0.25;
                     });
                     this.changeAngularMomentum(angularMomentumChange);
                 }

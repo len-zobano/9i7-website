@@ -58,7 +58,7 @@ function UAGComponent() {
       world = new World();
 
       let cubeSize = 6;
-      let distance = 3;
+      let distance = 2.5;
       let cubes = [];
 
       // let spheroids = [
@@ -101,9 +101,9 @@ function UAGComponent() {
         world.addSelectable(cube);
         world.addPlottable(cube);
 
-        if (i > 0) {
-          // cube.positionPoint.bondTo(cubes[i-1].positionPoint);
-        }
+        // if (i > 0 && i%cubeSize != 0) {
+        //   cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+        // }
       }
     }
 
