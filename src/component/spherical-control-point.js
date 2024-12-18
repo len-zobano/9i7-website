@@ -348,19 +348,40 @@ class SphericalControlPoint {
         //TEMPORARY: if below y=0, reverse linear y momentum
         if (this.#position[1] < 0 && this.#linearMomentum[1] < 0) {
             
-            // //bounce
-            this.#linearMomentum = glMatrix.vec3.fromValues(
-                this.#linearMomentum[0],
-                -this.#linearMomentum[1]*0.5,
-                this.#linearMomentum[2]
-            );
+//position = -0.73
 
-            //constant pressure
+            // //asymptotic repulsion
+            // let radius = 1;
+            // let position = this.#position[1];
+            // if (position < 0.001-radius) position = 0.001-radius;
+            // let magnitude = radius/(radius+position) - 1;
             // this.#linearMomentum = glMatrix.vec3.fromValues(
             //     this.#linearMomentum[0],
-            //     this.#linearMomentum[1]+100.0*interval,
+            //     this.#linearMomentum[1] + magnitude*interval*0.5,
             //     this.#linearMomentum[2]
             // );
+
+            //
+
+            // linear repulsion
+            let radius = 1;
+            let position = this.#position[1];
+            let magnitude = -200*position;
+            this.#linearMomentum = glMatrix.vec3.fromValues(
+                this.#linearMomentum[0],
+                this.#linearMomentum[1] + magnitude*interval,
+                this.#linearMomentum[2]
+            );
+            
+            // //stickiness is a property of a hard surface that helps the other objects not perpetually bounce
+            // let stickiness = 0;
+            // if (Math.abs(this.#linearMomentum[1]) < stickiness) {
+            //     this.#linearMomentum = glMatrix.vec3.fromValues(
+            //         this.#linearMomentum[0],
+            //         0,
+            //         this.#linearMomentum[2]
+            //     ); 
+            // }
         }
 
         //add linear acceleration to linear momentum
