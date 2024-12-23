@@ -2,24 +2,37 @@ import * as glMatrix from 'gl-matrix';
 
 let globalVertexShaderSource = `
 attribute vec4 aVertexPosition;
+attribute vec3 aVertexNormal;
 attribute vec4 aVertexColor;
 
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
+uniform mat4 uNormalMatrix;
 
 varying lowp vec4 vColor;
+varying highp vec3 vLighting;
 
 void main() {
   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
   vColor = aVertexColor;
+
+  highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+  highp vec3 directionalLightColor = vec3(1, 1, 0.5);
+  highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
+
+  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+  highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+  vLighting = ambientLight + (directionalLightColor * directional);
 }
 `,
 
 globalFragmentShaderSource = `
 varying lowp vec4 vColor;
+varying highp vec3 vLighting;
 
 void main(void) {
-  gl_FragColor = vColor;
+  // gl_FragColor = vColor;
+  gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
 }
 `,
 
@@ -35,7 +48,25 @@ class SimpleDrawDelegate {
     #positions = null;
     #colors = null;
     #indices = null;
+    #normals = null;
 
+    setNormalAttribute() {
+      const numComponents = 3;
+      const type = this.#world.gl.FLOAT;
+      const normalize = false;
+      const stride = 0;
+      const offset = 0;
+      this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, this.#buffers.normal);
+      this.#world.gl.vertexAttribPointer(
+        this.#programInfo.attribLocations.vertexNormal,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset,
+      );
+      this.#world.gl.enableVertexAttribArray(this.#programInfo.attribLocations.vertexNormal);
+    }
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute() {
@@ -76,25 +107,36 @@ class SimpleDrawDelegate {
     }
 
     initIndexBuffer(indices) {
-        const indexBuffer = this.#world.gl.createBuffer();
-        this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        // Now send the element array to GL
-      
-        this.#world.gl.bufferData(
-          this.#world.gl.ELEMENT_ARRAY_BUFFER,
-          new Uint16Array(indices),
-          this.#world.gl.STATIC_DRAW,
-        );
-      
-        return indexBuffer;
-      }
+      const indexBuffer = this.#world.gl.createBuffer();
+      this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      // Now send the element array to GL
+    
+      this.#world.gl.bufferData(
+        this.#world.gl.ELEMENT_ARRAY_BUFFER,
+        new Uint16Array(indices),
+        this.#world.gl.STATIC_DRAW,
+      );
+    
+      return indexBuffer;
+    }
 
-      initColorBuffer(colors) {
-        const colorBuffer = this.#world.gl.createBuffer();
-        this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, colorBuffer);
-        this.#world.gl.bufferData(this.#world.gl.ARRAY_BUFFER, new Float32Array(colors), this.#world.gl.STATIC_DRAW);
-        return colorBuffer;
-      }
+    initNormalBuffer (normals) {
+      const normalBuffer = this.#world.gl.createBuffer();
+      this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, normalBuffer);
+      this.#world.gl.bufferData(
+        this.#world.gl.ARRAY_BUFFER,
+        new Float32Array(normals),
+        this.#world.gl.STATIC_DRAW
+      );
+      return normalBuffer;
+    }
+
+    initColorBuffer(colors) {
+      const colorBuffer = this.#world.gl.createBuffer();
+      this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, colorBuffer);
+      this.#world.gl.bufferData(this.#world.gl.ARRAY_BUFFER, new Float32Array(colors), this.#world.gl.STATIC_DRAW);
+      return colorBuffer;
+    }
 
     initPositionBuffer(positions) {
         // Create a buffer for the square's positions.
@@ -204,7 +246,11 @@ class SimpleDrawDelegate {
         this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         // Tell WebGL to use our program when drawing
         this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
+        this.setNormalAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         
+        const normalMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.invert(normalMatrix, modelViewMatrix);
+        glMatrix.mat4.transpose(normalMatrix, normalMatrix);
         // Set the shader uniforms
         this.#world.gl.uniformMatrix4fv(
             this.#programInfo.uniformLocations.projectionMatrix,
@@ -216,7 +262,12 @@ class SimpleDrawDelegate {
           false,
           modelViewMatrix,
         );
-      
+        this.#world.gl.uniformMatrix4fv(
+          this.#programInfo.uniformLocations.normalMatrix,
+          false,
+          normalMatrix,
+        );
+
         {
           const type = this.#world.gl.UNSIGNED_SHORT;
           this.#world.gl.drawElements(
@@ -228,23 +279,32 @@ class SimpleDrawDelegate {
         }
       }
 
-      initBuffers() {
-        const positionBuffer = this.initPositionBuffer(this.#world.gl);
-        const colorBuffer = this.initColorBuffer(this.#world.gl);
-        const indexBuffer = this.initIndexBuffer(this.#world.gl);
+      // initBuffers() {
+      //   const positionBuffer = this.initPositionBuffer(this.#world.gl);
+      //   const colorBuffer = this.initColorBuffer(this.#world.gl);
+      //   const indexBuffer = this.initIndexBuffer(this.#world.gl);
     
-        return {
-          indices: indexBuffer,
-          color: colorBuffer,
-          position: positionBuffer,
-        };
-      }
+      //   return {
+      //     indices: indexBuffer,
+      //     color: colorBuffer,
+      //     position: positionBuffer,
+      //   };
+      // }
 
-    constructor(world, positions, colors, indices) {
+    constructor(world, positions, colors, normals, indices) {
+
+        if (!indices) {
+          indices = [];
+          for (let i = 0; i < positions.length; ++i) {
+            indices.push(i);
+          }
+        }
+
         this.#world = world;
         this.#positions = positions;
         this.#colors = colors;
         this.#indices = indices; 
+        this.#normals = normals;
 
         if (!globalVertexShader) {
             globalVertexShader = this.loadShader(world.gl.VERTEX_SHADER, globalVertexShaderSource);
@@ -275,8 +335,13 @@ class SimpleDrawDelegate {
             this.#buffers = {
               position: this.initPositionBuffer(positions),
               indices: this.initIndexBuffer(indices),
-              color: this.initColorBuffer(colors)
+              color: this.initColorBuffer(colors),
+              // normal: this.initNormalBuffer(normals)
             };
+
+            if (normals) {
+              this.#buffers.normal = this.initNormalBuffer(normals);
+            }
         }
     
         /*
@@ -287,12 +352,14 @@ class SimpleDrawDelegate {
             this.#programInfo = {
                 program: this.#shaderProgram,
                 attribLocations: {
+                    vertexNormal: world.gl.getAttribLocation(this.#shaderProgram, "aVertexNormal"),
                     vertexPosition: world.gl.getAttribLocation(this.#shaderProgram, "aVertexPosition"),
                     vertexColor: world.gl.getAttribLocation(this.#shaderProgram, "aVertexColor"),
                 },
                 uniformLocations: {
                     projectionMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uProjectionMatrix"),
                     modelViewMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uModelViewMatrix"),
+                    normalMatrix: world.gl.getUniformLocation(this.#shaderProgram,"uNormalMatrix"),
                 },
             };
         }

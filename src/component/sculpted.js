@@ -71,7 +71,7 @@ class Sculpted {
           return a.concat(b);
         });
 
-        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
+        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, null, indices);
       });
 
   }

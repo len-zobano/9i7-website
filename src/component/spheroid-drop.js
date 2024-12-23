@@ -48,17 +48,17 @@ class SpheroidDrop {
       .then((text) => {
         let objFile = new OBJFile (text);
         let objOutput = objFile.parse();
-        let positions = objOutput.models[0].vertices.map((vertex) => {
-          return [vertex.x, vertex.y, vertex.z];
-        }).reduce((a,b) => {
-          return a.concat(b);
-        });
+        // let positions = objOutput.models[0].vertices.map((vertex) => {
+        //   return [vertex.x, vertex.y, vertex.z];
+        // }).reduce((a,b) => {
+        //   return a.concat(b);
+        // });
 
-        let colors = objOutput.models[0].vertices.map((vertex) => {
-          return [Math.random(),Math.random(),Math.random(),1.0];
-        }).reduce((a,b) => {
-          return a.concat(b);
-        });
+        // let colors = objOutput.models[0].vertices.map((vertex) => {
+        //   return [Math.random(),Math.random(),Math.random(),1.0];
+        // }).reduce((a,b) => {
+        //   return a.concat(b);
+        // });
 
         let indices = objOutput.models[0].faces.map((face) => {
           let ret = face.vertices.map((vertex) => {
@@ -70,7 +70,47 @@ class SpheroidDrop {
           return a.concat(b);
         });
 
-        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
+        let positions = indices.map((index) => {
+            let vertex = objOutput.models[0].vertices[index];
+            return [vertex.x, vertex.y, vertex.z];
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
+
+        let currentColor = [], timesReturned = 3;
+        function getNextColor() {
+            if (timesReturned === 3) {
+                timesReturned = 0;
+                // currentColor = [
+                //     Math.random()*0.5+0.25,
+                //     Math.random()*0.5+0.25,
+                //     Math.random()*0.5+0.25,
+                //     1.0
+                // ];
+                currentColor = [0.8,0.8,0.8,1.0];
+            }
+            ++timesReturned;
+            return currentColor;
+        }
+
+        let colors = indices.map((index) => {
+            return getNextColor();
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
+
+        //each face has one vertex normal. That has to be converted to three each
+        //so indices are floored by three
+
+        let normals = indices.map((index) => {
+            let normal = objOutput.models[0].vertexNormals[Math.floor(index/3)];
+            let normalArray = [normal.x, normal.y, normal.z];
+            return normalArray.concat(normalArray).concat(normalArray);
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
+
+        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
 
   }

@@ -117,7 +117,7 @@ class RainbowCube {
     this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
 
     if (!globalDrawDelegate) {
-        globalDrawDelegate = new SimpleDrawDelegate(this.#world, globalPositions, globalColors, globalIndices);
+        globalDrawDelegate = new SimpleDrawDelegate(this.#world, globalPositions, globalColors, null, globalIndices);
     }
   }
 

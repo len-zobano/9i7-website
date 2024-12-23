@@ -153,7 +153,7 @@ class ParticleControlPoint {
               return a.concat(b);
             });
     
-            globalDrawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, indices);
+            globalDrawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, null, indices);
           });
     }
 
