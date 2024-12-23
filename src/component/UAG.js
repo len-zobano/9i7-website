@@ -57,7 +57,7 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 6;
+      let cubeSize = 4;
       let distance = 5;
       let cubes = [];
       let jitter = 1;
@@ -105,7 +105,7 @@ function UAGComponent() {
         world.addSelectable(cube);
         world.addPlottable(cube);
 
-        cube.positionPoint.bondToAnyWithinRadius(cubes.map(otherCube => otherCube.positionPoint), distance*1.7);
+        // cube.positionPoint.bondToAnyWithinRadius(cubes.map(otherCube => otherCube.positionPoint), distance*1.7);
       }
     }
 
