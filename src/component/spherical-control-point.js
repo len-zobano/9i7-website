@@ -318,6 +318,10 @@ class SphericalControlPoint {
                 if (distance < sharedDistance) {
                     //calculate the momentum of repulsion
                     let magnitude = interval*globalSpeed*(sharedDistance/distance-1)*100;
+                    let world = this.#world;
+                    if (magnitude > this.#world.maxRepulsionMagnitude) {
+                        magnitude = this.#world.maxRepulsionMagnitude;
+                    }
                     let relativePositionOfOther = glMatrix.vec3.create();
                     glMatrix.vec3.sub(relativePositionOfOther, otherSphericalControlPoint.position, this.#position);
                     let repulsionMomentum = glMatrix.vec3.clone(relativePositionOfOther);
@@ -344,45 +348,6 @@ class SphericalControlPoint {
         let gravity = this.#plottable.world.getGravityForLocation(this.#position);
         glMatrix.vec3.scale(gravity, gravity, interval);
         glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
-
-        //TEMPORARY: if below y=0, reverse linear y momentum
-        if (this.#position[1] < 0 && this.#linearMomentum[1] < 0) {
-            
-//position = -0.73
-
-            // //asymptotic repulsion
-            // let radius = 1;
-            // let position = this.#position[1];
-            // if (position < 0.001-radius) position = 0.001-radius;
-            // let magnitude = radius/(radius+position) - 1;
-            // this.#linearMomentum = glMatrix.vec3.fromValues(
-            //     this.#linearMomentum[0],
-            //     this.#linearMomentum[1] + magnitude*interval*0.5,
-            //     this.#linearMomentum[2]
-            // );
-
-            //
-
-            // linear repulsion
-            let radius = 1;
-            let position = this.#position[1];
-            let magnitude = -200*position;
-            this.#linearMomentum = glMatrix.vec3.fromValues(
-                this.#linearMomentum[0],
-                this.#linearMomentum[1] + magnitude*interval,
-                this.#linearMomentum[2]
-            );
-            
-            // //stickiness is a property of a hard surface that helps the other objects not perpetually bounce
-            // let stickiness = 0;
-            // if (Math.abs(this.#linearMomentum[1]) < stickiness) {
-            //     this.#linearMomentum = glMatrix.vec3.fromValues(
-            //         this.#linearMomentum[0],
-            //         0,
-            //         this.#linearMomentum[2]
-            //     ); 
-            // }
-        }
 
         //add linear acceleration to linear momentum
         let scaledLinearAcceleration = glMatrix.vec3.create();
@@ -418,8 +383,37 @@ class SphericalControlPoint {
         let scaledAngularMomentum = this.#angularMomentum.map((angle) => {
             return angle*interval;
         });
+
+        let positionBeforeSurfaceCollision = glMatrix.vec3.create();
         //add scaled linear momentum to position
-        glMatrix.vec3.add(this.#position, this.#position, scaledLinearMomentum);
+        glMatrix.vec3.add(positionBeforeSurfaceCollision, this.#position, scaledLinearMomentum);
+        //TEMPORARY, TO TEST SURFACE COLLISION
+        //TEMPORARY: if below y=0, reverse linear y momentum
+        if (positionBeforeSurfaceCollision[1] < 0) {
+            let newYPosition = -positionBeforeSurfaceCollision[1];
+
+            //simulate momentum from bounce
+            let newYMomentum = -this.#linearMomentum[1], bounceThreshold = 10;
+            if (newYMomentum < bounceThreshold) {
+                newYMomentum = newYPosition = 0.0;
+            }
+
+            //simulate bounce off
+            this.#position = glMatrix.vec3.fromValues(
+                positionBeforeSurfaceCollision[0],
+                -newYPosition,
+                positionBeforeSurfaceCollision[2]
+            );
+
+            this.#linearMomentum = glMatrix.vec3.fromValues(
+                this.#linearMomentum[0],
+                newYMomentum,
+                this.#linearMomentum[2]
+            );
+        }
+        else {
+            this.#position = positionBeforeSurfaceCollision;
+        }
         //rotate top and right by scaled angular momentum
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);

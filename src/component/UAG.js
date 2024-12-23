@@ -88,7 +88,7 @@ function UAGComponent() {
       //   }
       // }
 
-      for (let i = 0; i < 64; ++i) {
+      for (let i = 0; i < 256; ++i) {
         let cube = new SpheroidDrop(world);
         cubes[i] = cube;
         cube.position = [

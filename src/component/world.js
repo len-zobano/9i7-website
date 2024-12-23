@@ -163,6 +163,11 @@ class World {
   #gridSystem = null;
   #gl = null;
   #globalGravityVector = glMatrix.vec3.fromValues(0,-50,0);
+  #isRunning = false;
+
+  get maxRepulsionMagnitude () {
+    return 1000;
+  }
 
   getGravityForLocation() {
     return glMatrix.vec3.clone(this.#globalGravityVector);
@@ -206,6 +211,10 @@ constructor() {
         // this.#cameraPlottable = lastSelected;
         // lastSelected.isCamera = true;
         this.#selected.select(true);
+    }
+
+    if (keyCode === 32) {
+        this.#isRunning = !this.#isRunning;
     }
 
     this.#controllables.forEach((controllable) => {
@@ -262,6 +271,14 @@ constructor() {
     this.#currentTime = new Date().getTime();
     let interval = (this.#currentTime - lastTime)/1000;
     
+    if (interval <= 0 || !this.#isRunning) {
+        return;
+    }
+
+    if (interval > 0.05) {
+        interval = 0.05;
+    }
+
     if (!this.#gridSystem) {
         this.#gridSystem = new GridSystem();
     }
@@ -318,7 +335,7 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
-    let speed = this.#downKeys[18] ? 100 : 5;
+    let speed = this.#downKeys[18] ? 100 : 50;
     let angularSpeedFactor = 0.1;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
@@ -415,12 +432,12 @@ constructor() {
 
     this.#simulatables.forEach((simulatable) => {
         if (simulatable.calculateTrajectory) {
-            simulatable.calculateTrajectory(this, this.#currentTime);
+            simulatable.calculateTrajectory(this, interval);
         }
     });
     
     this.#simulatables.forEach((simulatable) => {
-        simulatable.simulate(this, this.#currentTime);
+        simulatable.simulate(this, interval);
     });
 
     //only iterate after all other collisions are calculated

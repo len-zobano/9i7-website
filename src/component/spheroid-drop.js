@@ -6,7 +6,6 @@ import SphericalControlPoint from './spherical-control-point';
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
 class SpheroidDrop {
-  #lastTime = 0;
   #selected = false;    
   get selected () {
     return this.#selected;
@@ -128,26 +127,16 @@ class SpheroidDrop {
   }
   #buffers = null;
 
-  calculateTrajectory(world, thisTime) {
-    if (this.#lastTime) {
-      let interval = thisTime - this.#lastTime;
-
-      this.controlPoints.forEach((controlPoint) => {
-        controlPoint.calculateTrajectory(interval/1000);
-      });
-    }
+  calculateTrajectory(world, interval) {
+    this.controlPoints.forEach((controlPoint) => {
+        controlPoint.calculateTrajectory(interval);
+    });
   }
 
-  simulate(world, thisTime) {
-    if (this.#lastTime) {
-      let interval = thisTime - this.#lastTime;
-
-      this.controlPoints.forEach((controlPoint) => {
-        controlPoint.simulate(interval/1000);
-      });
-    }
-
-    this.#lastTime = thisTime;
+  simulate(world, interval) {
+    this.controlPoints.forEach((controlPoint) => {
+        controlPoint.simulate(interval);
+    });
   }
 
   draw() {
