@@ -267,6 +267,8 @@ class SphericalControlPoint {
     calculateTrajectory(interval) {
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
+        //TEMPORARY: angular momentum has to be adjusted for stability
+        let angularMomentumFrictionFactor = 0.05;
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
             //for your bond to the other,
@@ -379,7 +381,7 @@ class SphericalControlPoint {
                     let angularMomentumMagnitude = glMatrix.vec3.length(combinedLinearMomentum);
                     //the magnitude of the angular momentum should be the same as the angle between the combined momentum vector and (max abs pi/2)
                     let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
-                        let momentumChange = element*globalSpeed*interval*angularMomentumMagnitude*0.25;
+                        let momentumChange = element*globalSpeed*interval*angularMomentumMagnitude*angularMomentumFrictionFactor;
                         if (momentumChange > 0) {
                             isMoving = true;
                         }
@@ -414,13 +416,13 @@ class SphericalControlPoint {
         //TEMPORARY: another angular momentum decay factor because that motion seems unstable
         //this compounds with ordinary decay
         let scaledAngularMomentumDecay = Math.pow(0.01, interval);
-        let scaledMomentumDecay = Math.pow(0.1,interval);
+        let scaledMomentumDecay = Math.pow(0.01,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay*scaledAngularMomentumDecay;
         });
 
-        let scaledAccelerationDecay = Math.pow(0.5,interval);
+        let scaledAccelerationDecay = Math.pow(0.1,interval);
         glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
         this.#angularAcceleration = this.#angularAcceleration.map((element) => {
             return element*scaledAccelerationDecay;

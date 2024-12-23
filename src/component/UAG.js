@@ -57,8 +57,8 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 3;
-      let distance = 4;
+      let cubeSize = 5;
+      let distance = 5;
       let cubes = [];
       let jitter = 1;
 
@@ -95,7 +95,7 @@ function UAGComponent() {
         cube.position = [
           (i%cubeSize)*distance,
           ((Math.floor(i/(cubeSize)))%cubeSize)*distance+2,
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-50
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-100
         ].map((element) => {
           return element+Math.random()*jitter;
         });
