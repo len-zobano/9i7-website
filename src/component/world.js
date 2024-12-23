@@ -162,7 +162,7 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,-50,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,0,0);
   #isRunning = false;
 
   get maxRepulsionMagnitude () {
