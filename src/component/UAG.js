@@ -105,23 +105,7 @@ function UAGComponent() {
         world.addSelectable(cube);
         world.addPlottable(cube);
 
-        //left
-        if (i > 0 && i%cubeSize != 0) {
-          //bond left unless first in row
-          cube.positionPoint.bondTo(cubes[i-1].positionPoint);
-        }
-
-        //up
-        let row = Math.floor(i/cubeSize)%cubeSize;
-        if (row > 0) {
-          cube.positionPoint.bondTo(cubes[i-cubeSize].positionPoint);
-        }
-
-        //back
-        let depth = Math.floor(i/(cubeSize*cubeSize))%(cubeSize);
-        if (depth > 0) {
-          cube.positionPoint.bondTo(cubes[i-cubeSize*cubeSize].positionPoint);
-        }
+        cube.positionPoint.bondToAnyWithinRadius(cubes.map(otherCube => otherCube.positionPoint), distance*1.7);
       }
     }
 

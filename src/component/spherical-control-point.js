@@ -207,7 +207,33 @@ class SphericalControlPoint {
         this.#angularAcceleration = [0,0,0];
     }
 
+    bondToAnyWithinRadius(others, radius, strength) {
+        others.forEach((other) => {
+            if (other !== this) {
+                let distance = glMatrix.vec3.distance(this.#position, other.positionAsVector);
+                if (distance <= radius) {
+                    this.bondTo(other, strength);
+                }
+            }
+        })
+    }
+
     bondTo(other, strength, isReciprocalBond) {
+        if (this === other) {
+            return null;
+        }
+
+        let bondExists = false;
+        this.#bonds.forEach((bond) => {
+            if (other === bond.controlPoint) {
+                bondExists = true;
+            }
+        });
+
+        if (bondExists) {
+            return null;
+        }
+
         if (!strength) {
             strength = 1.0;
         }
@@ -262,7 +288,8 @@ class SphericalControlPoint {
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
-                this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
+                //TEMPORARY: commented out to simplify debugging stability
+                // this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
 
             //TEMPORARY: this value is for testing stability
@@ -292,7 +319,8 @@ class SphericalControlPoint {
             let scaledMomentumTowardIdeal = glMatrix.vec3.create();
             glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
             glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
-            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
+            //TEMPORARY: commented out to simplify debugging stability
+            // glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
         //calculate collision by local control points
@@ -332,7 +360,8 @@ class SphericalControlPoint {
                     let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
                         return element*globalSpeed*interval*angularMomentumMagnitude*0.25;
                     });
-                    this.changeAngularMomentum(angularMomentumChange);
+                    //TEMPORARY: commented out to simplify debugging stability
+                    // this.changeAngularMomentum(angularMomentumChange);
                 }
             }
         });
