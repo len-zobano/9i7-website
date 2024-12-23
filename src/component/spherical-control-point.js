@@ -259,21 +259,14 @@ class SphericalControlPoint {
                 if (angle < -Math.PI/2) angle = -Math.PI - angle;
                 return angle*interval*bond.strength*globalSpeed;
             });
-
-            // if (this.#plottable.selected) {
-            //     console.log(`
-            //         For selected control point:
-            //             Angle between vectors: ${angleOfBondToOther}
-            //             Scaled angle between vectors: ${scaledAngleOfBondToOther}
-            //             Real relative position: ${realRelativePosition}
-            //             Ideal relative position: ${idealRelativePosition}
-            //     `);
-            // }
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
                 this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
+
+            //TEMPORARY: this value is for testing stability
+            let bondLinearMomentumScaling = 1;
 
                 //calculate linear momentum using a comparison of the length of the vectors
             let distanceFromIdeal = glMatrix.vec3.length(realRelativePosition) - glMatrix.vec3.length(idealRelativePosition);
@@ -281,7 +274,7 @@ class SphericalControlPoint {
             let relativePositionNormal = glMatrix.vec3.clone(realRelativePosition);
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
-            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, distanceFromIdeal*interval*bond.strength*globalSpeed);
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, bondLinearMomentumScaling*distanceFromIdeal*interval*bond.strength*globalSpeed);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
 
 
@@ -298,7 +291,7 @@ class SphericalControlPoint {
                 //subtract real from ideal to get the momentum vector for this one
             let scaledMomentumTowardIdeal = glMatrix.vec3.create();
             glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
-            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, interval*bond.strength*globalSpeed);
+            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
@@ -362,10 +355,13 @@ class SphericalControlPoint {
             this.#angularMomentum[i] += scaledAngularAcceleration[i];
         }
 
+        //TEMPORARY: another angular momentum decay factor because that motion seems unstable
+        //this compounds with ordinary decay
+        let scaledAngularMomentumDecay = Math.pow(0.01, interval);
         let scaledMomentumDecay = Math.pow(0.1,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
-            return element*scaledMomentumDecay;
+            return element*scaledMomentumDecay*scaledAngularMomentumDecay;
         });
 
         let scaledAccelerationDecay = Math.pow(0.5,interval);

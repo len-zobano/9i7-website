@@ -57,7 +57,7 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 6;
+      let cubeSize = 2;
       let distance = 4;
       let cubes = [];
       let jitter = 1;
@@ -88,7 +88,8 @@ function UAGComponent() {
       //   }
       // }
 
-      for (let i = 0; i < 256; ++i) {
+      let numberOfDrops = cubeSize*cubeSize*cubeSize;
+      for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world);
         cubes[i] = cube;
         cube.position = [
@@ -104,9 +105,23 @@ function UAGComponent() {
         world.addSelectable(cube);
         world.addPlottable(cube);
 
-        // if (i > 0 && i%cubeSize != 0) {
-        //   cube.positionPoint.bondTo(cubes[i-1].positionPoint);
-        // }
+        //left
+        if (i > 0 && i%cubeSize != 0) {
+          //bond left unless first in row
+          cube.positionPoint.bondTo(cubes[i-1].positionPoint);
+        }
+
+        //up
+        let row = Math.floor(i/cubeSize)%cubeSize;
+        if (row > 0) {
+          cube.positionPoint.bondTo(cubes[i-cubeSize].positionPoint);
+        }
+
+        //back
+        let depth = Math.floor(i/(cubeSize*cubeSize))%(cubeSize);
+        if (depth > 0) {
+          cube.positionPoint.bondTo(cubes[i-cubeSize*cubeSize].positionPoint);
+        }
       }
     }
 
