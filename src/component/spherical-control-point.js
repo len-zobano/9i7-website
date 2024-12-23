@@ -239,6 +239,11 @@ class SphericalControlPoint {
         }
         let relativePosition = glMatrix.vec3.create();
         glMatrix.vec3.sub(relativePosition, other.positionAsVector, this.#position);
+        relativePosition = glMatrix.vec3.fromValues(
+            relativePosition[0],
+            relativePosition[1],
+            -relativePosition[2]
+        );
         
         let bond = {
             controlPoint: other,
@@ -260,6 +265,8 @@ class SphericalControlPoint {
     
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
+        //TEMPORARY: this is to detect spontaneous momentum calculated in error
+        let isMoving = false;
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
             //for your bond to the other,
@@ -288,6 +295,10 @@ class SphericalControlPoint {
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
+                if (scaledAngleOfBondToOther[i] !== 0) {
+                    isMoving = true;
+                    // debugger;
+                }
                 this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
 
@@ -301,6 +312,10 @@ class SphericalControlPoint {
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
             glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, bondLinearMomentumScaling*distanceFromIdeal*interval*bond.strength*globalSpeed);
+            if (glMatrix.vec3.length(relativePositionNormal) > 0) {
+                isMoving = true;
+                // debugger;
+            }
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
 
 
@@ -318,6 +333,10 @@ class SphericalControlPoint {
             let scaledMomentumTowardIdeal = glMatrix.vec3.create();
             glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
             glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
+            if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
+                isMoving = true;
+                // debugger;
+            }
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
@@ -347,6 +366,10 @@ class SphericalControlPoint {
                     //repulsion is away, so this has to be subtracted from zero
                     glMatrix.vec3.sub(repulsionMomentum,centerVector,repulsionMomentum);
                     glMatrix.vec3.scale(repulsionMomentum, repulsionMomentum, magnitude);
+                    if (glMatrix.vec3.length(repulsionMomentum) > 0) {
+                        isMoving = true;
+                        // debugger;
+                    }
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, repulsionMomentum);
 
                     //calculate the creation of angular momentum from impact
@@ -356,8 +379,15 @@ class SphericalControlPoint {
                     let angularMomentumMagnitude = glMatrix.vec3.length(combinedLinearMomentum);
                     //the magnitude of the angular momentum should be the same as the angle between the combined momentum vector and (max abs pi/2)
                     let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
-                        return element*globalSpeed*interval*angularMomentumMagnitude*0.25;
+                        let momentumChange = element*globalSpeed*interval*angularMomentumMagnitude*0.25;
+                        if (momentumChange > 0) {
+                            isMoving = true;
+                        }
+                        return momentumChange;
                     });
+                    if (isMoving) {
+                        // debugger;
+                    }
                     this.changeAngularMomentum(angularMomentumChange);
                 }
             }
