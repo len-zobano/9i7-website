@@ -57,7 +57,7 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 5;
+      let cubeSize = 6;
       let distance = 5;
       let cubes = [];
       let jitter = 1;
