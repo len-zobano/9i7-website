@@ -288,8 +288,7 @@ class SphericalControlPoint {
             //add bond angle to angular momentum
             //interval * bondStrength * angle
             for (let i = 0; i <  3; ++i) {
-                //TEMPORARY: commented out to simplify debugging stability
-                // this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
+                this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
 
             //TEMPORARY: this value is for testing stability
@@ -319,8 +318,7 @@ class SphericalControlPoint {
             let scaledMomentumTowardIdeal = glMatrix.vec3.create();
             glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
             glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
-            //TEMPORARY: commented out to simplify debugging stability
-            // glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
         //calculate collision by local control points
@@ -360,8 +358,7 @@ class SphericalControlPoint {
                     let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
                         return element*globalSpeed*interval*angularMomentumMagnitude*0.25;
                     });
-                    //TEMPORARY: commented out to simplify debugging stability
-                    // this.changeAngularMomentum(angularMomentumChange);
+                    this.changeAngularMomentum(angularMomentumChange);
                 }
             }
         });
