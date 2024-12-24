@@ -436,31 +436,31 @@ class SphericalControlPoint {
         glMatrix.vec3.add(positionBeforeSurfaceCollision, this.#position, scaledLinearMomentum);
         //TEMPORARY, TO TEST SURFACE COLLISION
         //TEMPORARY: if below y=0, reverse linear y momentum
-        if (positionBeforeSurfaceCollision[1] < 0) {
-            let newYPosition = -positionBeforeSurfaceCollision[1];
+        // if (positionBeforeSurfaceCollision[1] < 0) {
+        //     let newYPosition = -positionBeforeSurfaceCollision[1];
 
-            //simulate momentum from bounce
-            let newYMomentum = -this.#linearMomentum[1], bounceThreshold = 10;
-            if (newYMomentum < bounceThreshold) {
-                newYMomentum = newYPosition = 0.0;
-            }
+        //     //simulate momentum from bounce
+        //     let newYMomentum = -this.#linearMomentum[1], bounceThreshold = 10;
+        //     if (newYMomentum < bounceThreshold) {
+        //         newYMomentum = newYPosition = 0.0;
+        //     }
 
-            //simulate bounce off
-            this.#position = glMatrix.vec3.fromValues(
-                positionBeforeSurfaceCollision[0],
-                -newYPosition,
-                positionBeforeSurfaceCollision[2]
-            );
+        //     //simulate bounce off
+        //     this.#position = glMatrix.vec3.fromValues(
+        //         positionBeforeSurfaceCollision[0],
+        //         -newYPosition,
+        //         positionBeforeSurfaceCollision[2]
+        //     );
 
-            this.#linearMomentum = glMatrix.vec3.fromValues(
-                this.#linearMomentum[0],
-                newYMomentum,
-                this.#linearMomentum[2]
-            );
-        }
-        else {
+        //     this.#linearMomentum = glMatrix.vec3.fromValues(
+        //         this.#linearMomentum[0],
+        //         newYMomentum,
+        //         this.#linearMomentum[2]
+        //     );
+        // }
+        // else {
             this.#position = positionBeforeSurfaceCollision;
-        }
+        // }
         //rotate top and right by scaled angular momentum
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);

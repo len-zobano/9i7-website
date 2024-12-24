@@ -13,10 +13,16 @@ class TriangularSurface {
     #world = null;
     #vertices = [];
     #drawDelegate = null;
+    #ID = null;
+
+    get ID () {
+        return this.#ID;
+    }
 
     constructor(world, vertices) {
         this.#world = world;
-        
+        this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+
         this.#vertices = vertices.map((vertex) => {
             return glMatrix.vec3.clone(vertex);
         });

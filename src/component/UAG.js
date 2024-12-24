@@ -86,13 +86,14 @@ function UAGComponent() {
       let testSurface = new TriangularSurface(
         world,
         [
-          glMatrix.vec3.fromValues(0,5, -100),
-          glMatrix.vec3.fromValues(5,5, -100),
-          glMatrix.vec3.fromValues(5,0, -100)
+          glMatrix.vec3.fromValues(-100,-10, 0),
+          glMatrix.vec3.fromValues(100,-10, 0),
+          glMatrix.vec3.fromValues(0,-10, -1000)
         ]
       );
 
       world.addDrawable(testSurface);
+      world.addPlottable(testSurface);
     }
 
     let ID = Math.floor(1000000*Math.random());
