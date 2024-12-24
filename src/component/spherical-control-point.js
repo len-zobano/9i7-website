@@ -82,28 +82,10 @@ function angleBetweenTwoVectors (a, c) {
         AXZ = glMatrix.vec2.fromValues(a[0], a[2]),
         CXZ = glMatrix.vec2.fromValues(c[0], c[2]);
 
-    // let ret = [
-    //     angleBetweenTwo2DVectors(AZY, CZY),
-    //     -angleBetweenTwo2DVectors(AXZ, CXZ),
-    //     angleBetweenTwo2DVectors(AXY, CXY)
-    // ];
-
     let ret = [];
     ret[0] = shortestAngleBetweenTwo2DVectors(AZY, CZY);
     ret[1] = -shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
     ret[2] = shortestAngleBetweenTwo2DVectors(AXY, CXY);
-    //x,y,z
-    // let ret = [
-    //     angleIsImmesurable(AYZ, CYZ) ? 0.0 : glMatrix.vec2.angle(AYZ, CYZ),//yz
-    //     angleIsImmesurable(AXZ, CXZ) ? 0.0 : glMatrix.vec2.angle(AXZ, CXZ),//xz
-    //     angleIsImmesurable(AXY, CXY) ? 0.0 : glMatrix.vec2.angle(AXY, CXY)//xy
-    // ];
-    //z,y,x
-    // let ret = [
-    //     glMatrix.vec3.equals(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXY, CXY),//xy
-    //     glMatrix.vec3.equals(AXZ, CXZ) ? 0.0 : glMatrix.vec3.angle(AXZ, CXZ),//xz
-    //     glMatrix.vec3.equals(AYZ, CYZ) ? 0.0 : glMatrix.vec3.angle(AYZ, CYZ)//yz
-    // ];
 
     return ret.map((element) => {
         if (element === -0) {
@@ -116,6 +98,7 @@ function angleBetweenTwoVectors (a, c) {
 class SphericalControlPoint {
     #world = null;
     #position = null;
+    #isSelected = false;
 
     get cameraMatrix () {
         let normalizedUp = this.top;
@@ -171,7 +154,7 @@ class SphericalControlPoint {
         return glMatrix.vec3.clone(this.#right);
     }
     #friction = 0.0;
-    #plottable = null;
+    #composite = null;
     #radius = 1.2;
     get radius () {
         return this.#radius;
@@ -180,9 +163,9 @@ class SphericalControlPoint {
     #inertia = 1.0;
     #drawDelegate = null;
 
-    constructor(world, plottable, position, drag) {
+    constructor(world, composite, position, drag) {
         this.#world = world;
-        this.#plottable = plottable;
+        this.#composite = composite;
         this.#position = glMatrix.vec3.fromValues(
             position[0],
             position[1],
@@ -340,13 +323,8 @@ class SphericalControlPoint {
         });
 
         //calculate collision by local control points
-        let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForPlottable(this.#plottable);
-        let plottables = this.#world.gridSystem.getCurrentPlottablesForTileCoordinates(tile);
-        //optimize this by indexing the control points on the tile
-        let localSphericalControlPoints = [];
-        plottables.forEach((plottable) => {
-            localSphericalControlPoints = localSphericalControlPoints.concat(plottable.controlPoints || []);
-        });
+        let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForControlPoint(this);
+        let localSphericalControlPoints  = this.#world.gridSystem.getCurrentControlPointsForTileCoordinates(tile);
 
         localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
             if (otherSphericalControlPoint != this) {
@@ -389,7 +367,7 @@ class SphericalControlPoint {
         });
 
         //add gravity to linear momentum
-        let gravity = this.#plottable.world.getGravityForLocation(this.#position);
+        let gravity = this.#world.getGravityForLocation(this.#position);
         glMatrix.vec3.scale(gravity, gravity, interval);
         glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
 
@@ -553,7 +531,7 @@ class SphericalControlPoint {
           })
         ); 
 
-        if (this.#plottable.selected) {
+        if (this.#isSelected) {
             this.#bonds.forEach((bond) => {
                 let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
                 glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);

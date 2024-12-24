@@ -127,7 +127,7 @@ class SpheroidDrop {
         return distance <= minimumDistance;
     }
 
-    onCollision(otherPlottable) {
+    onCollision(other) {
       //this collision function should only be used for object interaction, not physics
     }
 
@@ -212,13 +212,11 @@ class SpheroidDrop {
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, this.#positionPoint.drawMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix);
-    // this.#world.gl.depthMask(false);
     this.#world.gl.disable(this.#world.gl.DEPTH_TEST); 
     this.controlPoints.forEach((controlPoint) => {
         controlPoint.draw(glMatrix.mat4.clone(modelViewMatrix));
     });
     this.#world.gl.enable(this.#world.gl.DEPTH_TEST); 
-    // this.#world.gl.depthMask(true);
   }
 }
 

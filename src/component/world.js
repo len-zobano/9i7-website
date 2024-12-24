@@ -44,9 +44,9 @@ class GridSystem {
     #scale = 2.0;
     #tiles = {};
     #tileOffsets = [];
-    #plottablesToPrimaryTileCoordinates = {};
+    #controlPointsToPrimaryTileCoordinates = {};
 
-    addPlottableToTile(plottable, coordinates) {
+    addControlPointToTile(controlPoint, coordinates) {
         let tileContainer = this.#tiles;
         for (let i = 0; i < 3; ++i) {
             if (!tileContainer[coordinates[i]]) {
@@ -56,12 +56,12 @@ class GridSystem {
         }
         return tileContainer[plottable.ID] = {
             iteration: this.#iteration,
-            plottable
+            controlPoint
         };
     }
 
-    getPrimaryTileCoordinatesForPlottable(plottable) {
-        return this.#plottablesToPrimaryTileCoordinates[plottable.ID];
+    getPrimaryTileCoordinatesForControlPoint(controlPoint) {
+        return this.#controlPointsToPrimaryTileCoordinates[controlPoint.ID];
     }
 
     getTileForCoordinates(coordinates) {
@@ -75,7 +75,7 @@ class GridSystem {
         return tileContainer;
     }
 
-    getCurrentPlottablesForTileCoordinates (coordinates) {
+    getCurrentControlPointsForTileCoordinates (coordinates) {
         let tileContainer = this.#tiles;
         for (let i = 0; i < 3; ++i) {
             if (!tileContainer[coordinates[i]]) {
@@ -86,11 +86,11 @@ class GridSystem {
 
         let tileContainerToReturn = {};
         for (let key in tileContainer) {
-            //only return the plottables that are of the current iteration
+            //only return the control points that are of the current iteration
             if (tileContainer[key].iteration === this.#iteration) {
                 tileContainerToReturn[key] = tileContainer[key];
             }
-            //clean up the plottable otherwise
+            //clean up the control points otherwise
             else {
                 delete tileContainer[key];
             }
@@ -99,13 +99,13 @@ class GridSystem {
         //this array fill can probably be optimized if it's combined with the above
         let arrayToReturn = [];
         for (let key in tileContainerToReturn) {
-            arrayToReturn.push(tileContainerToReturn[key].plottable);
+            arrayToReturn.push(tileContainerToReturn[key].controlPoint);
         }
 
         return arrayToReturn;
     }
 
-    cleanPlottablesForTile(coordinates) {
+    cleanTile(coordinates) {
         let tileContainer = this.#tiles;
         for (let i = 0; i < 3; ++i) {
             if (!tileContainer[coordinates[i]]) {
@@ -123,23 +123,23 @@ class GridSystem {
         }
     }
 
-    plot(plottable) {
+    plotControlPoint(controlPoint) {
         //get coordinates of tile
         let tileContainer = this.#tiles, tileCoordinates = [];
         for (let i = 0; i < 3; ++i) {
-            tileCoordinates[i] = Math.floor(plottable.position[i]/this.#scale);
+            tileCoordinates[i] = Math.floor(controlPoint.position[i]/this.#scale);
         }
 
         //set tile and all adjacent tiles
         for (let i = 0; i < 27; ++i) {
-            this.addPlottableToTile(plottable, [
+            this.addControlPointToTile(controlPoint, [
                 (i % 3) - 1 + tileCoordinates[0],
                 (Math.floor(i/3) % 3) - 1 + tileCoordinates[1],
                 (Math.floor(i/9) % 3) - 1 + tileCoordinates[2]
             ]);
         }
         //put the reference to the primary tile into the table
-        this.#plottablesToPrimaryTileCoordinates[plottable.ID] = tileCoordinates;
+        this.#controlPointsToPrimaryTileCoordinates[controlPoint.ID] = tileCoordinates;
         //return the coordinates of the tile
         return tileCoordinates;
     }
@@ -151,13 +151,8 @@ class GridSystem {
 
 class World {
   #currentTime = 0;
-  #simulatables = [];
   #drawables = [];
-  #controllables = [];
-  #selectables = [];
-  #plottables = [];
-  #cameraPlottable = null;
-  #upPlottable = null;
+  #controlPoints = [];
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
@@ -165,6 +160,7 @@ class World {
   #globalGravityVector = glMatrix.vec3.fromValues(0,-100,0);
   #isRunning = false;
 
+  //TODO: is this the best way to avoid chaotically strong repulsion?
   get maxRepulsionMagnitude () {
     return 1000;
   }
@@ -181,7 +177,7 @@ class World {
     return this.#gridSystem;
   }
 
-  #modelViewMatrix = null;//glMatrix.mat4.identity();
+  #modelViewMatrix = null;
   #downKeys = {};
 
     get modelViewMatrix () {
@@ -189,27 +185,21 @@ class World {
     }
 
 constructor() {
-        this.#cameraPlottable = new Plottable ([0,0,0]);
-        this.#upPlottable = new Plottable ([0,1000,0]);
+        // this.#upPlottable = new Plottable ([0,1000,0]);
 
         var canvas = document.getElementById("test-canvas");
         this.#gl = canvas.getContext("webgl", {alpha: false}); 
 }
 
   keyIsUp(keyCode) {
-    console.log('key up:',keyCode);
-    
     delete this.#downKeys[keyCode];
     //bracket - switch selected
     if (keyCode === 221) {
-        let indexOfSelected = this.#selectables.indexOf(this.#selected);
-        let indexOfNextSelected = (indexOfSelected + 1) % this.#selectables.length;
+        let indexOfSelected = this.#controlPoints.indexOf(this.#selected);
+        let indexOfNextSelected = (indexOfSelected + 1) % this.#controlPoints.length;
         let lastSelected = this.#selected;
-        this.#selected = this.#selectables[indexOfNextSelected];
+        this.#selected = this.#controlPoints[indexOfNextSelected];
         lastSelected.select(false);
-        // this.#cameraPlottable.isCamera = false;
-        // this.#cameraPlottable = lastSelected;
-        // lastSelected.isCamera = true;
         this.#selected.select(true);
     }
 
@@ -217,16 +207,16 @@ constructor() {
         this.#isRunning = !this.#isRunning;
     }
 
-    this.#controllables.forEach((controllable) => {
-        controllable.keyIsUp(keyCode);
+    this.#controlPoints.forEach((controlPoint) => {
+        controlPoint.keyIsUp(keyCode);
     });
   }
 
   keyIsDown(keyCode) {
     console.log('key down:',keyCode);
     this.#downKeys[keyCode] = true;
-    this.#controllables.forEach((controllable) => {
-        controllable.keyIsDown(keyCode);
+    this.#controlPoints.forEach((controlPoint) => {
+        controlPoint.keyIsDown(keyCode);
     });
   }
 
@@ -234,33 +224,12 @@ constructor() {
     return this.#projectionMatrix;
   }
 
-  addPlottable(plottable) {
-    this.#plottables.push(plottable);
-  }
-
-  addSimulatable(simulatableToAdd) {
-    this.#simulatables.push(simulatableToAdd);
+  addControlPoint(controlPoint) {
+    this.#controlPoints.push(controlPoint);
   }
 
   addDrawable(drawableToAdd) {
     this.#drawables.push(drawableToAdd);
-  }
-
-  addControllable(controllableToAdd) {
-    this.#controllables.push(controllableToAdd);
-  }
-
-  addSelectable(selectable) {
-    this.#selectables.push(selectable);
-    if (this.#selectables.length === 1) {
-        selectable.select(true);
-        this.#selected = selectable;
-    }
-  }
-
-  addDrawableAndSimulatable(drawableAndSimulatableToAdd) {
-    this.addSimulatable(drawableAndSimulatableToAdd);
-    this.addDrawable(drawableAndSimulatableToAdd);
   }
 
   simulate() {
@@ -285,27 +254,30 @@ constructor() {
 
     //collision detection if optimized
     if (this.#gridSystem ) {
-        this.#plottables.forEach((plottable) => {
-            this.#gridSystem.plot(plottable);
+        this.#controlPoints.forEach((controlPoint) => {
+            this.#gridSystem.plotControlPoint(controlPoint);
         });
 
-        this.#plottables.forEach((worldPlottable) => {
-            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForPlottable(worldPlottable);
-            let tilePlottables = this.#gridSystem.getCurrentPlottablesForTileCoordinates(coordinates);
-            tilePlottables.forEach((tilePlottable) => {
-                if (worldPlottable !== tilePlottable && worldPlottable.detectCollision(tilePlottable)) {
-                    worldPlottable.onCollision(tilePlottable);
+        this.#controlPoints.forEach((worldControlPoint) => {
+            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForControlPoint(worldControlPoint);
+            let tileControlPoints = this.#gridSystem.getCurrentControlPointsForTileCoordinates(coordinates);
+            tileControlPoints.forEach((tileControlPoint) => {
+                if (
+                    worldControlPoint !== tileControlPoint && 
+                    worldControlPoint.detectCollision(tileControlPoint)
+                ) {
+                    worldControlPoint.onCollision(tileControlPoint);
                 }
             });
         });
     }
     //collision detection if not optimized
     else {
-        this.#plottables.forEach((firstPlottable) => {
-            this.#plottables.forEach((secondPlottable) => {
-                if (!(firstPlottable === secondPlottable)) {
-                    if (firstPlottable.detectCollision(secondPlottable)) {
-                        firstPlottable.onCollision(secondPlottable);
+        this.#controlPoints.forEach((firstControlPoint) => {
+            this.#controlPoints.forEach((secondControlPoint) => {
+                if (!(firstControlPoint === secondControlPoint)) {
+                    if (firstControlPoint.detectCollision(secondControlPoint)) {
+                        firstControlPoint.onCollision(secondControlPoint);
                     }
                 }
             });
@@ -315,18 +287,19 @@ constructor() {
     /*
     * camera-relative control calculations
     */
-        let cameraPosition = this.#cameraPlottable.position;
+        let cameraPosition = glMatrix.vec3.create();
         let cameraDirection = glMatrix.vec3.create();
+        let upPosition = glMatrix.vec3.fromValues(0,1000,0);
         glMatrix.vec3.subtract(
             cameraDirection, 
-            vec3FromArray(this.#cameraPlottable.position), 
+            vec3FromArray(cameraPosition), 
             vec3FromArray(this.#selected.position)               
         );
         glMatrix.vec3.normalize(cameraDirection, cameraDirection);
         //a subtract operation, then a normalize operation
         //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
         let cameraRight = glMatrix.vec3.create();
-        glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPlottable.position), cameraDirection);
+        glMatrix.vec3.cross(cameraRight, vec3FromArray(upPosition), cameraDirection);
         glMatrix.vec3.normalize(cameraRight, cameraRight);
         //a cross operation, then a normalize operation
         let cameraUp = glMatrix.vec3.create();
@@ -430,14 +403,14 @@ constructor() {
         }
     }
 
-    this.#simulatables.forEach((simulatable) => {
-        if (simulatable.calculateTrajectory) {
-            simulatable.calculateTrajectory(this, interval);
+    this.#controlPoints.forEach((controlPoint) => {
+        if (controlPoint.calculateTrajectory) {
+            controlPoint.calculateTrajectory(this, interval);
         }
     });
     
-    this.#simulatables.forEach((simulatable) => {
-        simulatable.simulate(this, interval);
+    this.#controlPoints.forEach((controlPoint) => {
+        controlPoint.simulate(this, interval);
     });
 
     //only iterate after all other collisions are calculated
@@ -452,9 +425,6 @@ constructor() {
 
         if (canvas) {
             var gl = this.#gl; 
-
-            // gl.enable( gl.BLEND );
-            // gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.DEPTH_TEST); // Enable depth testing
             gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
@@ -479,19 +449,19 @@ constructor() {
             Camera view
             */
 
-            if (this.#cameraPlottable && this.#selected && this.#upPlottable) {
-                let cameraPosition = this.#cameraPlottable.position;
+            if (cameraPosition && this.#selected && upPosition) {
+                let cameraPosition = cameraPosition;
                 let cameraDirection = glMatrix.vec3.create();
                 glMatrix.vec3.subtract(
                     cameraDirection, 
-                    vec3FromArray(this.#cameraPlottable.position), 
+                    vec3FromArray(cameraPosition), 
                     vec3FromArray(this.#selected.position)               
                 );
                 glMatrix.vec3.normalize(cameraDirection, cameraDirection);
                 //a subtract operation, then a normalize operation
                 //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
                 let cameraRight = glMatrix.vec3.create();
-                glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPlottable.position), cameraDirection);
+                glMatrix.vec3.cross(cameraRight, vec3FromArray(upPosition), cameraDirection);
                 glMatrix.vec3.normalize(cameraRight, cameraRight);
                 //a cross operation, then a normalize operation
                 let cameraUp = glMatrix.vec3.create();

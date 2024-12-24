@@ -212,19 +212,7 @@ class SimpleDrawDelegate {
           );
         }
       }
-
-      // initBuffers() {
-      //   const positionBuffer = this.initPositionBuffer(this.#world.gl);
-      //   const colorBuffer = this.initColorBuffer(this.#world.gl);
-      //   const indexBuffer = this.initIndexBuffer(this.#world.gl);
-    
-      //   return {
-      //     indices: indexBuffer,
-      //     color: colorBuffer,
-      //     position: positionBuffer,
-      //   };
-      // }
-
+      
     constructor(world, positions, colors, normals, indices) {
 
         if (!indices) {
