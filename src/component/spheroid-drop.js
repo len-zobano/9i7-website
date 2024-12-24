@@ -101,14 +101,29 @@ class SpheroidDrop {
 
         //each face has one vertex normal. That has to be converted to three each
         //so indices are floored by three
+        
+        let normals = [], thisNormal;
+        for (let i = 0; i < indices.length; ++i) {
+            thisNormal = objOutput.models[0].vertexNormals[Math.floor(i/3)];
+            normals = normals.concat([thisNormal.x, thisNormal.y, thisNormal.z]);
+        }
 
-        let normals = indices.map((index) => {
-            let normal = objOutput.models[0].vertexNormals[Math.floor(index/3)];
-            let normalArray = [normal.x, normal.y, normal.z];
-            return normalArray.concat(normalArray).concat(normalArray);
-        }).reduce((a, b) => {
-            return a.concat(b);
-        });
+        // let normals = indices.map((index) => {
+        //     let vertex = objOutput.models[0].vertexNormals[index];
+        //     return [vertex.x, vertex.y, vertex.z];
+        // }).reduce((a, b) => {
+        //     return a.concat(b);
+        // });
+
+        // let normals = indices.map((index) => {
+        //     let normal = objOutput.models[0].vertexNormals[Math.floor(index/3)];
+        //     let normalElement = [normal.x, normal.y, normal.z][index%3];
+        //     // let ret = normalArray.concat(normalArray).concat(normalArray);
+        //     return [normalElement];
+        // }).reduce((a, b) => {
+        //     return a.concat(b);
+        // });
+        // debugger;
 
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
