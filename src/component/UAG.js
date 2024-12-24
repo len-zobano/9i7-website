@@ -4,6 +4,7 @@ import RainbowCube from './rainbow-cube';
 import World from './world';
 import Sculpted from './sculpted';
 import SpheroidDrop from './spheroid-drop'
+import TriangularSurface from './triangular-surface'
 
 import {
   BrowserRouter as Router,
@@ -62,32 +63,6 @@ function UAGComponent() {
       let cubes = [];
       let jitter = 1;
 
-      // let spheroids = [
-      //   new SpheroidDrop(world),
-      //   new SpheroidDrop(world),
-      //   new SpheroidDrop(world),
-      //   new SpheroidDrop(world)
-      // ];
-
-      // spheroids[0].position = [0,0,-50];
-      // spheroids[1].position = [0,10,-50];
-      // spheroids[2].position = [10,0,-50];
-      // spheroids[3].position = [10,10,-50];
-
-      // // spheroids[0].positionPoint.bondTo(spheroids[2].positionPoint);
-      // // spheroids[1].positionPoint.bondTo(spheroids[3].positionPoint);
-
-      // for (let i = 0; i < spheroids.length; ++i) {
-      //   world.addDrawableAndSimulatable(spheroids[i]);
-      //   world.addControllable(spheroids[i]);
-      //   world.addSelectable(spheroids[i]);
-      //   world.addPlottable(spheroids[i]);
-
-      //   if (i === 0 || spheroids.length > 2) {
-      //     // spheroids[i].positionPoint.bondTo(spheroids[(i+1)%spheroids.length].positionPoint);
-      //   }
-      // }
-
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world);
@@ -107,11 +82,20 @@ function UAGComponent() {
 
         // cube.positionPoint.bondToAnyWithinRadius(cubes.map(otherCube => otherCube.positionPoint), distance*1.7);
       }
+
+      let testSurface = new TriangularSurface(
+        world,
+        [
+          glMatrix.vec3.fromValues(0,5, -100),
+          glMatrix.vec3.fromValues(5,5, -100),
+          glMatrix.vec3.fromValues(5,0, -100)
+        ]
+      );
+
+      world.addDrawable(testSurface);
     }
 
     let ID = Math.floor(1000000*Math.random());
-    // let cube2 = new RainbowCube();
-    // cube2.position = [1,1,-20];
     
     document.addEventListener('keydown', function(event) {
       world.keyIsDown(event.keyCode);

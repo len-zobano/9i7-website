@@ -299,7 +299,6 @@ class SphericalControlPoint {
             for (let i = 0; i <  3; ++i) {
                 if (scaledAngleOfBondToOther[i] !== 0) {
                     isMoving = true;
-                    // debugger;
                 }
                 this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
@@ -316,7 +315,6 @@ class SphericalControlPoint {
             glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, bondLinearMomentumScaling*distanceFromIdeal*interval*bond.strength*globalSpeed);
             if (glMatrix.vec3.length(relativePositionNormal) > 0) {
                 isMoving = true;
-                // debugger;
             }
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
 
@@ -337,7 +335,6 @@ class SphericalControlPoint {
             glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
             if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
                 isMoving = true;
-                // debugger;
             }
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
@@ -370,7 +367,6 @@ class SphericalControlPoint {
                     glMatrix.vec3.scale(repulsionMomentum, repulsionMomentum, magnitude);
                     if (glMatrix.vec3.length(repulsionMomentum) > 0) {
                         isMoving = true;
-                        // debugger;
                     }
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, repulsionMomentum);
 
@@ -387,9 +383,6 @@ class SphericalControlPoint {
                         }
                         return momentumChange;
                     });
-                    if (isMoving) {
-                        // debugger;
-                    }
                     this.changeAngularMomentum(angularMomentumChange);
                 }
             }

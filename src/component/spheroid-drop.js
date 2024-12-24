@@ -81,13 +81,13 @@ class SpheroidDrop {
         function getNextColor() {
             if (timesReturned === 3) {
                 timesReturned = 0;
-                // currentColor = [
-                //     Math.random()*0.5+0.25,
-                //     Math.random()*0.5+0.25,
-                //     Math.random()*0.5+0.25,
-                //     1.0
-                // ];
-                currentColor = [0.8,0.8,0.8,1.0];
+                currentColor = [
+                    Math.random()*0.5+0.25,
+                    Math.random()*0.5+0.25,
+                    Math.random()*0.5+0.25,
+                    1.0
+                ];
+                // currentColor = [0.8,0.8,0.8,1.0];
             }
             ++timesReturned;
             return currentColor;
@@ -107,23 +107,6 @@ class SpheroidDrop {
             thisNormal = objOutput.models[0].vertexNormals[Math.floor(i/3)];
             normals = normals.concat([thisNormal.x, thisNormal.y, thisNormal.z]);
         }
-
-        // let normals = indices.map((index) => {
-        //     let vertex = objOutput.models[0].vertexNormals[index];
-        //     return [vertex.x, vertex.y, vertex.z];
-        // }).reduce((a, b) => {
-        //     return a.concat(b);
-        // });
-
-        // let normals = indices.map((index) => {
-        //     let normal = objOutput.models[0].vertexNormals[Math.floor(index/3)];
-        //     let normalElement = [normal.x, normal.y, normal.z][index%3];
-        //     // let ret = normalArray.concat(normalArray).concat(normalArray);
-        //     return [normalElement];
-        // }).reduce((a, b) => {
-        //     return a.concat(b);
-        // });
-        // debugger;
 
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
