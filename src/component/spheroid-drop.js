@@ -143,13 +143,13 @@ class SpheroidDrop {
   }
   #buffers = null;
 
-  calculateTrajectory(world, interval) {
+  calculateTrajectory(interval) {
     this.controlPoints.forEach((controlPoint) => {
         controlPoint.calculateTrajectory(interval);
     });
   }
 
-  simulate(world, interval) {
+  simulate(interval) {
     this.controlPoints.forEach((controlPoint) => {
         controlPoint.simulate(interval);
     });

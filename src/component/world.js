@@ -157,7 +157,7 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,-100,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,0,0);
   #isRunning = false;
   #cameraPosition = glMatrix.vec3.create();
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
@@ -168,7 +168,9 @@ class World {
   }
 
   getGravityForLocation() {
-    return glMatrix.vec3.clone(this.#globalGravityVector);
+    let existingGravityVector = this.#globalGravityVector;
+    let toReturn = glMatrix.vec3.clone(this.#globalGravityVector);
+    return toReturn;
   }
 
   get gl () {
@@ -318,7 +320,7 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
-    let speed = this.#downKeys[18] ? 100 : 50;
+    let speed = this.#downKeys[18] ? 100 : 10;
     let angularSpeedFactor = 0.1;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
@@ -415,12 +417,12 @@ constructor() {
 
     this.#controlPoints.forEach((controlPoint) => {
         if (controlPoint.calculateTrajectory) {
-            controlPoint.calculateTrajectory(this, interval);
+            controlPoint.calculateTrajectory(interval);
         }
     });
     
     this.#controlPoints.forEach((controlPoint) => {
-        controlPoint.simulate(this, interval);
+        controlPoint.simulate(interval);
     });
 
     //only iterate after all other collisions are calculated
