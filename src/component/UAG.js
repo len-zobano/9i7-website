@@ -76,6 +76,15 @@ function UAGComponent() {
         cubes[i] = cube;
       }
 
+      cubes.forEach((cube) => {
+        cube.positionPoint.bondToAnyWithinRadius(
+          cubes.map((otherCube) => {
+            return otherCube.positionPoint;
+          }),
+          1.7*distance
+        )
+      });
+
       let testSurface = new TriangularSurface(
         world,
         [

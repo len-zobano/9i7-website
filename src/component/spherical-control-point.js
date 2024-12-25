@@ -406,7 +406,7 @@ class SphericalControlPoint {
         //TEMPORARY: another angular momentum decay factor because that motion seems unstable
         //this compounds with ordinary decay
         let scaledAngularMomentumDecay = Math.pow(0.05, interval);
-        let scaledMomentumDecay = Math.pow(0.3,interval);
+        let scaledMomentumDecay = Math.pow(0.1,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay*scaledAngularMomentumDecay;
