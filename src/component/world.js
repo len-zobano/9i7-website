@@ -320,7 +320,7 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
-    let speed = this.#downKeys[18] ? 100 : 50;
+    let speed = this.#downKeys[18] ? 100 : 10;
     let angularSpeedFactor = 0.1;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one

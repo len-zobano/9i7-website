@@ -21,6 +21,7 @@ class TriangularSurface {
 
     constructor(world, vertices) {
         this.#world = world;
+        world.addDrawable(this);
         this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
 
         this.#vertices = vertices.map((vertex) => {
