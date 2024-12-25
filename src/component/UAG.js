@@ -85,12 +85,18 @@ function UAGComponent() {
         // )
       });
 
+      let 
+        triangleLocation = [0,-10,-100],
+        triangleDepth = 10,
+        triangleWidth = 10,
+        triangleSkew = 5;
+
       let testSurface = new TriangularSurface(
         world,
         [
-          glMatrix.vec3.fromValues(-100,-10, 0),
-          glMatrix.vec3.fromValues(100,-10, 0),
-          glMatrix.vec3.fromValues(0,-10, -1000)
+          glMatrix.vec3.fromValues(triangleLocation[0]-triangleWidth,triangleLocation[1]+triangleSkew, triangleLocation[2]-triangleDepth),
+          glMatrix.vec3.fromValues(triangleLocation[0]+triangleWidth,triangleLocation[1], triangleLocation[2]-triangleDepth),
+          glMatrix.vec3.fromValues(triangleLocation[0],triangleLocation[1], triangleLocation[2]+triangleDepth)
         ]
       );
     }

@@ -24,11 +24,11 @@ class TriangularSurface {
     #inverseCameraMatrix = null;
 
     createCameraMatrix () {
-        let normalizedUp = glMatrix.vec3.create();
-        glMatrix.vec3.subtract(normalizedUp, this.#vertexNormals[0], this.#vertices[0]);
+        let normalizedUp = glMatrix.vec3.clone(this.#vertexNormals[0]);
         glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
-        let normalizedRight = this.#vertices[1];
+        let normalizedRight = glMatrix.vec3.create();
+        glMatrix.vec3.sub(normalizedRight, this.#vertices[0], this.#vertices[1]);
         glMatrix.vec3.normalize(normalizedRight, normalizedRight);
 
         let normalizedToward = glMatrix.vec3.create();
@@ -55,7 +55,11 @@ class TriangularSurface {
         let contextMatrix = glMatrix.mat4.create();
         let vertex = this.#vertices[0];
         // debugger;
-        // glMatrix.mat4.translate(contextMatrix, contextMatrix, this.#vertices[0]);
+        glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
+            this.#vertices[0][0],
+            this.#vertices[0][1],
+            this.#vertices[0][2]
+        ));
         //then draw matrix 
         glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#cameraMatrix);
         return contextMatrix;

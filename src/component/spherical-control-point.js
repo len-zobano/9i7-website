@@ -444,6 +444,7 @@ class SphericalControlPoint {
             ) {
                 let newPositionBeforeSurfaceCollision = triangularSurface.mirrorAbsoluteVector(positionBeforeSurfaceCollision);
                 let newLinearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
+                // debugger;
                 positionBeforeSurfaceCollision = newPositionBeforeSurfaceCollision;
                 this.#linearMomentum = newLinearMomentum;
             }
