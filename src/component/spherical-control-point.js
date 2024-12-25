@@ -259,7 +259,7 @@ class SphericalControlPoint {
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
         //TEMPORARY: angular momentum has to be adjusted for stability
-        let angularMomentumFrictionFactor = 0.05;
+        let angularMomentumFrictionFactor = 0.1;
         // //calculate attraction by bonds
         this.#bonds.forEach((bond) => {
             //for your bond to the other,
@@ -431,33 +431,25 @@ class SphericalControlPoint {
         let positionBeforeSurfaceCollision = glMatrix.vec3.create();
         //add scaled linear momentum to position
         glMatrix.vec3.add(positionBeforeSurfaceCollision, this.#position, scaledLinearMomentum);
-        //TEMPORARY, TO TEST SURFACE COLLISION
-        //TEMPORARY: if below y=0, reverse linear y momentum
-        // if (positionBeforeSurfaceCollision[1] < 0) {
-        //     let newYPosition = -positionBeforeSurfaceCollision[1];
-
-        //     //simulate momentum from bounce
-        //     let newYMomentum = -this.#linearMomentum[1], bounceThreshold = 10;
-        //     if (newYMomentum < bounceThreshold) {
-        //         newYMomentum = newYPosition = 0.0;
-        //     }
-
-        //     //simulate bounce off
-        //     this.#position = glMatrix.vec3.fromValues(
-        //         positionBeforeSurfaceCollision[0],
-        //         -newYPosition,
-        //         positionBeforeSurfaceCollision[2]
-        //     );
-
-        //     this.#linearMomentum = glMatrix.vec3.fromValues(
-        //         this.#linearMomentum[0],
-        //         newYMomentum,
-        //         this.#linearMomentum[2]
-        //     );
-        // }
-        // else {
-            this.#position = positionBeforeSurfaceCollision;
-        // }
+        let triangularSurfaces = this.#world.triangularSurfaces;
+        triangularSurfaces.forEach((triangularSurface) => {
+            //if the position traverses the face, it's a collision with the surface
+            //TODO: make sure this comparison is done with square distance
+            if (
+                (
+                    triangularSurface.vectorIsOnNormalSide(this.#position) !==
+                    triangularSurface.vectorIsOnNormalSide(positionBeforeSurfaceCollision)
+                ) &&
+                triangularSurface.lineSegmentIntersects(this.#position, positionBeforeSurfaceCollision)
+            ) {
+                let newPositionBeforeSurfaceCollision = triangularSurface.mirrorAbsoluteVector(positionBeforeSurfaceCollision);
+                let newLinearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
+                positionBeforeSurfaceCollision = newPositionBeforeSurfaceCollision;
+                this.#linearMomentum = newLinearMomentum;
+            }
+        });
+        
+        this.#position = positionBeforeSurfaceCollision;
         //rotate top and right by scaled angular momentum
         transformVectorByAngle(this.#top, scaledAngularMomentum);
         transformVectorByAngle(this.#right, scaledAngularMomentum);

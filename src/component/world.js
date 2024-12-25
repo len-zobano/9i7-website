@@ -21,10 +21,6 @@ function useWindowDimensions() {
       function handleResize() {
   
         let dimensions = getWindowDimensions();
-  
-      //   circle.x = dimensions.width/2;
-      //   circle.y = dimensions.height/2;
-        // drawCircle(ctx, dimensions.width/2, dimensions.height/2, 100, "#ffff00","black",0);
         setWindowDimensions(getWindowDimensions());
       }
   
@@ -73,6 +69,10 @@ class GridSystem {
             tileContainer = tileContainer[coordinates[i]];
         } 
         return tileContainer;
+    }
+
+    getCurrentTriangularSurfacesForTileCoordinates (coordinates) {
+        return [];
     }
 
     getCurrentControlPointsForTileCoordinates (coordinates) {
@@ -157,10 +157,14 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,0,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,-50,0);
   #isRunning = false;
   #cameraPosition = glMatrix.vec3.create();
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
+  #triangularSurfaces = [];
+  get triangularSurfaces () {
+    return this.#triangularSurfaces.slice(0);
+  }
 
   //TODO: is this the best way to avoid chaotically strong repulsion?
   get maxRepulsionMagnitude () {
@@ -240,6 +244,10 @@ constructor() {
     if (!this.#selected) {
         this.#selected = controlPoint;
     }
+  }
+
+  addTriangularSurface(triangularSurface) {
+    this.#triangularSurfaces.push(triangularSurface);
   }
 
   addDrawable(drawableToAdd) {
