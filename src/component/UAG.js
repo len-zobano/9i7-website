@@ -72,7 +72,7 @@ function UAGComponent() {
         ].map((element) => {
           return element+Math.random()*jitter;
         }));
-        
+
         cubes[i] = cube;
       }
 

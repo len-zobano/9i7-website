@@ -9,6 +9,9 @@ let drawDelegates = {
     blue: null
 };
 
+//temporary: for debugging collision calculations
+let shortestCollisionDistance = 1000, longestCollisionDistance = 0;
+
 let 
     centerVector = glMatrix.vec3.create(),
     topVector = glMatrix.vec3.fromValues(0.0,1.0,0.0),
@@ -99,6 +102,10 @@ class SphericalControlPoint {
     #world = null;
     #position = null;
     #isSelected = false;
+    #ID = null;
+    get ID () {
+        return this.#ID;
+    }
 
     get cameraMatrix () {
         let normalizedUp = this.top;
@@ -164,6 +171,7 @@ class SphericalControlPoint {
     #drawDelegate = null;
 
     constructor(world, composite, position, drag) {
+        this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
         this.#world = world;
         this.#composite = composite;
         this.#position = glMatrix.vec3.fromValues(
@@ -327,9 +335,20 @@ class SphericalControlPoint {
         let localSphericalControlPoints  = this.#world.gridSystem.getCurrentControlPointsForTileCoordinates(tile);
 
         localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
-            if (otherSphericalControlPoint != this) {
+            if (otherSphericalControlPoint !== this) {
                 let distance = glMatrix.vec3.distance(this.#position, otherSphericalControlPoint.position);
                 let sharedDistance = this.radius + otherSphericalControlPoint.radius;
+
+                if (distance - sharedDistance < shortestCollisionDistance) {
+                    shortestCollisionDistance = distance - sharedDistance;
+                    console.log('new shortest collision distance:',shortestCollisionDistance,'distance:',distance,'and shared distance',sharedDistance);
+                }
+
+                if (distance - sharedDistance > longestCollisionDistance) {
+                    longestCollisionDistance = distance - sharedDistance;
+                    console.log('new longest collision distance:',longestCollisionDistance,'distance:',distance,'and shared distance',sharedDistance);
+                }
+
                 if (distance < sharedDistance) {
                     //calculate the momentum of repulsion
                     let magnitude = interval*globalSpeed*(sharedDistance/distance-1)*100;
