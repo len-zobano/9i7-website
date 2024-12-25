@@ -37,8 +37,10 @@ class SpheroidDrop {
     return 1.2;
   }
 
-  constructor(world) {
+  constructor(world, position) {
     this.#world = world;
+    this.#positionPoint = new SphericalControlPoint(this.#world, this, position);
+    
     this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
 
     let objFile = require('../models/drop.obj');
@@ -48,17 +50,6 @@ class SpheroidDrop {
       .then((text) => {
         let objFile = new OBJFile (text);
         let objOutput = objFile.parse();
-        // let positions = objOutput.models[0].vertices.map((vertex) => {
-        //   return [vertex.x, vertex.y, vertex.z];
-        // }).reduce((a,b) => {
-        //   return a.concat(b);
-        // });
-
-        // let colors = objOutput.models[0].vertices.map((vertex) => {
-        //   return [Math.random(),Math.random(),Math.random(),1.0];
-        // }).reduce((a,b) => {
-        //   return a.concat(b);
-        // });
 
         let indices = objOutput.models[0].faces.map((face) => {
           let ret = face.vertices.map((vertex) => {
@@ -111,37 +102,29 @@ class SpheroidDrop {
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
 
+      world.addControlPoint(this.#positionPoint);
+      world.addDrawable(this);
   }
 
-    #downKeys = {};
-
-    detectCollision(otherPlottable) {
-        let distance = Math.pow(
-            Math.pow(otherPlottable.position[0] - this.position[0], 2) +
-            Math.pow(otherPlottable.position[1] - this.position[1], 2) +
-            Math.pow(otherPlottable.position[2] - this.position[2], 2)
-        ,0.5);
+    // detectCollision(otherPlottable) {
+    //     let distance = Math.pow(
+    //         Math.pow(otherPlottable.position[0] - this.position[0], 2) +
+    //         Math.pow(otherPlottable.position[1] - this.position[1], 2) +
+    //         Math.pow(otherPlottable.position[2] - this.position[2], 2)
+    //     ,0.5);
         
-        let minimumDistance = otherPlottable.broadCollisionRadius + this.broadCollisionRadius;
+    //     let minimumDistance = otherPlottable.broadCollisionRadius + this.broadCollisionRadius;
 
-        return distance <= minimumDistance;
-    }
+    //     return distance <= minimumDistance;
+    // }
 
-    onCollision(other) {
-      //this collision function should only be used for object interaction, not physics
-    }
+    // onCollision(other) {
+    //   //this collision function should only be used for object interaction, not physics
+    // }
 
     select(selected) {
         console.log("select at cube");
         this.#selected = selected;
-    }
-
-    keyIsDown(keyCode) {
-        this.#downKeys[keyCode] = true;
-    }
-
-    keyIsUp(keyCode) {
-        this.#downKeys[keyCode] = false;
     }
 
     //get position out of control point
@@ -151,11 +134,6 @@ class SpheroidDrop {
 
     get positionPoint () {
         return this.#positionPoint;
-    }
-
-    //convert position to control point
-    set position(position) {
-      this.#positionPoint = new SphericalControlPoint(this.#world, this, position);
     }
 
   #programInfo = null;

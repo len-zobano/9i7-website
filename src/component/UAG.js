@@ -65,22 +65,15 @@ function UAGComponent() {
 
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
-        let cube = new SpheroidDrop(world);
-        cubes[i] = cube;
-        cube.position = [
+        let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance,
           ((Math.floor(i/(cubeSize)))%cubeSize)*distance+2,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-100
         ].map((element) => {
           return element+Math.random()*jitter;
-        });
-  
-        world.addDrawableAndSimulatable(cube);
-        world.addControllable(cube);
-        world.addSelectable(cube);
-        world.addPlottable(cube);
-
-        // cube.positionPoint.bondToAnyWithinRadius(cubes.map(otherCube => otherCube.positionPoint), distance*1.7);
+        }));
+        
+        cubes[i] = cube;
       }
 
       let testSurface = new TriangularSurface(
@@ -91,9 +84,6 @@ function UAGComponent() {
           glMatrix.vec3.fromValues(0,-10, -1000)
         ]
       );
-
-      world.addDrawable(testSurface);
-      world.addPlottable(testSurface);
     }
 
     let ID = Math.floor(1000000*Math.random());

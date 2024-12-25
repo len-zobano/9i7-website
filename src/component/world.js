@@ -54,7 +54,7 @@ class GridSystem {
             }
             tileContainer = tileContainer[coordinates[i]];
         }
-        return tileContainer[plottable.ID] = {
+        return tileContainer[controlPoint.ID] = {
             iteration: this.#iteration,
             controlPoint
         };
@@ -159,6 +159,8 @@ class World {
   #gl = null;
   #globalGravityVector = glMatrix.vec3.fromValues(0,-100,0);
   #isRunning = false;
+  #cameraPosition = glMatrix.vec3.create();
+  #upPosition = glMatrix.vec3.fromValues(0,1000,0);
 
   //TODO: is this the best way to avoid chaotically strong repulsion?
   get maxRepulsionMagnitude () {
@@ -207,17 +209,24 @@ constructor() {
         this.#isRunning = !this.#isRunning;
     }
 
-    this.#controlPoints.forEach((controlPoint) => {
-        controlPoint.keyIsUp(keyCode);
-    });
+    // this.#controlPoints.forEach((controlPoint) => {
+    //     if (!controlPoint) {
+    //         debugger;
+    //     }
+    //     controlPoint.keyIsUp(keyCode);
+    // });
   }
 
   keyIsDown(keyCode) {
     console.log('key down:',keyCode);
     this.#downKeys[keyCode] = true;
-    this.#controlPoints.forEach((controlPoint) => {
-        controlPoint.keyIsDown(keyCode);
-    });
+    // this.#controlPoints.forEach((controlPoint) => {
+    //     if (!controlPoint) {
+    //         debugger;
+    //     }
+    //     debugger;
+    //     controlPoint.keyIsDown(keyCode);
+    // });
   }
 
   get projectionMatrix() {
@@ -226,6 +235,9 @@ constructor() {
 
   addControlPoint(controlPoint) {
     this.#controlPoints.push(controlPoint);
+    if (!this.#selected) {
+        this.#selected = controlPoint;
+    }
   }
 
   addDrawable(drawableToAdd) {
@@ -258,48 +270,46 @@ constructor() {
             this.#gridSystem.plotControlPoint(controlPoint);
         });
 
-        this.#controlPoints.forEach((worldControlPoint) => {
-            let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForControlPoint(worldControlPoint);
-            let tileControlPoints = this.#gridSystem.getCurrentControlPointsForTileCoordinates(coordinates);
-            tileControlPoints.forEach((tileControlPoint) => {
-                if (
-                    worldControlPoint !== tileControlPoint && 
-                    worldControlPoint.detectCollision(tileControlPoint)
-                ) {
-                    worldControlPoint.onCollision(tileControlPoint);
-                }
-            });
-        });
+        // this.#controlPoints.forEach((worldControlPoint) => {
+        //     let coordinates = this.#gridSystem.getPrimaryTileCoordinatesForControlPoint(worldControlPoint);
+        //     let tileControlPoints = this.#gridSystem.getCurrentControlPointsForTileCoordinates(coordinates);
+        //     tileControlPoints.forEach((tileControlPoint) => {
+        //         if (
+        //             worldControlPoint !== tileControlPoint && 
+        //             worldControlPoint.detectCollision(tileControlPoint)
+        //         ) {
+        //             worldControlPoint.onCollision(tileControlPoint);
+        //         }
+        //     });
+        // });
     }
     //collision detection if not optimized
     else {
-        this.#controlPoints.forEach((firstControlPoint) => {
-            this.#controlPoints.forEach((secondControlPoint) => {
-                if (!(firstControlPoint === secondControlPoint)) {
-                    if (firstControlPoint.detectCollision(secondControlPoint)) {
-                        firstControlPoint.onCollision(secondControlPoint);
-                    }
-                }
-            });
-        });
+        // this.#controlPoints.forEach((firstControlPoint) => {
+        //     this.#controlPoints.forEach((secondControlPoint) => {
+        //         if (!(firstControlPoint === secondControlPoint)) {
+        //             if (firstControlPoint.detectCollision(secondControlPoint)) {
+        //                 firstControlPoint.onCollision(secondControlPoint);
+        //             }
+        //         }
+        //     });
+        // });
     }
 
     /*
     * camera-relative control calculations
     */
-        let cameraPosition = glMatrix.vec3.create();
         let cameraDirection = glMatrix.vec3.create();
-        let upPosition = glMatrix.vec3.fromValues(0,1000,0);
         glMatrix.vec3.subtract(
             cameraDirection, 
-            vec3FromArray(cameraPosition), 
+            vec3FromArray(this.#cameraPosition), 
             vec3FromArray(this.#selected.position)               
         );
         glMatrix.vec3.normalize(cameraDirection, cameraDirection);
         //a subtract operation, then a normalize operation
         //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
         let cameraRight = glMatrix.vec3.create();
-        glMatrix.vec3.cross(cameraRight, vec3FromArray(upPosition), cameraDirection);
+        glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPosition), cameraDirection);
         glMatrix.vec3.normalize(cameraRight, cameraRight);
         //a cross operation, then a normalize operation
         let cameraUp = glMatrix.vec3.create();
@@ -317,17 +327,17 @@ constructor() {
     let angularFunctionName = `changeAngular${manupulationType}`;
     let linearFunctionName = `changeLinear${manupulationType}`;
     if (this.#downKeys[32]) {
-        this.#selected.positionPoint.freeze();
+        this.#selected.freeze();
     }
     // //a is down
     if (this.#downKeys[65]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
+            this.#selected[angularFunctionName](cameraUp.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraRight.map((element) => {
+            this.#selected[linearFunctionName](cameraRight.map((element) => {
                 return -element*speed;
             }));
         }
@@ -336,12 +346,12 @@ constructor() {
     //d is down
     if (this.#downKeys[68]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraUp.map((element) => {
+            this.#selected[angularFunctionName](cameraUp.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraRight.map((element) => {
+            this.#selected[linearFunctionName](cameraRight.map((element) => {
                 return element*speed;
             }));
         }
@@ -350,12 +360,12 @@ constructor() {
     // //w
     if (this.#downKeys[87]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
+            this.#selected[angularFunctionName](cameraRight.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraUp.map((element) => {
+            this.#selected[linearFunctionName](cameraUp.map((element) => {
                 return element*speed;
             }));
         }
@@ -364,12 +374,12 @@ constructor() {
     // //s
     if (this.#downKeys[83]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraRight.map((element) => {
+            this.#selected[angularFunctionName](cameraRight.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraUp.map((element) => {
+            this.#selected[linearFunctionName](cameraUp.map((element) => {
                 return -element*speed;
             }));
         }
@@ -378,12 +388,12 @@ constructor() {
     //x
     if (this.#downKeys[88]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
+            this.#selected[angularFunctionName](cameraDirection.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraDirection.map((element) => {
+            this.#selected[linearFunctionName](cameraDirection.map((element) => {
                 return element*speed;
             }));
         }
@@ -392,12 +402,12 @@ constructor() {
     //z
     if (this.#downKeys[90]) {
         if (this.#downKeys[16]) {
-            this.#selected.positionPoint[angularFunctionName](cameraDirection.map((element) => {
+            this.#selected[angularFunctionName](cameraDirection.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected.positionPoint[linearFunctionName](cameraDirection.map((element) => {
+            this.#selected[linearFunctionName](cameraDirection.map((element) => {
                 return -element*speed;
             }));
         }
@@ -449,19 +459,18 @@ constructor() {
             Camera view
             */
 
-            if (cameraPosition && this.#selected && upPosition) {
-                let cameraPosition = cameraPosition;
+            if (this.#cameraPosition && this.#selected && this.#upPosition) {
                 let cameraDirection = glMatrix.vec3.create();
                 glMatrix.vec3.subtract(
                     cameraDirection, 
-                    vec3FromArray(cameraPosition), 
+                    vec3FromArray(this.#cameraPosition), 
                     vec3FromArray(this.#selected.position)               
                 );
                 glMatrix.vec3.normalize(cameraDirection, cameraDirection);
                 //a subtract operation, then a normalize operation
                 //let cameraRight = normalize(cross(this.#upPlottable.position, cameraDirection))
                 let cameraRight = glMatrix.vec3.create();
-                glMatrix.vec3.cross(cameraRight, vec3FromArray(upPosition), cameraDirection);
+                glMatrix.vec3.cross(cameraRight, vec3FromArray(this.#upPosition), cameraDirection);
                 glMatrix.vec3.normalize(cameraRight, cameraRight);
                 //a cross operation, then a normalize operation
                 let cameraUp = glMatrix.vec3.create();
@@ -472,35 +481,25 @@ constructor() {
                     cameraRight[2], cameraUp[2], cameraDirection[2], 0,
                     0, 0, 0, 1
                 );
-                /* lookatleft = 
-                * [ cameraRight, 0 ]
-                * [ cameraUp, 0 ]
-                * [ cameraDirection, 0 ]
-                * [ 0, 0, 0, 1 ]
-                */
+
                 let lookAtRight = glMatrix.mat4.fromValues(
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    -cameraPosition[0], -cameraPosition[1], -cameraPosition[2], 1
+                    -this.#cameraPosition[0], -this.#cameraPosition[1], -this.#cameraPosition[2], 1
                 );
-                /* lookAtRight = 
-                * [ 1, 0, 0, -cameraPosition[0] ]
-                * [ 0, 1, 0, -cameraPosition[1] ]
-                * [ 0, 0, 1, -cameraPosition[2] ]
-                * [ 0, 0, 0, 1 ]
-                */
+
                this.#modelViewMatrix = glMatrix.mat4.create();
                glMatrix.mat4.multiply(this.#modelViewMatrix, lookAtLeft, lookAtRight);
+
+                /*
+                End camera view
+                */
+
+                this.#drawables.forEach((drawable) => {
+                drawable.draw(this);
+              }); 
             }
-
-            /*
-            End camera view
-            */
-
-            this.#drawables.forEach((drawable) => {
-              drawable.draw(this);
-            }); 
         }
     }
 }
