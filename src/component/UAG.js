@@ -81,24 +81,81 @@ function UAGComponent() {
         //   cubes.map((otherCube) => {
         //     return otherCube.positionPoint;
         //   }),
-        //   1.7*distance
+        //   1.7*distance,
+        //   3
         // )
       });
 
       let 
-        triangleLocation = [0,-10,-100],
-        triangleDepth = 50,
-        triangleWidth = 50,
-        triangleSkew = 50;
+        mesh = [],
+        meshSize = 5,
+        meshJitter = 10,
+        meshPosition = [-15,-30,-150],
+        meshSquareSize = 20;
 
-      let testSurface = new TriangularSurface(
-        world,
-        [
-          glMatrix.vec3.fromValues(triangleLocation[0]-triangleWidth,triangleLocation[1]+triangleSkew, triangleLocation[2]-triangleDepth),
-          glMatrix.vec3.fromValues(triangleLocation[0]+triangleWidth,triangleLocation[1], triangleLocation[2]-triangleDepth),
-          glMatrix.vec3.fromValues(triangleLocation[0],triangleLocation[1], triangleLocation[2]+triangleDepth)
-        ]
-      );
+
+      for (let i = 0; i < meshSize*meshSize; ++i) {
+        mesh[i] = meshPosition[1] + Math.random()*meshJitter - meshJitter / 2;
+      }
+
+      for (let x = 0; x < meshSize - 1; ++x) for (let y = 0; y < meshSize - 1; ++y) {
+        let triangle1 = new TriangularSurface(
+          world,
+          [
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareSize,
+              mesh[y*meshSize + x],
+              meshPosition[2] + y*meshSquareSize
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareSize,
+              mesh[y*meshSize + x + 1],
+              meshPosition[2] + y*meshSquareSize
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareSize,
+              mesh[(y+ 1)*meshSize + x],
+              meshPosition[2] + (y + 1)*meshSquareSize
+            ),
+          ]
+        );
+
+        let triangle2 = new TriangularSurface(
+          world,
+          [
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareSize,
+              mesh[(y+ 1)*meshSize + (x + 1)],
+              meshPosition[2] + (y + 1)*meshSquareSize
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareSize,
+              mesh[(y+ 1)*meshSize + x],
+              meshPosition[2] + (y + 1)*meshSquareSize
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareSize,
+              mesh[y*meshSize + x + 1],
+              meshPosition[2] + y*meshSquareSize
+            ),
+          ]
+        );
+      }
+
+      // let 
+      //   triangleLocation = [0,-10,-100],
+      //   triangleDepth = 50,
+      //   triangleWidth = 50,
+      //   triangleSkew = 50;
+
+      // let testSurface = new TriangularSurface(
+      //   world,
+      //   [
+      //     glMatrix.vec3.fromValues(triangleLocation[0]-triangleWidth,triangleLocation[1]+triangleSkew, triangleLocation[2]-triangleDepth),
+      //     glMatrix.vec3.fromValues(triangleLocation[0]+triangleWidth,triangleLocation[1], triangleLocation[2]-triangleDepth),
+      //     glMatrix.vec3.fromValues(triangleLocation[0],triangleLocation[1], triangleLocation[2]+triangleDepth)
+      //   ]
+      // );
     }
 
     let ID = Math.floor(1000000*Math.random());
