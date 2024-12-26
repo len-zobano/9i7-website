@@ -433,20 +433,17 @@ class SphericalControlPoint {
         glMatrix.vec3.add(positionBeforeSurfaceCollision, this.#position, scaledLinearMomentum);
         let triangularSurfaces = this.#world.triangularSurfaces;
         triangularSurfaces.forEach((triangularSurface) => {
-            //if the position traverses the face, it's a collision with the surface
-            //TODO: make sure this comparison is done with square distance
             if (
-                (
-                    triangularSurface.vectorIsOnNormalSide(this.#position) !==
-                    triangularSurface.vectorIsOnNormalSide(positionBeforeSurfaceCollision)
-                ) &&
-                triangularSurface.lineSegmentIntersects(this.#position, positionBeforeSurfaceCollision)
+                triangularSurface.lineSegmentMayIntersect(this.#position, positionBeforeSurfaceCollision)
             ) {
-                let newPositionBeforeSurfaceCollision = triangularSurface.mirrorAbsoluteVector(positionBeforeSurfaceCollision);
-                let newLinearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
-                // debugger;
-                positionBeforeSurfaceCollision = newPositionBeforeSurfaceCollision;
-                this.#linearMomentum = newLinearMomentum;
+                let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
+                if (mirroredSegment) {
+                    let newPositionBeforeSurfaceCollision = mirroredSegment[1];
+                    let newLinearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
+                    //set items
+                    positionBeforeSurfaceCollision = newPositionBeforeSurfaceCollision;
+                    this.#linearMomentum = newLinearMomentum;
+                }
             }
         });
         

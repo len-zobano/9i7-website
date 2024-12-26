@@ -9,13 +9,20 @@ function vec3ToArray (v) {
     return arrayFromVector;
 }
 
+function numberIsBetween (num, a, b) {
+    return (a < num && num < b) || (a > num && num > b);
+}
+
 class TriangularSurface {
     #world = null;
     #vertices = [];
-    #vertexNormals = [];
-    #invertedVertexNormals = [];
+    #vertexNormal = null;
+    #invertedVertexNormal = null;
+    //TODO: make sure this is vertex index 1 and 2 transformed by the context matrix
+    #verticesInContext = [];
     #drawDelegate = null;
     #ID = null;
+    //The matrix where vertices[0] is center and vertices[0] is right and vertexNormal is up
     #contextMatrix = null;
     #drawMatrix = null;
     #cameraMatrix = null;
@@ -24,7 +31,7 @@ class TriangularSurface {
     #inverseCameraMatrix = null;
 
     createCameraMatrix () {
-        let normalizedUp = glMatrix.vec3.clone(this.#vertexNormals[0]);
+        let normalizedUp = glMatrix.vec3.clone(this.#vertexNormal);
         glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
         let normalizedRight = glMatrix.vec3.create();
@@ -50,15 +57,27 @@ class TriangularSurface {
         return matrix;
     }
 
+    createContextMatrixAt (origin) {
+        //first, translate
+        let contextMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
+            origin[0],
+            origin[1],
+            -origin[2]
+        ));
+        //then draw matrix 
+        glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#cameraMatrix);
+        return contextMatrix;
+    }
+
     createContextMatrix () {
         //first, translate
         let contextMatrix = glMatrix.mat4.create();
         let vertex = this.#vertices[0];
-        // debugger;
         glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
             this.#vertices[0][0],
             this.#vertices[0][1],
-            this.#vertices[0][2]
+            -this.#vertices[0][2]
         ));
         //then draw matrix 
         glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#cameraMatrix);
@@ -69,14 +88,16 @@ class TriangularSurface {
         return this.#ID;
     }
 
-    lineSegmentIntersects(a, b) {
+    //a function that gives no false negatives but some false positives
+    //for culling unnecessary surface collision calculations
+    lineSegmentMayIntersect(a, b) {
         return true;
     }
 
     vectorIsOnNormalSide(vector) {
         let absoluteNormal = glMatrix.vec3.create(), absoluteInvertedNormal = glMatrix.vec3.create();
-        absoluteNormal = glMatrix.vec3.add(absoluteNormal,this.#vertices[0],this.#vertexNormals[0]);
-        absoluteInvertedNormal = glMatrix.vec3.add(absoluteInvertedNormal,this.#vertices[0], this.#invertedVertexNormals[0]);
+        absoluteNormal = glMatrix.vec3.add(absoluteNormal,this.#vertices[0],this.#vertexNormal);
+        absoluteInvertedNormal = glMatrix.vec3.add(absoluteInvertedNormal,this.#vertices[0], this.#invertedVertexNormal);
         let ret = glMatrix.vec3.distance(vector,absoluteNormal) < glMatrix.vec3.distance(vector,absoluteInvertedNormal);
         // console.log('vector is on normal side: ',
         //     ret,
@@ -112,21 +133,24 @@ class TriangularSurface {
             return a.concat(b);
         });
 
-        let normalArray = []
-        for (let i = 0; i < 3; ++i) {
-            //the cross product of the other two vertices
-            let product = glMatrix.vec3.create();
-            let relativeVertices = [glMatrix.vec3.create(), glMatrix.vec3.create()];
-            glMatrix.vec3.sub(relativeVertices[0],vertices[(i+1)%3],vertices[0]);
-            glMatrix.vec3.sub(relativeVertices[1],vertices[(i+2)%3],vertices[0]);
-            glMatrix.vec3.cross(product,relativeVertices[0],relativeVertices[1]);
-            glMatrix.vec3.normalize(product, product);
-            this.#vertexNormals.push(product);
-            let inverseProduct = glMatrix.vec3.create();
-            glMatrix.vec3.sub(inverseProduct, glMatrix.vec3.create(), product);
-            this.#invertedVertexNormals.push(inverseProduct);
-            normalArray = normalArray.concat(vec3ToArray(product));
-        }
+        //create vertex normal and inverse mornal
+        let product = glMatrix.vec3.create();
+        let relativeVertices = [glMatrix.vec3.create(), glMatrix.vec3.create()];
+        glMatrix.vec3.sub(relativeVertices[0],vertices[1],vertices[0]);
+        glMatrix.vec3.sub(relativeVertices[1],vertices[2],vertices[0]);
+        glMatrix.vec3.cross(product,relativeVertices[1],relativeVertices[0]);
+        glMatrix.vec3.normalize(product, product);
+        this.#vertexNormal = product;
+
+        let inverseProduct = glMatrix.vec3.create();
+        glMatrix.vec3.sub(inverseProduct, glMatrix.vec3.create(), product);
+        this.#invertedVertexNormal = inverseProduct;
+
+        let normalArray = [].concat(
+            vec3ToArray(product),
+            vec3ToArray(product),
+            vec3ToArray(product)
+        );
 
         this.#cameraMatrix = this.createCameraMatrix();
         this.#drawMatrix = this.createDrawMatrix();
@@ -144,6 +168,65 @@ class TriangularSurface {
         }
 
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, vertexArray, colorArray, normalArray, indices);
+    }
+
+    mirrorLineSegmentAfterIntersection(segmentOrigin, segmentTermination) {
+        let newLineSegmentPart = null;
+        //transform a and B in context matrix
+        let 
+            inContextSegmentOrigin = glMatrix.vec3.clone(segmentOrigin), 
+            inContextSegmentTermination = glMatrix.vec3.clone(segmentTermination);
+
+        glMatrix.vec3.transformMat4(
+            inContextSegmentOrigin, 
+            inContextSegmentOrigin, 
+            this.#contextMatrix
+        );
+        glMatrix.vec3.transformMat4(
+            inContextSegmentTermination, 
+            inContextSegmentTermination, 
+            this.#contextMatrix
+        );
+
+        //if the line segment doesn't hit y=0, return nothing
+        if (numberIsBetween(0, inContextSegmentOrigin[1], inContextSegmentTermination[1])) {
+            let portionOfLineAfterIntersection = Math.abs(inContextSegmentTermination[1])/(inContextSegmentOrigin[1]);
+            let inContextPointOfIntersection = [
+                (inContextSegmentTermination[0]-inContextSegmentOrigin[0])*(portionOfLineAfterIntersection),
+                0,
+                (inContextSegmentTermination[2]-inContextSegmentOrigin[2])*(portionOfLineAfterIntersection)
+            ];
+            //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
+            let pointOfIntersectionIsInsideVertices = true;
+            if (pointOfIntersectionIsInsideVertices) {
+                let absolutePointOfIntersection = glMatrix.vec3.create();
+                glMatrix.vec3.transformMat4(
+                    absolutePointOfIntersection,
+                    inContextPointOfIntersection,
+                    this.#inverseContextMatrix
+                );
+
+                let mirroringContextMatrix = this.createContextMatrixAt(absolutePointOfIntersection);
+                let mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.create();
+                glMatrix.vec3.transformMat4(mirroredSegmentTerminationInMirroringContext, segmentTermination, mirroringContextMatrix);
+                mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.fromValues(
+                    mirroredSegmentTerminationInMirroringContext[0],
+                    -mirroredSegmentTerminationInMirroringContext[1],
+                    mirroredSegmentTerminationInMirroringContext[2]
+                );
+                let invertedMirroringContextMatrix = glMatrix.mat4.create();
+                glMatrix.mat4.invert(invertedMirroringContextMatrix, mirroringContextMatrix);
+                let absoluteMirroredSegmentTermination = glMatrix.vec3.create();
+                glMatrix.vec3.transformMat4(
+                    absoluteMirroredSegmentTermination, 
+                    mirroredSegmentTerminationInMirroringContext, 
+                    invertedMirroringContextMatrix
+                );
+                newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
+            }
+        }
+
+        return newLineSegmentPart;
     }
 
     mirrorAbsoluteVector(vector) {
