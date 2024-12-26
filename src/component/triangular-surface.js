@@ -223,11 +223,44 @@ class TriangularSurface {
             let slopeValue = ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
             (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]));
 
-            if (
-                inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection &&
-                inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
-                inContextPointOfIntersection[2] > 0
+
+            //if it's between x, it just has to be below z
+            //otherwise, it has to be above the nearest and below the furthest
+            //it always has to be above zero
+
+            let isInsideTriangle = false;
+            if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
+                isInsideTriangle = 
+                    inContextPointOfIntersection[2] < this.#verticesInContext[0][2] &&
+                    inContextPointOfIntersection[2] < this.#verticesInContext[1][2]
+            }
+            //z values both have to be positive before being checked for an intersection
+            //a negative z value means out of bounds for triangle
+            else if (
+                side1ZValueAtPointOfIntersection > 0 &&
+                side2ZValueAtPointOfIntersection > 0
             ) {
+                //if b is nearest
+                if (
+                    Math.abs(this.#verticesInContext[0][0]-inContextPointOfIntersection[0]) <
+                    Math.abs(this.#verticesInContext[1][0]-inContextPointOfIntersection[0])
+                ) {
+                    console.log('b is nearest');
+                    isInsideTriangle = 
+                        inContextPointOfIntersection[2] > side2ZValueAtPointOfIntersection &&
+                        inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection;
+                //if c is nearest
+                } else {
+                    console.log('c is nearest');
+                    isInsideTriangle = 
+                        inContextPointOfIntersection[2] > side1ZValueAtPointOfIntersection &&
+                        inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection;
+                }
+            }
+
+            // isInsideTriangle = isInsideTriangle && inContextPointOfIntersection[2] > 0;
+
+            if (isInsideTriangle) {
 
                 console.log(`
                     Collision detected between control point and triangle
@@ -241,6 +274,8 @@ class TriangularSurface {
                     slope value: ${slopeValue}
                     x value: ${inContextPointOfIntersection[0]}
                 `);
+
+                debugger;
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
