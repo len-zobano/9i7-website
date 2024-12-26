@@ -52,7 +52,7 @@ class TriangularSurface {
     }
 
     createDrawMatrix () {
-        let matrix = this.#cameraMatrix;
+        let matrix = glMatrix.mat4.clone(this.#cameraMatrix);
         glMatrix.mat4.invert(matrix, matrix);
         return matrix;
     }
@@ -63,10 +63,10 @@ class TriangularSurface {
         glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
             origin[0],
             origin[1],
-            -origin[2]
+            origin[2]
         ));
         //then draw matrix 
-        glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#cameraMatrix);
+        glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#drawMatrix);
         return contextMatrix;
     }
 
@@ -77,10 +77,10 @@ class TriangularSurface {
         glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
             this.#vertices[0][0],
             this.#vertices[0][1],
-            -this.#vertices[0][2]
+            this.#vertices[0][2]
         ));
         //then draw matrix 
-        glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#cameraMatrix);
+        glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#drawMatrix);
         return contextMatrix;
     }
 
@@ -180,12 +180,12 @@ class TriangularSurface {
         glMatrix.vec3.transformMat4(
             inContextSegmentOrigin, 
             inContextSegmentOrigin, 
-            this.#contextMatrix
+            this.#inverseContextMatrix
         );
         glMatrix.vec3.transformMat4(
             inContextSegmentTermination, 
             inContextSegmentTermination, 
-            this.#contextMatrix
+            this.#inverseContextMatrix
         );
 
         //if the line segment doesn't hit y=0, return nothing
@@ -200,27 +200,29 @@ class TriangularSurface {
             let pointOfIntersectionIsInsideVertices = true;
             if (pointOfIntersectionIsInsideVertices) {
                 let absolutePointOfIntersection = glMatrix.vec3.create();
+
                 glMatrix.vec3.transformMat4(
                     absolutePointOfIntersection,
                     inContextPointOfIntersection,
-                    this.#inverseContextMatrix
+                    this.#contextMatrix
                 );
 
                 let mirroringContextMatrix = this.createContextMatrixAt(absolutePointOfIntersection);
+                let invertedMirroringContextMatrix = glMatrix.mat4.create();
+                glMatrix.mat4.invert(invertedMirroringContextMatrix, mirroringContextMatrix);
+
                 let mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.create();
-                glMatrix.vec3.transformMat4(mirroredSegmentTerminationInMirroringContext, segmentTermination, mirroringContextMatrix);
+                glMatrix.vec3.transformMat4(mirroredSegmentTerminationInMirroringContext, segmentTermination, invertedMirroringContextMatrix);
                 mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.fromValues(
                     mirroredSegmentTerminationInMirroringContext[0],
                     -mirroredSegmentTerminationInMirroringContext[1],
                     mirroredSegmentTerminationInMirroringContext[2]
                 );
-                let invertedMirroringContextMatrix = glMatrix.mat4.create();
-                glMatrix.mat4.invert(invertedMirroringContextMatrix, mirroringContextMatrix);
                 let absoluteMirroredSegmentTermination = glMatrix.vec3.create();
                 glMatrix.vec3.transformMat4(
                     absoluteMirroredSegmentTermination, 
                     mirroredSegmentTerminationInMirroringContext, 
-                    invertedMirroringContextMatrix
+                    mirroringContextMatrix
                 );
                 newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
             }
