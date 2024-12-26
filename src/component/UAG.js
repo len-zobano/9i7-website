@@ -87,9 +87,9 @@ function UAGComponent() {
 
       let 
         triangleLocation = [0,-10,-100],
-        triangleDepth = 10,
-        triangleWidth = 10,
-        triangleSkew = 5;
+        triangleDepth = 50,
+        triangleWidth = 50,
+        triangleSkew = 50;
 
       let testSurface = new TriangularSurface(
         world,

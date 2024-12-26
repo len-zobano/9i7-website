@@ -162,6 +162,14 @@ class TriangularSurface {
         this.#inverseCameraMatrix = glMatrix.mat4.create();
         this.#inverseCameraMatrix = glMatrix.mat4.invert(this.#inverseCameraMatrix, this.#cameraMatrix);
 
+        this.#verticesInContext = [
+            glMatrix.vec3.create(),
+            glMatrix.vec3.create()
+        ];
+
+        glMatrix.vec3.transformMat4(this.#verticesInContext[0],this.#vertices[1],this.#inverseContextMatrix);
+        glMatrix.vec3.transformMat4(this.#verticesInContext[1],this.#vertices[2],this.#inverseContextMatrix);
+
         let indices = [];
         for (let i = 0; i < vertexArray.length; ++i) {
             indices.push(i);
@@ -192,13 +200,31 @@ class TriangularSurface {
         if (numberIsBetween(0, inContextSegmentOrigin[1], inContextSegmentTermination[1])) {
             let portionOfLineAfterIntersection = Math.abs(inContextSegmentTermination[1])/(inContextSegmentOrigin[1]);
             let inContextPointOfIntersection = [
-                (inContextSegmentTermination[0]-inContextSegmentOrigin[0])*(portionOfLineAfterIntersection),
+                inContextSegmentTermination[0]*portionOfLineAfterIntersection + inContextSegmentOrigin[0]*(1-portionOfLineAfterIntersection),
                 0,
-                (inContextSegmentTermination[2]-inContextSegmentOrigin[2])*(portionOfLineAfterIntersection)
+                inContextSegmentTermination[2]*portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-portionOfLineAfterIntersection),
             ];
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            let pointOfIntersectionIsInsideVertices = true;
-            if (pointOfIntersectionIsInsideVertices) {
+            let pointOfIntersectionIsInsideVertices = false;
+
+            let vertices = this.#verticesInContext;
+
+            let side1ZValueAtPointOfIntersection = (this.#verticesInContext[1][2]/this.#verticesInContext[1][0])*inContextPointOfIntersection[0];
+            let side2ZValueAtPointOfIntersection =
+                ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
+                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*inContextPointOfIntersection[0]
+                +
+                ((this.#verticesInContext[0][2] - this.#verticesInContext[1][2])/
+                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[1][0];
+
+            if (
+                numberIsBetween(
+                    inContextPointOfIntersection[2],
+                    side1ZValueAtPointOfIntersection,
+                    side2ZValueAtPointOfIntersection
+                ) &&
+                inContextPointOfIntersection[2] > 0
+            ) {
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
                 glMatrix.vec3.transformMat4(
