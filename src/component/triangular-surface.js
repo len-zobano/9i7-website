@@ -215,16 +215,33 @@ class TriangularSurface {
                 (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*inContextPointOfIntersection[0]
                 +
                 ((this.#verticesInContext[0][2] - this.#verticesInContext[1][2])/
-                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[1][0];
+                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[0][0];
+
+            let kValue = ((this.#verticesInContext[0][2] - this.#verticesInContext[1][2])/
+            (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[0][0];
+
+            let slopeValue = ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
+            (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]));
 
             if (
-                numberIsBetween(
-                    inContextPointOfIntersection[2],
-                    side1ZValueAtPointOfIntersection,
-                    side2ZValueAtPointOfIntersection
-                ) &&
+                inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection &&
+                inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
                 inContextPointOfIntersection[2] > 0
             ) {
+
+                console.log(`
+                    Collision detected between control point and triangle
+                    In context point of intersection: ${inContextPointOfIntersection}
+                    In context vertex b: ${this.#verticesInContext[0]}
+                    In context vertex c: ${this.#verticesInContext[1]}
+                    c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
+                    b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
+
+                    k value: ${kValue}
+                    slope value: ${slopeValue}
+                    x value: ${inContextPointOfIntersection[0]}
+                `);
+
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
                 glMatrix.vec3.transformMat4(
