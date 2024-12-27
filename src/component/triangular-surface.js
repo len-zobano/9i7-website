@@ -9,8 +9,13 @@ function vec3ToArray (v) {
     return arrayFromVector;
 }
 
-function numberIsBetween (num, a, b) {
-    return (a < num && num < b) || (a > num && num > b);
+function numberIsBetween (num, a, b, inclusive) {
+    if (inclusive) {
+        return (a <= num && num <= b) || (a >= num && num >= b);
+    }
+    else {
+        return (a < num && num < b) || (a > num && num > b);
+    }
 }
 
 class TriangularSurface {
@@ -197,7 +202,7 @@ class TriangularSurface {
         );
 
         //if the line segment doesn't hit y=0, return nothing
-        if (numberIsBetween(0, inContextSegmentOrigin[1], inContextSegmentTermination[1])) {
+        if (numberIsBetween(0, inContextSegmentOrigin[1], inContextSegmentTermination[1], true)) {
             let portionOfLineAfterIntersection = Math.abs(inContextSegmentTermination[1])/(inContextSegmentOrigin[1]);
             let inContextPointOfIntersection = [
                 inContextSegmentTermination[0]*portionOfLineAfterIntersection + inContextSegmentOrigin[0]*(1-portionOfLineAfterIntersection),
@@ -227,11 +232,6 @@ class TriangularSurface {
             let isInsideTriangle = false;
             if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
                 console.log('case 1 - is between x');
-                //REMINDER: 
-                //don't just see if it's less than like the commented out region below. see if it's closer to zero
-                //isInsideTriangle = 
-                //     inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
-                //     inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection
                 isInsideTriangle = 
                     numberIsBetween(inContextPointOfIntersection[2], this.#verticesInContext[1][2], 0);
             }
@@ -245,11 +245,12 @@ class TriangularSurface {
                 isInsideTriangle = numberIsBetween(
                     inContextPointOfIntersection[2], 
                     side2ZValueAtPointOfIntersection, 
-                    side1ZValueAtPointOfIntersection
+                    side1ZValueAtPointOfIntersection,
+                    true
                 ) &&
                 //has to be closer in both dimensions than c vertex
-                numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0]) &&
-                numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2]);
+                numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0], true) &&
+                numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true);
             }
 
             if (isInsideTriangle) {
@@ -281,6 +282,7 @@ class TriangularSurface {
 
                 let mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.create();
                 glMatrix.vec3.transformMat4(mirroredSegmentTerminationInMirroringContext, segmentTermination, invertedMirroringContextMatrix);
+
                 mirroredSegmentTerminationInMirroringContext = glMatrix.vec3.fromValues(
                     mirroredSegmentTerminationInMirroringContext[0],
                     -mirroredSegmentTerminationInMirroringContext[1],

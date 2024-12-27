@@ -57,18 +57,17 @@ function UAGComponent() {
 
     function initializeWorld() {
       world = new World();
-
       let cubeSize = 4;
-      let distance = 15;
+      let distance =30;
       let cubes = [];
-      let jitter = 2;
+      let jitter = 15;
 
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance,
           ((Math.floor(i/(cubeSize)))%cubeSize)*distance+2,
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-100
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-300
         ].map((element) => {
           return element+Math.random()*jitter;
         }));
@@ -88,11 +87,11 @@ function UAGComponent() {
 
       let 
         mesh = [],
-        meshSize = 5,
-        meshJitter = 30,
-        meshPosition = [-30,-20,-100],
-        meshSquareWidth = 50,
-        meshSquareLength = 50;
+        meshSize = 3,
+        meshJitter = 100,
+        meshPosition = [-80,-60,-350],
+        meshSquareWidth = 100,
+        meshSquareLength = 100;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
