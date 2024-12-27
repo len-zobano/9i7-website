@@ -233,7 +233,7 @@ class TriangularSurface {
                 //     inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
                 //     inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection
                 isInsideTriangle = 
-                    numberIsBetween(inContextPointOfIntersection[2], side2ZValueAtPointOfIntersection, 0) &&
+                    numberIsBetween(inContextPointOfIntersection[2], side1ZValueAtPointOfIntersection, 0) &&
                     numberIsBetween(inContextPointOfIntersection[2], side2ZValueAtPointOfIntersection, 0);
             }
             //the z values must have the same sign
