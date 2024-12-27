@@ -312,14 +312,14 @@ class TriangularSurface {
     }
 
     mirrorRelativeVector(vector) {
-        let mirroredVector = glMatrix.vec3.create();
-        glMatrix.vec3.transformMat4(mirroredVector, vector, this.#drawMatrix);
+        let mirroredVector = glMatrix.vec3.clone(vector);
+        glMatrix.vec3.transformMat4(mirroredVector, vector, this.#inverseDrawMatrix);
         mirroredVector = glMatrix.vec3.fromValues(
             mirroredVector[0],
             -mirroredVector[1],
             mirroredVector[2]
         );
-        glMatrix.vec3.transformMat4(mirroredVector, mirroredVector, this.#inverseDrawMatrix);
+        glMatrix.vec3.transformMat4(mirroredVector, mirroredVector, this.#drawMatrix);
         return mirroredVector; 
     }
 

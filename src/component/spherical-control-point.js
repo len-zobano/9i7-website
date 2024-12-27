@@ -447,7 +447,7 @@ class SphericalControlPoint {
                         ++numberOfCollisions;
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];
-                        this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);;
+                        this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
                     }
                 }
             });

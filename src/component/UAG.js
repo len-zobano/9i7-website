@@ -89,10 +89,10 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 40,
-        meshPosition = [-30,-60,-100],
+        meshJitter = 30,
+        meshPosition = [-30,-20,-100],
         meshSquareWidth = 50,
-        meshSquareLength = 20;
+        meshSquareLength = 50;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
