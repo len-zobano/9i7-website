@@ -58,10 +58,10 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
 
-      let cubeSize = 1;
-      let distance = 5;
+      let cubeSize = 4;
+      let distance = 15;
       let cubes = [];
-      let jitter = 1;
+      let jitter = 2;
 
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
@@ -90,8 +90,8 @@ function UAGComponent() {
         mesh = [],
         meshSize = 5,
         meshJitter = 10,
-        meshPosition = [-15,-30,-150],
-        meshSquareSize = 20;
+        meshPosition = [-30,-30,-250],
+        meshSquareSize = 50;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {

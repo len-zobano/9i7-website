@@ -205,10 +205,6 @@ class TriangularSurface {
                 inContextSegmentTermination[2]*portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-portionOfLineAfterIntersection),
             ];
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            let pointOfIntersectionIsInsideVertices = false;
-
-            let vertices = this.#verticesInContext;
-
             let side1ZValueAtPointOfIntersection = (this.#verticesInContext[1][2]/this.#verticesInContext[1][0])*inContextPointOfIntersection[0];
             let side2ZValueAtPointOfIntersection =
                 ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
@@ -230,35 +226,31 @@ class TriangularSurface {
 
             let isInsideTriangle = false;
             if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
+                console.log('case 1 - is between x');
+                //REMINDER: 
+                //don't just see if it's less than like the commented out region below. see if it's closer to zero
+                //isInsideTriangle = 
+                //     inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
+                //     inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection
                 isInsideTriangle = 
-                    inContextPointOfIntersection[2] < this.#verticesInContext[0][2] &&
-                    inContextPointOfIntersection[2] < this.#verticesInContext[1][2]
+                    numberIsBetween(inContextPointOfIntersection[2], side2ZValueAtPointOfIntersection, 0) &&
+                    numberIsBetween(inContextPointOfIntersection[2], side2ZValueAtPointOfIntersection, 0);
             }
-            //z values both have to be positive before being checked for an intersection
-            //a negative z value means out of bounds for triangle
+            //the z values must have the same sign
+            //if zero is not between them, they do
             else if (
-                side1ZValueAtPointOfIntersection > 0 &&
-                side2ZValueAtPointOfIntersection > 0
+                !numberIsBetween(0, side1ZValueAtPointOfIntersection, side2ZValueAtPointOfIntersection)
             ) {
-                //if b is nearest
-                if (
-                    Math.abs(this.#verticesInContext[0][0]-inContextPointOfIntersection[0]) <
-                    Math.abs(this.#verticesInContext[1][0]-inContextPointOfIntersection[0])
-                ) {
-                    console.log('b is nearest');
-                    isInsideTriangle = 
-                        inContextPointOfIntersection[2] > side2ZValueAtPointOfIntersection &&
-                        inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection;
-                //if c is nearest
-                } else {
-                    console.log('c is nearest');
-                    isInsideTriangle = 
-                        inContextPointOfIntersection[2] > side1ZValueAtPointOfIntersection &&
-                        inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection;
-                }
+                //has to be between the two top sides if it's not between the base vertices
+                isInsideTriangle = numberIsBetween(
+                    inContextPointOfIntersection[2], 
+                    side2ZValueAtPointOfIntersection, 
+                    side1ZValueAtPointOfIntersection
+                );
             }
 
-            // isInsideTriangle = isInsideTriangle && inContextPointOfIntersection[2] > 0;
+            //same side of x=0
+            isInsideTriangle = isInsideTriangle && !numberIsBetween(0,inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection);
 
             if (isInsideTriangle) {
 
@@ -275,7 +267,7 @@ class TriangularSurface {
                     x value: ${inContextPointOfIntersection[0]}
                 `);
 
-                debugger;
+                // debugger;
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
