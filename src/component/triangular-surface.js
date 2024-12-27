@@ -233,24 +233,24 @@ class TriangularSurface {
                 //     inContextPointOfIntersection[2] < side2ZValueAtPointOfIntersection &&
                 //     inContextPointOfIntersection[2] < side1ZValueAtPointOfIntersection
                 isInsideTriangle = 
-                    numberIsBetween(inContextPointOfIntersection[2], side1ZValueAtPointOfIntersection, 0) &&
-                    numberIsBetween(inContextPointOfIntersection[2], side2ZValueAtPointOfIntersection, 0);
+                    numberIsBetween(inContextPointOfIntersection[2], this.#verticesInContext[1][2], 0);
             }
             //the z values must have the same sign
             //if zero is not between them, they do
             else if (
                 !numberIsBetween(0, side1ZValueAtPointOfIntersection, side2ZValueAtPointOfIntersection)
             ) {
+                console.log('case 2 - is between z values');
                 //has to be between the two top sides if it's not between the base vertices
                 isInsideTriangle = numberIsBetween(
                     inContextPointOfIntersection[2], 
                     side2ZValueAtPointOfIntersection, 
                     side1ZValueAtPointOfIntersection
-                );
+                ) &&
+                //has to be closer in both dimensions than c vertex
+                numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0]) &&
+                numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2]);
             }
-
-            //same side of x=0
-            isInsideTriangle = isInsideTriangle && !numberIsBetween(0,inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection);
 
             if (isInsideTriangle) {
 
@@ -266,9 +266,7 @@ class TriangularSurface {
                     slope value: ${slopeValue}
                     x value: ${inContextPointOfIntersection[0]}
                 `);
-
-                // debugger;
-
+                    
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
                 glMatrix.vec3.transformMat4(

@@ -89,9 +89,10 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 10,
-        meshPosition = [-30,-30,-250],
-        meshSquareSize = 50;
+        meshJitter = 40,
+        meshPosition = [-30,-60,-100],
+        meshSquareWidth = 50,
+        meshSquareLength = 20;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
@@ -103,19 +104,19 @@ function UAGComponent() {
           world,
           [
             glMatrix.vec3.fromValues(
-              meshPosition[0] + x*meshSquareSize,
+              meshPosition[0] + x*meshSquareWidth,
               mesh[y*meshSize + x],
-              meshPosition[2] + y*meshSquareSize
+              meshPosition[2] + y*meshSquareLength
             ),
             glMatrix.vec3.fromValues(
-              meshPosition[0] + (x + 1)*meshSquareSize,
+              meshPosition[0] + (x + 1)*meshSquareWidth,
               mesh[y*meshSize + x + 1],
-              meshPosition[2] + y*meshSquareSize
+              meshPosition[2] + y*meshSquareLength
             ),
             glMatrix.vec3.fromValues(
-              meshPosition[0] + x*meshSquareSize,
+              meshPosition[0] + x*meshSquareWidth,
               mesh[(y+ 1)*meshSize + x],
-              meshPosition[2] + (y + 1)*meshSquareSize
+              meshPosition[2] + (y + 1)*meshSquareLength
             ),
           ]
         );
@@ -124,19 +125,19 @@ function UAGComponent() {
           world,
           [
             glMatrix.vec3.fromValues(
-              meshPosition[0] + (x + 1)*meshSquareSize,
+              meshPosition[0] + (x + 1)*meshSquareWidth,
               mesh[(y+ 1)*meshSize + (x + 1)],
-              meshPosition[2] + (y + 1)*meshSquareSize
+              meshPosition[2] + (y + 1)*meshSquareLength
             ),
             glMatrix.vec3.fromValues(
-              meshPosition[0] + x*meshSquareSize,
+              meshPosition[0] + x*meshSquareWidth,
               mesh[(y+ 1)*meshSize + x],
-              meshPosition[2] + (y + 1)*meshSquareSize
+              meshPosition[2] + (y + 1)*meshSquareLength
             ),
             glMatrix.vec3.fromValues(
-              meshPosition[0] + (x + 1)*meshSquareSize,
+              meshPosition[0] + (x + 1)*meshSquareWidth,
               mesh[y*meshSize + x + 1],
-              meshPosition[2] + y*meshSquareSize
+              meshPosition[2] + y*meshSquareLength
             ),
           ]
         );
