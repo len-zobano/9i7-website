@@ -432,20 +432,30 @@ class SphericalControlPoint {
         //add scaled linear momentum to position
         glMatrix.vec3.add(positionBeforeSurfaceCollision, this.#position, scaledLinearMomentum);
         let triangularSurfaces = this.#world.triangularSurfaces;
-        triangularSurfaces.forEach((triangularSurface) => {
-            if (
-                triangularSurface.lineSegmentMayIntersect(this.#position, positionBeforeSurfaceCollision)
-            ) {
-                let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
-                if (mirroredSegment) {
-                    let newPositionBeforeSurfaceCollision = mirroredSegment[1];
-                    let newLinearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
-                    //set items
-                    positionBeforeSurfaceCollision = newPositionBeforeSurfaceCollision;
-                    this.#linearMomentum = newLinearMomentum;
+        
+        let collidedWithSurface = true, numberOfCollisions = 0;
+        //keep searching for collisions until all surfaces are looped through without a collision occurring
+        while(collidedWithSurface) {
+            collidedWithSurface = false;
+            triangularSurfaces.forEach((triangularSurface) => {
+                if (
+                    triangularSurface.lineSegmentMayIntersect(this.#position, positionBeforeSurfaceCollision)
+                ) {
+                    let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
+                    if (mirroredSegment) {
+                        collidedWithSurface = true;
+                        ++numberOfCollisions;
+                        this.#position = mirroredSegment[0];
+                        positionBeforeSurfaceCollision = mirroredSegment[1];
+                        this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);;
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        if (numberOfCollisions > 1) {
+            debugger;
+        }
         
         this.#position = positionBeforeSurfaceCollision;
         //rotate top and right by scaled angular momentum
