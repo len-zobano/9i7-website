@@ -457,10 +457,6 @@ class SphericalControlPoint {
                 }
             });
         }
-
-        if (numberOfCollisions > 1) {
-            // debugger;
-        }
         
         this.#position = positionBeforeSurfaceCollision;
         //rotate top and right by scaled angular momentum

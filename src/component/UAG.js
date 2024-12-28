@@ -88,8 +88,8 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 20,
-        meshPosition = [-80,-30,-150],
+        meshJitter = 100,
+        meshPosition = [-80,-60,-150],
         meshSquareWidth = 50,
         meshSquareLength = 50;
 
