@@ -256,12 +256,17 @@ class SphericalControlPoint {
     
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
+        //TEMPORARY: variables to refine the chaos of angular momentum
+        let twistScale = 0.1, whipScale = 0.1;
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
         //TEMPORARY: angular momentum has to be adjusted for stability
         let angularMomentumFrictionFactor = 0.1;
         // //calculate attraction by bonds
+        let bondedControlPoints = {};
+
         this.#bonds.forEach((bond) => {
+            bondedControlPoints[bond.controlPoint.ID] = true;
             //for your bond to the other,
                 //calculate angular momentum by angle of bond   
             let positionOfOther = bond.controlPoint.position;
@@ -283,7 +288,7 @@ class SphericalControlPoint {
             let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
                 if (angle > Math.PI/2) angle = Math.PI - angle;
                 if (angle < -Math.PI/2) angle = -Math.PI - angle;
-                return angle*interval*bond.strength*globalSpeed;
+                return angle*interval*bond.strength*globalSpeed*twistScale;
             });
             //add bond angle to angular momentum
             //interval * bondStrength * angle
@@ -323,7 +328,9 @@ class SphericalControlPoint {
                 //subtract real from ideal to get the momentum vector for this one
             let scaledMomentumTowardIdeal = glMatrix.vec3.create();
             glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
-            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed);
+            //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
+            //it should also scale with the distance
+            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed*whipScale);
             if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
                 isMoving = true;
             }
@@ -335,7 +342,7 @@ class SphericalControlPoint {
         let localSphericalControlPoints  = this.#world.gridSystem.getCurrentControlPointsForTileCoordinates(tile);
 
         localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
-            if (otherSphericalControlPoint !== this) {
+            if (otherSphericalControlPoint !== this && !bondedControlPoints[otherSphericalControlPoint.ID]) {
                 let distance = glMatrix.vec3.distance(this.#position, otherSphericalControlPoint.position);
                 let sharedDistance = this.radius + otherSphericalControlPoint.radius;
 

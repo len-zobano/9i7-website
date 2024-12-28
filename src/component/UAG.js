@@ -58,9 +58,9 @@ function UAGComponent() {
     function initializeWorld() {
       world = new World();
       let cubeSize = 4;
-      let distance =4;
+      let distance =10;
       let cubes = [];
-      let jitter = 0;
+      let jitter = 4;
 
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
@@ -81,7 +81,7 @@ function UAGComponent() {
             return otherCube.positionPoint;
           }),
           1.7*distance,
-          3
+          5
         )
       });
 
