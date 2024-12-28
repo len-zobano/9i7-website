@@ -157,7 +157,7 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,-200,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,-50,0);
   #isRunning = false;
   #cameraPosition = glMatrix.vec3.create();
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
