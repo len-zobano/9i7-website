@@ -20,6 +20,8 @@ function numberIsBetween (num, a, b, inclusive) {
 
 let collisionReboundPadding = 0.1;
 
+
+
 class TriangularSurface {
     #world = null;
     #vertices = [];
@@ -203,13 +205,54 @@ class TriangularSurface {
             this.#inverseContextMatrix
         );
 
+        let intersectionPadding = 1;
+        //returns negative value if it doesn't intersect
+        function calculateIntersection (origin, termination) {
+            let intersection = null;
+            //if origin is higher than +padding and termination is lower than +padding,
+            //reflect at +padding
+            if (origin > intersectionPadding && termination <= intersectionPadding) {
+                intersection = {
+                    yValue: intersectionPadding,
+                    portionOfLineAfterIntersection: (intersectionPadding - termination)/(origin - intersectionPadding)
+                };
+            }
+            //else, if origin is lower than -padding and termination is higher than -padding, 
+            //reflect at -padding
+            else if (origin < -intersectionPadding && termination >= -intersectionPadding) {
+                intersection = {
+                    yValue: -intersectionPadding,
+                    portionOfLineAfterIntersection: (intersectionPadding - termination)/(origin - intersectionPadding)
+                };
+            }
+            //else, if origin is higher than 0 and termination is lower than origin, reflect at origin
+            else if (origin < intersectionPadding && origin > 0 && termination < origin) {
+                intersection = {
+                    yValue: origin,
+                    portionOfLineAfterIntersection: 1
+                };
+            }
+            //else, if origin is lower than 0 and termination is higher than origin, reflect at origin
+            else if (origin > intersectionPadding && origin < 0 && termination > origin) {
+                intersection = {
+                    yValue: origin,
+                    portionOfLineAfterIntersection: 1
+                };
+            }            
+
+            return intersection;
+            /*
+                { yValue: 0, portionOfLineAfterIntersection: 0}
+            */
+        }
+
+        let intersectionData = calculateIntersection(inContextSegmentOrigin[1], inContextSegmentTermination[1]);
         //if the line segment doesn't hit y=0, return nothing
-        if (numberIsBetween(0, inContextSegmentOrigin[1], inContextSegmentTermination[1], true)) {
-            let portionOfLineAfterIntersection = Math.abs(inContextSegmentTermination[1])/(inContextSegmentOrigin[1]);
+        if (intersectionData) {
             let inContextPointOfIntersection = [
-                inContextSegmentTermination[0]*portionOfLineAfterIntersection + inContextSegmentOrigin[0]*(1-portionOfLineAfterIntersection),
-                0,
-                inContextSegmentTermination[2]*portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-portionOfLineAfterIntersection),
+                inContextSegmentTermination[0]*intersectionData.portionOfLineAfterIntersection + inContextSegmentOrigin[0]*(1-intersectionData.portionOfLineAfterIntersection),
+                intersectionData.yValue,
+                inContextSegmentTermination[2]*intersectionData.portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-intersectionData.portionOfLineAfterIntersection),
             ];
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
             let side1ZValueAtPointOfIntersection = (this.#verticesInContext[1][2]/this.#verticesInContext[1][0])*inContextPointOfIntersection[0];
@@ -364,14 +407,14 @@ class TriangularSurface {
                 //move the vectors in the direction of the rebound by the amount of collision rebound padding
                 newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
 
-                let reboundNormal = glMatrix.vec3.create();
-                glMatrix.vec3.subtract(reboundNormal, absoluteMirroredSegmentTermination, absolutePointOfIntersection);
-                glMatrix.vec3.normalize(reboundNormal, reboundNormal);
-                glMatrix.vec3.scale(reboundNormal,reboundNormal,collisionReboundPadding);
+                // let reboundNormal = glMatrix.vec3.create();
+                // glMatrix.vec3.subtract(reboundNormal, absoluteMirroredSegmentTermination, absolutePointOfIntersection);
+                // glMatrix.vec3.normalize(reboundNormal, reboundNormal);
+                // glMatrix.vec3.scale(reboundNormal,reboundNormal,collisionReboundPadding);
 
-                newLineSegmentPart.forEach((lineSegmentPartVector) => {
-                    glMatrix.vec3.add(lineSegmentPartVector, lineSegmentPartVector, reboundNormal);
-                });
+                // newLineSegmentPart.forEach((lineSegmentPartVector) => {
+                //     glMatrix.vec3.add(lineSegmentPartVector, lineSegmentPartVector, reboundNormal);
+                // });
             }
         }
 
