@@ -435,6 +435,8 @@ class SphericalControlPoint {
         
         let collidedWithSurface = true, numberOfCollisions = 0;
         //keep searching for collisions until all surfaces are looped through without a collision occurring
+        //don't collide with the same surface twice in a row. That's just a rounding error
+        let lastCollidedSurface = null;
         while(collidedWithSurface) {
             collidedWithSurface = false;
             triangularSurfaces.forEach((triangularSurface) => {
@@ -442,10 +444,12 @@ class SphericalControlPoint {
                     triangularSurface.lineSegmentMayIntersect(this.#position, positionBeforeSurfaceCollision)
                 ) {
                     let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
-                    if (mirroredSegment) {
-                        // TEMPORARY: this should be running
-                        // collidedWithSurface = true;
+                    if (mirroredSegment && lastCollidedSurface !== triangularSurface) {
+                        //set repeat collision detection data
+                        collidedWithSurface = true;
+                        lastCollidedSurface = triangularSurface;
                         ++numberOfCollisions;
+                        //change particles
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];
                         this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
@@ -455,7 +459,7 @@ class SphericalControlPoint {
         }
 
         if (numberOfCollisions > 1) {
-            debugger;
+            // debugger;
         }
         
         this.#position = positionBeforeSurfaceCollision;

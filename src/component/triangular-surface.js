@@ -225,39 +225,53 @@ class TriangularSurface {
             (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]));
             
             let isInsideTriangle = false;
-            //if one z value is infinite, must be lower than the other z value
-            if (
-                Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
-                numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
-            ) {
-                isInsideTriangle = true;
-            }
+            //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
+            if (Math.abs(side1ZValueAtPointOfIntersection) === Infinity || Math.abs(side2ZValueAtPointOfIntersection) === Infinity ) {
+                console.log('accounting for infinite z value');
+                if (
+                    Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
+                    numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0], this.#verticesInContext[1][0])
+                ) {
+                    console.log('is inside true at infinite side 1');
+                    isInsideTriangle = true;
+                }
 
-            if (
-                Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
-                numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true)
-            ) {
-                isInsideTriangle = true;
+                if (
+                    Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
+                    numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0], this.#verticesInContext[1][0])
+                ) {
+                    console.log('is inside true at infinite side 2');
+                    isInsideTriangle = true;
+                }
             }
             //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
-            if (
-                numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
-                numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
-                numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
-            ) {
-                isInsideTriangle = true;
-            }
-            //otherwise, intersection must be between z values
-            if (
-                !numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
-                numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
-            ) {
-                isInsideTriangle = true;
+            else {
+                if (
+                    numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                    numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
+                ) {
+                    console.log('is inside true at c is between');
+                    isInsideTriangle = true;
+                }
+                //otherwise, intersection must be between z values
+                if (
+                    !numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                    numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
+                ) {
+                    console.log('is inside true at c is outside');
+                    isInsideTriangle = true;
+                }
             }
 
+            console.log('is inside is',isInsideTriangle,'before lower bound check');
+
             //intersection has to be on same side of z as c
-            if (isInsideTriangle && numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2]), true) {
-                isInsideTriangle = true;
+            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true)) {
+                console.log('is inside triangle set to false at lower bound check');
+                isInsideTriangle = false;
             }
 
             console.log(`
@@ -272,8 +286,6 @@ class TriangularSurface {
                 slope value: ${slopeValue}
                 x value: ${inContextPointOfIntersection[0]}
             `);
-
-            // debugger;
 
             /*
             * Old inside triangle code
@@ -320,7 +332,6 @@ class TriangularSurface {
 
             if (isInsideTriangle) {
                 console.log('Particle intersection is inside triangle');
-                debugger;    
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 

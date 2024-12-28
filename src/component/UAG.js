@@ -57,7 +57,7 @@ function UAGComponent() {
 
     function initializeWorld() {
       world = new World();
-      let cubeSize = 1;
+      let cubeSize = 4;
       let distance =30;
       let cubes = [];
       let jitter = 15;
@@ -87,9 +87,9 @@ function UAGComponent() {
 
       let 
         mesh = [],
-        meshSize = 2,
-        meshJitter = 0,
-        meshPosition = [-80,-20,-150],
+        meshSize = 3,
+        meshJitter = 20,
+        meshPosition = [-80,-30,-150],
         meshSquareWidth = 100,
         meshSquareLength = 100;
 
@@ -120,26 +120,26 @@ function UAGComponent() {
           ]
         );
 
-        // let triangle2 = new TriangularSurface(
-        //   world,
-        //   [
-        //     glMatrix.vec3.fromValues(
-        //       meshPosition[0] + (x + 1)*meshSquareWidth,
-        //       mesh[(y+ 1)*meshSize + (x + 1)],
-        //       meshPosition[2] + (y + 1)*meshSquareLength
-        //     ),
-        //     glMatrix.vec3.fromValues(
-        //       meshPosition[0] + x*meshSquareWidth,
-        //       mesh[(y+ 1)*meshSize + x],
-        //       meshPosition[2] + (y + 1)*meshSquareLength
-        //     ),
-        //     glMatrix.vec3.fromValues(
-        //       meshPosition[0] + (x + 1)*meshSquareWidth,
-        //       mesh[y*meshSize + x + 1],
-        //       meshPosition[2] + y*meshSquareLength
-        //     ),
-        //   ]
-        // );
+        let triangle2 = new TriangularSurface(
+          world,
+          [
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareWidth,
+              mesh[(y+ 1)*meshSize + (x + 1)],
+              meshPosition[2] + (y + 1)*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareWidth,
+              mesh[(y+ 1)*meshSize + x],
+              meshPosition[2] + (y + 1)*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareWidth,
+              mesh[y*meshSize + x + 1],
+              meshPosition[2] + y*meshSquareLength
+            ),
+          ]
+        );
       }
 
       // let 
