@@ -443,7 +443,8 @@ class SphericalControlPoint {
                 ) {
                     let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
                     if (mirroredSegment) {
-                        collidedWithSurface = true;
+                        // TEMPORARY: this should be running
+                        // collidedWithSurface = true;
                         ++numberOfCollisions;
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];

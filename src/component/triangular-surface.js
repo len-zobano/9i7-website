@@ -223,51 +223,105 @@ class TriangularSurface {
 
             let slopeValue = ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
             (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]));
-
-
-            //if it's between x, it just has to be below z
-            //otherwise, it has to be above the nearest and below the furthest
-            //it always has to be above zero
-
+            
             let isInsideTriangle = false;
-            if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
-                console.log('case 1 - is between x');
-                isInsideTriangle = 
-                    numberIsBetween(inContextPointOfIntersection[2], this.#verticesInContext[1][2], 0);
-            }
-            //the z values must have the same sign
-            //if zero is not between them, they do
-            else if (
-                !numberIsBetween(0, side1ZValueAtPointOfIntersection, side2ZValueAtPointOfIntersection)
+            //if one z value is infinite, must be lower than the other z value
+            if (
+                Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
+                numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
             ) {
-                console.log('case 2 - is between z values');
-                //has to be between the two top sides if it's not between the base vertices
-                isInsideTriangle = numberIsBetween(
-                    inContextPointOfIntersection[2], 
-                    side2ZValueAtPointOfIntersection, 
-                    side1ZValueAtPointOfIntersection,
-                    true
-                ) &&
-                //has to be closer in both dimensions than c vertex
-                numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0], true) &&
-                numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true);
+                isInsideTriangle = true;
             }
+
+            if (
+                Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
+                numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true)
+            ) {
+                isInsideTriangle = true;
+            }
+            //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
+            if (
+                numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
+                numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
+            ) {
+                isInsideTriangle = true;
+            }
+            //otherwise, intersection must be between z values
+            if (
+                !numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
+            ) {
+                isInsideTriangle = true;
+            }
+
+            //intersection has to be on same side of z as c
+            if (isInsideTriangle && numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2]), true) {
+                isInsideTriangle = true;
+            }
+
+            console.log(`
+                Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
+                In context point of intersection: ${inContextPointOfIntersection}
+                In context vertex b: ${this.#verticesInContext[0]}
+                In context vertex c: ${this.#verticesInContext[1]}
+                c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
+                b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
+
+                k value: ${kValue}
+                slope value: ${slopeValue}
+                x value: ${inContextPointOfIntersection[0]}
+            `);
+
+            // debugger;
+
+            /*
+            * Old inside triangle code
+            */
+
+            // //if it's between x, it just has to be below z
+            // //otherwise, it has to be above the nearest and below the furthest
+            // //it always has to be above zero
+
+            // let isInsideTriangle = false;
+            // if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
+
+            //     //if one z value is inf / negative inf, just has to be below the other one
+
+            //     //otherwise, it either must be below both...
+
+            //     //or between the two
+                
+            //     console.log('case 1 - is between x');
+            //     isInsideTriangle = 
+            //         numberIsBetween(inContextPointOfIntersection[2], this.#verticesInContext[1][2], 0);
+            // }
+            // //the z values must have the same sign
+            // //if zero is not between them, they do
+            // else if (
+            //     !numberIsBetween(0, side1ZValueAtPointOfIntersection, side2ZValueAtPointOfIntersection)
+            // ) {
+            //     console.log('case 2 - is between z values');
+            //     //has to be between the two top sides if it's not between the base vertices
+            //     isInsideTriangle = numberIsBetween(
+            //         inContextPointOfIntersection[2], 
+            //         side2ZValueAtPointOfIntersection, 
+            //         side1ZValueAtPointOfIntersection,
+            //         true
+            //     ) &&
+            //     //has to be closer in both dimensions than c vertex
+            //     numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0], true) &&
+            //     numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true);
+            // }
+
+            /*
+            * End old inside triangle code
+            */
 
             if (isInsideTriangle) {
+                console.log('Particle intersection is inside triangle');
+                debugger;    
 
-                console.log(`
-                    Collision detected between control point and triangle
-                    In context point of intersection: ${inContextPointOfIntersection}
-                    In context vertex b: ${this.#verticesInContext[0]}
-                    In context vertex c: ${this.#verticesInContext[1]}
-                    c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
-                    b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
-
-                    k value: ${kValue}
-                    slope value: ${slopeValue}
-                    x value: ${inContextPointOfIntersection[0]}
-                `);
-                    
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
                 glMatrix.vec3.transformMat4(
