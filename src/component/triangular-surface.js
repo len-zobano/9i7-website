@@ -18,6 +18,8 @@ function numberIsBetween (num, a, b, inclusive) {
     }
 }
 
+let collisionReboundPadding = 0.1;
+
 class TriangularSurface {
     #world = null;
     #vertices = [];
@@ -359,7 +361,17 @@ class TriangularSurface {
                     mirroredSegmentTerminationInMirroringContext, 
                     mirroringContextMatrix
                 );
+                //move the vectors in the direction of the rebound by the amount of collision rebound padding
                 newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
+
+                let reboundNormal = glMatrix.vec3.create();
+                glMatrix.vec3.subtract(reboundNormal, absoluteMirroredSegmentTermination, absolutePointOfIntersection);
+                glMatrix.vec3.normalize(reboundNormal, reboundNormal);
+                glMatrix.vec3.scale(reboundNormal,reboundNormal,collisionReboundPadding);
+
+                newLineSegmentPart.forEach((lineSegmentPartVector) => {
+                    glMatrix.vec3.add(lineSegmentPartVector, lineSegmentPartVector, reboundNormal);
+                });
             }
         }
 
