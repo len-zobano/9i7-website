@@ -153,6 +153,7 @@ class World {
   #currentTime = 0;
   #drawables = [];
   #controlPoints = [];
+  #controlPointGroups = [];
   #selected = null;
   #projectionMatrix = null;
   #gridSystem = null;
@@ -244,6 +245,10 @@ constructor() {
     if (!this.#selected) {
         this.#selected = controlPoint;
     }
+  }
+
+  addControlPointGroup(controlPointGroup) {
+    this.#controlPointGroups.push(controlPointGroup);
   }
 
   addTriangularSurface(triangularSurface) {
@@ -422,15 +427,13 @@ constructor() {
             }));
         }
     }
-
-    this.#controlPoints.forEach((controlPoint) => {
-        if (controlPoint.calculateTrajectory) {
-            controlPoint.calculateTrajectory(interval);
-        }
-    });
     
-    this.#controlPoints.forEach((controlPoint) => {
-        controlPoint.simulate(interval);
+    this.#controlPointGroups.forEach((controlPointGroup) => {
+        controlPointGroup.calculateTrajectory(interval);
+    });
+
+    this.#controlPointGroups.forEach((controlPointGroup) => {
+        controlPointGroup.simulate(interval);
     });
 
     //only iterate after all other collisions are calculated

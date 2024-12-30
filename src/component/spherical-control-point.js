@@ -261,7 +261,7 @@ class SphericalControlPoint {
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
         //TEMPORARY: angular momentum has to be adjusted for stability
-        let angularMomentumFrictionFactor = 0.1, enableAngularTrajectoryCalculation = false, checkForParticleCollision = false;
+        let angularMomentumFrictionFactor = 0.1, enableAngularTrajectoryCalculation = true, checkForParticleCollision = true;
         // //calculate attraction by bonds
         let bondedControlPoints = {};
 
@@ -413,19 +413,17 @@ class SphericalControlPoint {
             this.#angularMomentum[i] += scaledAngularAcceleration[i];
         }
 
-        //TEMPORARY: another angular momentum decay factor because that motion seems unstable
-        //this compounds with ordinary decay
-        let scaledAngularMomentumDecay = Math.pow(1, interval);
-        let scaledMomentumDecay = Math.pow(1,interval);
-        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
-        this.#angularMomentum = this.#angularMomentum.map((element) => {
-            return element*scaledMomentumDecay*scaledAngularMomentumDecay;
-        });
-
         let scaledAccelerationDecay = Math.pow(0.1,interval);
         glMatrix.vec3.scale(this.#linearAcceleration, this.#linearAcceleration, scaledAccelerationDecay);
         this.#angularAcceleration = this.#angularAcceleration.map((element) => {
             return element*scaledAccelerationDecay;
+        });
+    }
+
+    decay (scaledMomentumDecay, scaledAngularMomentumDecay) {
+        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
+        this.#angularMomentum = this.#angularMomentum.map((element) => {
+            return element*scaledMomentumDecay*scaledAngularMomentumDecay;
         });
     }
 

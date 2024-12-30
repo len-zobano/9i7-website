@@ -12,6 +12,7 @@ import {
   Route,
   Link
 } from 'react-router-dom';
+import ControlPointGroup from './control-point-group';
 
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window;
@@ -62,6 +63,7 @@ function UAGComponent() {
       let cubes = [];
       let jitter = 0  ;
 
+      let dropGroup = new ControlPointGroup(world);
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
@@ -72,6 +74,7 @@ function UAGComponent() {
           return element+Math.random()*jitter;
         }));
 
+        dropGroup.addControlPoint(cube.controlPoints[0]);
         cubes[i] = cube;
       }
 
@@ -141,21 +144,6 @@ function UAGComponent() {
           ]
         );
       }
-
-      // let 
-      //   triangleLocation = [0,-10,-100],
-      //   triangleDepth = 50,
-      //   triangleWidth = 50,
-      //   triangleSkew = 50;
-
-      // let testSurface = new TriangularSurface(
-      //   world,
-      //   [
-      //     glMatrix.vec3.fromValues(triangleLocation[0]-triangleWidth,triangleLocation[1]+triangleSkew, triangleLocation[2]-triangleDepth),
-      //     glMatrix.vec3.fromValues(triangleLocation[0]+triangleWidth,triangleLocation[1], triangleLocation[2]-triangleDepth),
-      //     glMatrix.vec3.fromValues(triangleLocation[0],triangleLocation[1], triangleLocation[2]+triangleDepth)
-      //   ]
-      // );
     }
 
     let ID = Math.floor(1000000*Math.random());
