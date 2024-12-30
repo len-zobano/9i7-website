@@ -261,7 +261,7 @@ class SphericalControlPoint {
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
         //TEMPORARY: angular momentum has to be adjusted for stability
-        let angularMomentumFrictionFactor = 0.1;
+        let angularMomentumFrictionFactor = 0.1, enableAngularTrajectoryCalculation = false, checkForParticleCollision = false;
         // //calculate attraction by bonds
         let bondedControlPoints = {};
 
@@ -292,11 +292,13 @@ class SphericalControlPoint {
             });
             //add bond angle to angular momentum
             //interval * bondStrength * angle
-            for (let i = 0; i <  3; ++i) {
-                if (scaledAngleOfBondToOther[i] !== 0) {
-                    isMoving = true;
+            if (enableAngularTrajectoryCalculation) {
+                for (let i = 0; i <  3; ++i) {
+                    if (scaledAngleOfBondToOther[i] !== 0) {
+                        isMoving = true;
+                    }
+                    this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
                 }
-                this.#angularMomentum[i] += scaledAngleOfBondToOther[i];
             }
 
             //TEMPORARY: this value is for testing stability
@@ -316,32 +318,33 @@ class SphericalControlPoint {
 
 
 
-
-            //for the other bond to you,
-                //get the ideal position of your own particle relative to that bond
-            let idealPositionOfThisFromOther = glMatrix.vec3.clone(bond.reciprocalBond.idealRelativePosition);
-                //transform the ideal postion by the other particle's draw matrix
-            glMatrix.vec3.transformMat4(idealPositionOfThisFromOther, idealPositionOfThisFromOther, bond.controlPoint.drawMatrix);
-                //get your real position by subtracting your position by theirs
-            let realPositionOfThisFromOther = glMatrix.vec3.clone(this.position);
-            glMatrix.vec3.subtract(realPositionOfThisFromOther, realPositionOfThisFromOther, bond.controlPoint.position);
-                //subtract real from ideal to get the momentum vector for this one
-            let scaledMomentumTowardIdeal = glMatrix.vec3.create();
-            glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
-            //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
-            //it should also scale with the distance
-            glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed*whipScale);
-            if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
-                isMoving = true;
+            if (enableAngularTrajectoryCalculation) {
+                //for the other bond to you,
+                    //get the ideal position of your own particle relative to that bond
+                let idealPositionOfThisFromOther = glMatrix.vec3.clone(bond.reciprocalBond.idealRelativePosition);
+                    //transform the ideal postion by the other particle's draw matrix
+                glMatrix.vec3.transformMat4(idealPositionOfThisFromOther, idealPositionOfThisFromOther, bond.controlPoint.drawMatrix);
+                    //get your real position by subtracting your position by theirs
+                let realPositionOfThisFromOther = glMatrix.vec3.clone(this.position);
+                glMatrix.vec3.subtract(realPositionOfThisFromOther, realPositionOfThisFromOther, bond.controlPoint.position);
+                    //subtract real from ideal to get the momentum vector for this one
+                let scaledMomentumTowardIdeal = glMatrix.vec3.create();
+                glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
+                //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
+                //it should also scale with the distance
+                glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed*whipScale);
+                if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
+                    isMoving = true;
+                }
+                glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
             }
-            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
         });
 
         //calculate collision by local control points
         let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForControlPoint(this);
         let localSphericalControlPoints  = this.#world.gridSystem.getCurrentControlPointsForTileCoordinates(tile);
 
-        localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
+        if (checkForParticleCollision) localSphericalControlPoints.forEach((otherSphericalControlPoint) => {
             if (otherSphericalControlPoint !== this && !bondedControlPoints[otherSphericalControlPoint.ID]) {
                 let distance = glMatrix.vec3.distance(this.#position, otherSphericalControlPoint.position);
                 let sharedDistance = this.radius + otherSphericalControlPoint.radius;
@@ -412,8 +415,8 @@ class SphericalControlPoint {
 
         //TEMPORARY: another angular momentum decay factor because that motion seems unstable
         //this compounds with ordinary decay
-        let scaledAngularMomentumDecay = Math.pow(0.05, interval);
-        let scaledMomentumDecay = Math.pow(0.1,interval);
+        let scaledAngularMomentumDecay = Math.pow(1, interval);
+        let scaledMomentumDecay = Math.pow(1,interval);
         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay*scaledAngularMomentumDecay;
