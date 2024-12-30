@@ -68,7 +68,7 @@ function UAGComponent() {
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+2,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+10,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-70
         ].map((element) => {
           return element+Math.random()*jitter;

@@ -49,10 +49,17 @@ class ControlPointGroup {
 
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
+        let averageLinearMomentum = glMatrix.vec3.create();
         this.#controlPoints.forEach((controlPoint) => {
             controlPoint.calculateTrajectory(interval);
-            controlPoint.decay(Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
-        })
+            let linearMomentum = controlPoint.linearMomentum;
+            glMatrix.vec3.scale(linearMomentum, linearMomentum, 1/(this.#controlPoints.length));
+            glMatrix.vec3.add(averageLinearMomentum, averageLinearMomentum, linearMomentum);
+        });
+
+        this.#controlPoints.forEach((controlPoint) => {
+            controlPoint.decay(averageLinearMomentum, Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
+        });
     }
 
     simulate(interval) {

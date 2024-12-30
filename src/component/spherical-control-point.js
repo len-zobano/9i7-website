@@ -420,8 +420,15 @@ class SphericalControlPoint {
         });
     }
 
-    decay (scaledMomentumDecay, scaledAngularMomentumDecay) {
-        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, scaledMomentumDecay);
+    decay (groupMomentum, scaledMomentumDecay, scaledAngularMomentumDecay) {
+        //calculate the momentum relative to the frame of reference
+        let relativeMomentum = glMatrix.vec3.create();
+        glMatrix.vec3.sub(relativeMomentum, this.#linearMomentum, groupMomentum);
+        //decay that momentum
+        glMatrix.vec3.scale(relativeMomentum, relativeMomentum, scaledMomentumDecay);
+        //add the decayed value and the frame of reference momentum to get the absolute momentum
+        glMatrix.vec3.add(this.#linearMomentum, relativeMomentum, groupMomentum);
+        
         this.#angularMomentum = this.#angularMomentum.map((element) => {
             return element*scaledMomentumDecay*scaledAngularMomentumDecay;
         });
