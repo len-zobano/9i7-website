@@ -106,22 +106,6 @@ class SpheroidDrop {
       world.addDrawable(this);
   }
 
-    // detectCollision(otherPlottable) {
-    //     let distance = Math.pow(
-    //         Math.pow(otherPlottable.position[0] - this.position[0], 2) +
-    //         Math.pow(otherPlottable.position[1] - this.position[1], 2) +
-    //         Math.pow(otherPlottable.position[2] - this.position[2], 2)
-    //     ,0.5);
-        
-    //     let minimumDistance = otherPlottable.broadCollisionRadius + this.broadCollisionRadius;
-
-    //     return distance <= minimumDistance;
-    // }
-
-    // onCollision(other) {
-    //   //this collision function should only be used for object interaction, not physics
-    // }
-
     select(selected) {
         console.log("select at cube");
         this.#selected = selected;

@@ -18,10 +18,6 @@ function numberIsBetween (num, a, b, inclusive) {
     }
 }
 
-let collisionReboundPadding = 0.1;
-
-
-
 class TriangularSurface {
     #world = null;
     #vertices = [];
@@ -108,15 +104,6 @@ class TriangularSurface {
         absoluteNormal = glMatrix.vec3.add(absoluteNormal,this.#vertices[0],this.#vertexNormal);
         absoluteInvertedNormal = glMatrix.vec3.add(absoluteInvertedNormal,this.#vertices[0], this.#invertedVertexNormal);
         let ret = glMatrix.vec3.distance(vector,absoluteNormal) < glMatrix.vec3.distance(vector,absoluteInvertedNormal);
-        // console.log('vector is on normal side: ',
-        //     ret,
-        //     'for vector',vector,
-        //     'and absolute normal',absoluteNormal,
-        //     'and absolute inverted normal',absoluteInvertedNormal,
-        //     'and vertex',this.#vertices[0],
-        //     'and normal',this.#vertexNormals[0],
-        //     'and inverted normal',this.#invertedVertexNormals[0]
-        // );
         return ret;
     }
 
@@ -205,7 +192,7 @@ class TriangularSurface {
             this.#inverseContextMatrix
         );
 
-        let intersectionPadding = 1;
+        let intersectionPadding = 0;
         //returns negative value if it doesn't intersect
         function calculateIntersection (origin, termination) {
             let intersection = null;
@@ -332,49 +319,6 @@ class TriangularSurface {
                 x value: ${inContextPointOfIntersection[0]}
             `);
 
-            /*
-            * Old inside triangle code
-            */
-
-            // //if it's between x, it just has to be below z
-            // //otherwise, it has to be above the nearest and below the furthest
-            // //it always has to be above zero
-
-            // let isInsideTriangle = false;
-            // if (numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0],this.#verticesInContext[1][0])) {
-
-            //     //if one z value is inf / negative inf, just has to be below the other one
-
-            //     //otherwise, it either must be below both...
-
-            //     //or between the two
-                
-            //     console.log('case 1 - is between x');
-            //     isInsideTriangle = 
-            //         numberIsBetween(inContextPointOfIntersection[2], this.#verticesInContext[1][2], 0);
-            // }
-            // //the z values must have the same sign
-            // //if zero is not between them, they do
-            // else if (
-            //     !numberIsBetween(0, side1ZValueAtPointOfIntersection, side2ZValueAtPointOfIntersection)
-            // ) {
-            //     console.log('case 2 - is between z values');
-            //     //has to be between the two top sides if it's not between the base vertices
-            //     isInsideTriangle = numberIsBetween(
-            //         inContextPointOfIntersection[2], 
-            //         side2ZValueAtPointOfIntersection, 
-            //         side1ZValueAtPointOfIntersection,
-            //         true
-            //     ) &&
-            //     //has to be closer in both dimensions than c vertex
-            //     numberIsBetween(inContextPointOfIntersection[0],0,this.#verticesInContext[1][0], true) &&
-            //     numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true);
-            // }
-
-            /*
-            * End old inside triangle code
-            */
-
             if (isInsideTriangle) {
                 console.log('Particle intersection is inside triangle');
 
@@ -406,15 +350,6 @@ class TriangularSurface {
                 );
                 //move the vectors in the direction of the rebound by the amount of collision rebound padding
                 newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
-
-                // let reboundNormal = glMatrix.vec3.create();
-                // glMatrix.vec3.subtract(reboundNormal, absoluteMirroredSegmentTermination, absolutePointOfIntersection);
-                // glMatrix.vec3.normalize(reboundNormal, reboundNormal);
-                // glMatrix.vec3.scale(reboundNormal,reboundNormal,collisionReboundPadding);
-
-                // newLineSegmentPart.forEach((lineSegmentPartVector) => {
-                //     glMatrix.vec3.add(lineSegmentPartVector, lineSegmentPartVector, reboundNormal);
-                // });
             }
         }
 

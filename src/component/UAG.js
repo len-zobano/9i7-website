@@ -61,14 +61,14 @@ function UAGComponent() {
       let cubeSize = 4;
       let distance =4;
       let cubes = [];
-      let jitter = 0  ;
+      let jitter = 1  ;
 
       let dropGroup = new ControlPointGroup(world);
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+10,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-70
         ].map((element) => {
           return element+Math.random()*jitter;
@@ -78,20 +78,20 @@ function UAGComponent() {
         cubes[i] = cube;
       }
 
-      cubes.forEach((cube) => {
-        cube.positionPoint.bondToAnyWithinRadius(
-          cubes.map((otherCube) => {
-            return otherCube.positionPoint;
-          }),
-          1.7*distance,
-          5
-        )
-      });
+      // cubes.forEach((cube) => {
+      //   cube.positionPoint.bondToAnyWithinRadius(
+      //     cubes.map((otherCube) => {
+      //       return otherCube.positionPoint;
+      //     }),
+      //     1.7*distance,
+      //     5
+      //   )
+      // });
 
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 50,
+        meshJitter = 10,
         meshPosition = [-80,-30,-150],
         meshSquareWidth = 50,
         meshSquareLength = 50;
