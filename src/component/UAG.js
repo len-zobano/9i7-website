@@ -91,15 +91,22 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 10,
+        meshJitter = 30,
         meshPosition = [-80,-30,-150],
         meshSquareWidth = 50,
-        meshSquareLength = 50;
+        meshSquareLength = 50,
+        thickness = 10;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
         mesh[i] = meshPosition[1] + Math.random()*meshJitter - meshJitter / 2;
       }
+
+      let projectionPoint = glMatrix.vec3.fromValues(
+        meshPosition[0],
+        meshPosition[1] - 1000,
+        meshPosition[2]
+      );
 
       for (let x = 0; x < meshSize - 1; ++x) for (let y = 0; y < meshSize - 1; ++y) {
         let triangle1 = new TriangularSurface(
@@ -120,7 +127,9 @@ function UAGComponent() {
               mesh[(y+ 1)*meshSize + x],
               meshPosition[2] + (y + 1)*meshSquareLength
             ),
-          ]
+          ], 
+          projectionPoint,
+          thickness
         );
 
         let triangle2 = new TriangularSurface(
@@ -141,7 +150,9 @@ function UAGComponent() {
               mesh[y*meshSize + x + 1],
               meshPosition[2] + y*meshSquareLength
             ),
-          ]
+          ],
+          projectionPoint,
+          thickness
         );
       }
     }

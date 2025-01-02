@@ -19,13 +19,20 @@ function numberIsBetween (num, a, b, inclusive) {
 }
 
 class TriangularSurface {
+    #thickness;
     #world = null;
-    #vertices = [];
+    #middleVertices = [];
+    #topVertices = [];
+    #bottomVertices = [];
     #vertexNormal = null;
     #invertedVertexNormal = null;
+    #projectionPoint = null;
     //TODO: make sure this is vertex index 1 and 2 transformed by the context matrix
-    #verticesInContext = [];
-    #drawDelegate = null;
+    #middleVerticesInContext = [];
+    #topVerticesInContext = [];
+    #bottomVerticesInContext = [];
+    #topDrawDelegate = null;
+    #bottomDrawDelegate = null;
     #ID = null;
     //The matrix where vertices[0] is center and vertices[0] is right and vertexNormal is up
     #contextMatrix = null;
@@ -40,7 +47,7 @@ class TriangularSurface {
         glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
         let normalizedRight = glMatrix.vec3.create();
-        glMatrix.vec3.sub(normalizedRight, this.#vertices[0], this.#vertices[1]);
+        glMatrix.vec3.sub(normalizedRight, this.#middleVertices[0], this.#middleVertices[1]);
         glMatrix.vec3.normalize(normalizedRight, normalizedRight);
 
         let normalizedToward = glMatrix.vec3.create();
@@ -78,11 +85,11 @@ class TriangularSurface {
     createContextMatrix () {
         //first, translate
         let contextMatrix = glMatrix.mat4.create();
-        let vertex = this.#vertices[0];
+        let vertex = this.#middleVertices[0];
         glMatrix.mat4.translate(contextMatrix, contextMatrix, glMatrix.vec3.fromValues(
-            this.#vertices[0][0],
-            this.#vertices[0][1],
-            this.#vertices[0][2]
+            this.#middleVertices[0][0],
+            this.#middleVertices[0][1],
+            this.#middleVertices[0][2]
         ));
         //then draw matrix 
         glMatrix.mat4.multiply(contextMatrix, contextMatrix, this.#drawMatrix);
@@ -101,30 +108,58 @@ class TriangularSurface {
 
     vectorIsOnNormalSide(vector) {
         let absoluteNormal = glMatrix.vec3.create(), absoluteInvertedNormal = glMatrix.vec3.create();
-        absoluteNormal = glMatrix.vec3.add(absoluteNormal,this.#vertices[0],this.#vertexNormal);
-        absoluteInvertedNormal = glMatrix.vec3.add(absoluteInvertedNormal,this.#vertices[0], this.#invertedVertexNormal);
+        absoluteNormal = glMatrix.vec3.add(absoluteNormal,this.#middleVertices[0],this.#vertexNormal);
+        absoluteInvertedNormal = glMatrix.vec3.add(absoluteInvertedNormal,this.#middleVertices[0], this.#invertedVertexNormal);
         let ret = glMatrix.vec3.distance(vector,absoluteNormal) < glMatrix.vec3.distance(vector,absoluteInvertedNormal);
         return ret;
     }
 
-    constructor(world, vertices) {
+    constructor(world, vertices, projectionPoint, thickness = 10) {
         this.#world = world;
+        this.#thickness = thickness;
         world.addDrawable(this);
         world.addTriangularSurface(this);
         this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
 
-        this.#vertices = vertices.map((vertex) => {
+        this.#middleVertices = vertices.map((vertex) => {
             return glMatrix.vec3.clone(vertex);
         });
-        
-        let vertexArray = vertices.map((vertex) => {
-            return vec3ToArray(vertex);
+
+        this.#topVertices = this.#middleVertices.map((vertex) => {
+            //make a vector that is vertex minus projetion point
+            let vertexRelativeToProjectionPoint = glMatrix.vec3.create();
+            glMatrix.vec3.subtract(vertexRelativeToProjectionPoint, vertex, projectionPoint);
+            //get the length of the vector
+            let lengthOfProjection = glMatrix.vec3.length(vertexRelativeToProjectionPoint);
+            //scale the vector by thickness/length
+            glMatrix.vec3.scale(vertexRelativeToProjectionPoint, vertexRelativeToProjectionPoint, (lengthOfProjection + thickness)/lengthOfProjection);
+            //add back the projection point to get the new vertex
+            glMatrix.vec3.add(vertexRelativeToProjectionPoint, vertexRelativeToProjectionPoint, projectionPoint);
+            return vertexRelativeToProjectionPoint;
+        });
+
+
+        this.#bottomVertices = this.#middleVertices.map((vertex) => {
+            //make a vector that is vertex minus projetion point
+            let vertexRelativeToProjectionPoint = glMatrix.vec3.create();
+            glMatrix.vec3.subtract(vertexRelativeToProjectionPoint, vertex, projectionPoint);
+            //get the length of the vector
+            let lengthOfProjection = glMatrix.vec3.length(vertexRelativeToProjectionPoint);
+            //scale the vector by (length-thickness)/length
+            glMatrix.vec3.scale(vertexRelativeToProjectionPoint, vertexRelativeToProjectionPoint, (lengthOfProjection - thickness)/lengthOfProjection);
+            //add back the projection point to get the new vertex
+            glMatrix.vec3.add(vertexRelativeToProjectionPoint, vertexRelativeToProjectionPoint, projectionPoint);
+            return vertexRelativeToProjectionPoint;
+        });
+
+        let topColorArray = this.#middleVertices.map((vertex) => {
+            return [1.0,1.0,1.0,1.0];
         }).reduce((a, b) => {
             return a.concat(b);
         });
 
-        let colorArray = this.#vertices.map((vertex) => {
-            return [1.0,1.0,1.0,1.0];
+        let bottomColorArray = this.#middleVertices.map((vertex) => {
+            return [1.0,0.5,0.5,1.0];
         }).reduce((a, b) => {
             return a.concat(b);
         });
@@ -158,20 +193,54 @@ class TriangularSurface {
         this.#inverseCameraMatrix = glMatrix.mat4.create();
         this.#inverseCameraMatrix = glMatrix.mat4.invert(this.#inverseCameraMatrix, this.#cameraMatrix);
 
-        this.#verticesInContext = [
+        this.#middleVerticesInContext = [
             glMatrix.vec3.create(),
             glMatrix.vec3.create()
         ];
 
-        glMatrix.vec3.transformMat4(this.#verticesInContext[0],this.#vertices[1],this.#inverseContextMatrix);
-        glMatrix.vec3.transformMat4(this.#verticesInContext[1],this.#vertices[2],this.#inverseContextMatrix);
+        glMatrix.vec3.transformMat4(this.#middleVerticesInContext[0],this.#middleVertices[1],this.#inverseContextMatrix);
+        glMatrix.vec3.transformMat4(this.#middleVerticesInContext[1],this.#middleVertices[2],this.#inverseContextMatrix);
+
+        this.#topVerticesInContext = this.#topVertices.map((vertex) => {
+            let vertexInContext = glMatrix.vec3.clone(vertex);
+            glMatrix.vec3.transformMat4(vertexInContext, vertexInContext, this.#inverseContextMatrix);
+            return vertexInContext;
+        });
+
+        this.#bottomVerticesInContext = this.#bottomVertices.map((vertex) => {
+            let vertexInContext = glMatrix.vec3.clone(vertex);
+            glMatrix.vec3.transformMat4(vertexInContext, vertexInContext, this.#inverseContextMatrix);
+            return vertexInContext;
+        });
+
+        let topVertexArray = this.#topVertices.map((vertex) => {
+            return vec3ToArray(vertex);
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
+
+        let bottomVertexArray = this.#bottomVertices.map((vertex) => {
+            return vec3ToArray(vertex);
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
 
         let indices = [];
-        for (let i = 0; i < vertexArray.length; ++i) {
+        for (let i = 0; i < topVertexArray.length; ++i) {
             indices.push(i);
         }
 
-        this.#drawDelegate = new SimpleDrawDelegate(this.#world, vertexArray, colorArray, normalArray, indices);
+        // let 
+        //     topVertices = this.#topVertices, 
+        //     bottomVertices = this.#bottomVertices, 
+        //     middleVertices = this.#middleVertices,
+        //     topVerticesInContext = this.#topVerticesInContext,
+        //     bottomVerticesInContext = this.#bottomVerticesInContext,
+        //     middleVerticesInContext = this.#middleVerticesInContext;
+        // debugger;
+
+        this.#topDrawDelegate = new SimpleDrawDelegate(this.#world, topVertexArray, topColorArray, normalArray, indices);
+        this.#bottomDrawDelegate = new SimpleDrawDelegate(this.#world, bottomVertexArray, bottomColorArray, normalArray, indices);
     }
 
     mirrorLineSegmentAfterIntersection(segmentOrigin, segmentTermination) {
@@ -192,7 +261,7 @@ class TriangularSurface {
             this.#inverseContextMatrix
         );
 
-        let intersectionPadding = 0;
+        let intersectionPadding = this.#thickness;
         //returns negative value if it doesn't intersect
         function calculateIntersection (origin, termination) {
             let intersection = null;
@@ -241,20 +310,30 @@ class TriangularSurface {
                 intersectionData.yValue,
                 inContextSegmentTermination[2]*intersectionData.portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-intersectionData.portionOfLineAfterIntersection),
             ];
+
+            let verticesAtPointOfIntersection = [];
+            let depthQuotient = (intersectionData.yValue + this.#thickness)/(2*this.#thickness);
+            for (let i = 0; i < 3; ++i) {
+                verticesAtPointOfIntersection[i] = glMatrix.vec3.fromValues(
+                    this.#topVerticesInContext[i][0]*depthQuotient + this.#bottomVerticesInContext[i][0]*(1-depthQuotient),
+                    this.#topVerticesInContext[i][1]*depthQuotient + this.#bottomVerticesInContext[i][1]*(1-depthQuotient),
+                    this.#topVerticesInContext[i][2]*depthQuotient + this.#bottomVerticesInContext[i][2]*(1-depthQuotient)
+                );
+            }
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            let side1ZValueAtPointOfIntersection = (this.#verticesInContext[1][2]/this.#verticesInContext[1][0])*inContextPointOfIntersection[0];
+            let side1ZValueAtPointOfIntersection = (verticesAtPointOfIntersection[1][2]/verticesAtPointOfIntersection[1][0])*inContextPointOfIntersection[0];
             let side2ZValueAtPointOfIntersection =
-                ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
-                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*inContextPointOfIntersection[0]
+                ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[0][2])/
+                (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*inContextPointOfIntersection[0]
                 +
-                ((this.#verticesInContext[0][2] - this.#verticesInContext[1][2])/
-                (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[0][0];
+                ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[1][2])/
+                (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
 
-            let kValue = ((this.#verticesInContext[0][2] - this.#verticesInContext[1][2])/
-            (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]))*this.#verticesInContext[0][0];
+            let kValue = ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[1][2])/
+            (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
 
-            let slopeValue = ((this.#verticesInContext[1][2] - this.#verticesInContext[0][2])/
-            (this.#verticesInContext[1][0] - this.#verticesInContext[0][0]));
+            let slopeValue = ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[0][2])/  
+            (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]));
             
             let isInsideTriangle = false;
             //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
@@ -263,7 +342,7 @@ class TriangularSurface {
                 if (
                     Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
                     numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0], this.#verticesInContext[1][0])
+                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[0][0], verticesAtPointOfIntersection[1][0])
                 ) {
                     console.log('is inside true at infinite side 1');
                     isInsideTriangle = true;
@@ -272,7 +351,7 @@ class TriangularSurface {
                 if (
                     Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
                     numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],this.#verticesInContext[0][0], this.#verticesInContext[1][0])
+                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[0][0], verticesAtPointOfIntersection[1][0])
                 ) {
                     console.log('is inside true at infinite side 2');
                     isInsideTriangle = true;
@@ -281,7 +360,7 @@ class TriangularSurface {
             //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
             else {
                 if (
-                    numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                    numberIsBetween(verticesAtPointOfIntersection[1][0],0,verticesAtPointOfIntersection[0][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
                 ) {
@@ -290,7 +369,7 @@ class TriangularSurface {
                 }
                 //otherwise, intersection must be between z values
                 if (
-                    !numberIsBetween(this.#verticesInContext[1][0],0,this.#verticesInContext[0][0]) &&
+                    !numberIsBetween(verticesAtPointOfIntersection[1][0],0,verticesAtPointOfIntersection[0][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
                 ) {
                     console.log('is inside true at c is outside');
@@ -301,7 +380,7 @@ class TriangularSurface {
             console.log('is inside is',isInsideTriangle,'before lower bound check');
 
             //intersection has to be on same side of z as c
-            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,this.#verticesInContext[1][2], true)) {
+            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,verticesAtPointOfIntersection[1][2], true)) {
                 console.log('is inside triangle set to false at lower bound check');
                 isInsideTriangle = false;
             }
@@ -309,8 +388,8 @@ class TriangularSurface {
             console.log(`
                 Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
                 In context point of intersection: ${inContextPointOfIntersection}
-                In context vertex b: ${this.#verticesInContext[0]}
-                In context vertex c: ${this.#verticesInContext[1]}
+                In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[0]}
+                In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[1]}
                 c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
                 b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
 
@@ -383,7 +462,8 @@ class TriangularSurface {
     draw() {
         const modelViewMatrix = this.#world.modelViewMatrix;
         //draw the triangle with the delegate
-        this.#drawDelegate.draw(modelViewMatrix);
+        this.#topDrawDelegate.draw(modelViewMatrix);
+        this.#bottomDrawDelegate.draw(modelViewMatrix);
     }
 }
 
