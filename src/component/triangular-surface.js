@@ -341,6 +341,7 @@ class TriangularSurface {
             let slopeValue = ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/  
             (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]));
             
+            let ZBottom = verticesAtPointOfIntersection[0][2], XRight = verticesAtPointOfIntersection[0][0];
             //TODO: the top and bottom vertices system makes this inside triangle calculation invalid where the x axis is being used for compairson. 0.
             let isInsideTriangle = false;
             //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
@@ -348,7 +349,7 @@ class TriangularSurface {
                 console.log('accounting for infinite z value');
                 if (
                     Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
-                    numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     console.log('is inside true at infinite side 1');
@@ -357,7 +358,7 @@ class TriangularSurface {
 
                 if (
                     Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
-                    numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     console.log('is inside true at infinite side 2');
@@ -367,16 +368,16 @@ class TriangularSurface {
             //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
             else {
                 if (
-                    numberIsBetween(verticesAtPointOfIntersection[2][0],0,verticesAtPointOfIntersection[1][0]) &&
-                    numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
+                    numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
+                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
+                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true)
                 ) {
                     console.log('is inside true at c is between');
                     isInsideTriangle = true;
                 }
                 //otherwise, intersection must be between z values
                 if (
-                    !numberIsBetween(verticesAtPointOfIntersection[2][0],0,verticesAtPointOfIntersection[1][0]) &&
+                    !numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
                 ) {
                     console.log('is inside true at c is outside');
@@ -387,7 +388,7 @@ class TriangularSurface {
             console.log('is inside is',isInsideTriangle,'before lower bound check');
 
             //intersection has to be on same side of z as c
-            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,verticesAtPointOfIntersection[2][2], true)) {
+            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],ZBottom,verticesAtPointOfIntersection[2][2], true)) {
                 console.log('is inside triangle set to false at lower bound check');
                 isInsideTriangle = false;
             }
