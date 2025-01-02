@@ -95,7 +95,6 @@ class Sculpted {
     }
 
     select(selected) {
-        console.log("select at cube");
         this.#selected = selected;
     }
 

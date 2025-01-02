@@ -91,7 +91,7 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 6,
-        meshJitter = 50,
+        meshJitter = 100,
         meshPosition = [-200,-30,-200],
         meshSquareWidth = 50,
         meshSquareLength = 50,
@@ -104,7 +104,7 @@ function UAGComponent() {
 
       let projectionPoint = glMatrix.vec3.fromValues(
         meshPosition[0],
-        meshPosition[1] - 1000,
+        meshPosition[1] + 10000,
         meshPosition[2]
       );
 

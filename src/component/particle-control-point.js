@@ -117,7 +117,6 @@ class ParticleControlPoint {
         glMatrix.vec3.scale(scaledMomentum, this.#momentum, interval*1000);
         //add momentum to position
         glMatrix.vec3.add(this.#position, this.#position, scaledMomentum);
-        // console.log('simulating control point',this.#position);
 
 
         glMatrix.vec3.scale(this.#momentum, this.#momentum, 0.99);
@@ -186,7 +185,6 @@ class ParticleControlPoint {
     }
 
     changeMomentum(momentumChangeArray) {
-        console.log('changemomentum at control point');
         let momentumChange = glMatrix.vec3.fromValues(
             momentumChangeArray[0],
             momentumChangeArray[1],

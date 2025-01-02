@@ -362,13 +362,11 @@ class TriangularSurface {
             let isInsideTriangle = false;
             //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
             if (Math.abs(side1ZValueAtPointOfIntersection) === Infinity || Math.abs(side2ZValueAtPointOfIntersection) === Infinity ) {
-                console.log('accounting for infinite z value');
                 if (
                     Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
                     numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
-                    console.log('is inside true at infinite side 1');
                     isInsideTriangle = true;
                 }
 
@@ -377,7 +375,6 @@ class TriangularSurface {
                     numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
-                    console.log('is inside true at infinite side 2');
                     isInsideTriangle = true;
                 }
             }
@@ -388,7 +385,6 @@ class TriangularSurface {
                     numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true)
                 ) {
-                    console.log('is inside true at c is between');
                     isInsideTriangle = true;
                 }
                 //otherwise, intersection must be between z values
@@ -396,41 +392,35 @@ class TriangularSurface {
                     !numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
                 ) {
-                    console.log('is inside true at c is outside');
                     isInsideTriangle = true;
                 }
             }
 
-            console.log('is inside is',isInsideTriangle,'before lower bound check');
-
             //intersection has to be on same side of z as c
             if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],ZBottom,verticesAtPointOfIntersection[2][2], true)) {
-                console.log('is inside triangle set to false at lower bound check');
                 isInsideTriangle = false;
             }
 
-            console.log(`
-                Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
-                In context point of intersection: ${inContextPointOfIntersection}
-                In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
-                In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
-                In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
-                c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
-                b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
-                Z Bottom value: ${newZBottom}
-                X Right value: ${newXRight}
+            // console.log(`
+            //     Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
+            //     In context point of intersection: ${inContextPointOfIntersection}
+            //     In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
+            //     In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
+            //     In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
+            //     c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
+            //     b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
+            //     Z Bottom value: ${newZBottom}
+            //     X Right value: ${newXRight}
 
-                Along X Axis Quotient: ${alongXAxisQuotient}
-                Along Z Axis Quotient: ${alongZAxisQuotient}
+            //     Along X Axis Quotient: ${alongXAxisQuotient}
+            //     Along Z Axis Quotient: ${alongZAxisQuotient}
 
-                k value: ${kValue}
-                slope value: ${slopeValue}
-                x value: ${inContextPointOfIntersection[0]}
-            `);
+            //     k value: ${kValue}
+            //     slope value: ${slopeValue}
+            //     x value: ${inContextPointOfIntersection[0]}
+            // `);
 
             if (isInsideTriangle) {
-                // debugger;
-                console.log('Particle intersection is inside triangle');
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 

@@ -160,7 +160,7 @@ class World {
   #gl = null;
   #globalGravityVector = glMatrix.vec3.fromValues(0, -50,0);
   #isRunning = false;
-  #cameraPosition = glMatrix.vec3.fromValues(0,100,200);
+  #cameraPosition = glMatrix.vec3.fromValues(0,-200,200);
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
   get triangularSurfaces () {

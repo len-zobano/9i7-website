@@ -351,12 +351,10 @@ class SphericalControlPoint {
 
                 if (distance - sharedDistance < shortestCollisionDistance) {
                     shortestCollisionDistance = distance - sharedDistance;
-                    console.log('new shortest collision distance:',shortestCollisionDistance,'distance:',distance,'and shared distance',sharedDistance);
                 }
 
                 if (distance - sharedDistance > longestCollisionDistance) {
                     longestCollisionDistance = distance - sharedDistance;
-                    console.log('new longest collision distance:',longestCollisionDistance,'distance:',distance,'and shared distance',sharedDistance);
                 }
 
                 if (distance < sharedDistance) {
