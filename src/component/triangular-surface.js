@@ -327,7 +327,13 @@ class TriangularSurface {
             // debugger;
 
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            let side1ZValueAtPointOfIntersection = (verticesAtPointOfIntersection[2][2]/verticesAtPointOfIntersection[2][0])*inContextPointOfIntersection[0];
+            let side1ZValueAtPointOfIntersection =                 
+                ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[0][2])/
+                (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[0][0]))*inContextPointOfIntersection[0]
+                +
+                ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[2][2])/
+                (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
+            
             let side2ZValueAtPointOfIntersection =
                 ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/
                 (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*inContextPointOfIntersection[0]
@@ -341,7 +347,17 @@ class TriangularSurface {
             let slopeValue = ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/  
             (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]));
             
-            let ZBottom = verticesAtPointOfIntersection[0][2], XRight = verticesAtPointOfIntersection[0][0];
+            let ZBottom = 0, XRight = 0, newZBottom = 0, newXRight = 0;
+            //Z bottom should be calcuated from v[1] to v[0] z values
+            let alongXAxisQuotient = (inContextPointOfIntersection[0] - verticesAtPointOfIntersection[1][0])/(verticesAtPointOfIntersection[0][0] - verticesAtPointOfIntersection[1][0]);
+            if (alongXAxisQuotient < 0) alongXAxisQuotient = 0;
+            if (alongXAxisQuotient > 1) alongXAxisQuotient = 1;
+            ZBottom = newZBottom = (1-alongXAxisQuotient)*verticesAtPointOfIntersection[1][2] + alongXAxisQuotient*verticesAtPointOfIntersection[0][2];
+
+            let alongZAxisQuotient = (inContextPointOfIntersection[2] - verticesAtPointOfIntersection[0][2])/(verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[0][2]);
+            if (alongZAxisQuotient < 0) alongZAxisQuotient = 0;
+            if (alongZAxisQuotient > 1) alongZAxisQuotient = 1;
+            XRight = newXRight = (1-alongZAxisQuotient)*verticesAtPointOfIntersection[0][0] + alongZAxisQuotient*verticesAtPointOfIntersection[2][0];
             //TODO: the top and bottom vertices system makes this inside triangle calculation invalid where the x axis is being used for compairson. 0.
             let isInsideTriangle = false;
             //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
@@ -396,10 +412,16 @@ class TriangularSurface {
             console.log(`
                 Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
                 In context point of intersection: ${inContextPointOfIntersection}
+                In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
                 In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
                 In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
                 c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
                 b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
+                Z Bottom value: ${newZBottom}
+                X Right value: ${newXRight}
+
+                Along X Axis Quotient: ${alongXAxisQuotient}
+                Along Z Axis Quotient: ${alongZAxisQuotient}
 
                 k value: ${kValue}
                 slope value: ${slopeValue}
@@ -407,6 +429,7 @@ class TriangularSurface {
             `);
 
             if (isInsideTriangle) {
+                // debugger;
                 console.log('Particle intersection is inside triangle');
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();

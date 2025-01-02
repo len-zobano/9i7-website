@@ -158,9 +158,9 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,-50,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0, -50,0);
   #isRunning = false;
-  #cameraPosition = glMatrix.vec3.create();
+  #cameraPosition = glMatrix.vec3.fromValues(0,100,200);
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
   get triangularSurfaces () {
