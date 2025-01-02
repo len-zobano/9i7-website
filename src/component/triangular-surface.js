@@ -320,21 +320,28 @@ class TriangularSurface {
                     this.#topVerticesInContext[i][2]*depthQuotient + this.#bottomVerticesInContext[i][2]*(1-depthQuotient)
                 );
             }
+
+            //TEMPORARY: just use middle triangle
+            // verticesAtPointOfIntersection = this.#middleVerticesInContext;
+            // let middleVertices = this.#middleVerticesInContext;
+            // debugger;
+
             //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            let side1ZValueAtPointOfIntersection = (verticesAtPointOfIntersection[1][2]/verticesAtPointOfIntersection[1][0])*inContextPointOfIntersection[0];
+            let side1ZValueAtPointOfIntersection = (verticesAtPointOfIntersection[2][2]/verticesAtPointOfIntersection[2][0])*inContextPointOfIntersection[0];
             let side2ZValueAtPointOfIntersection =
-                ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[0][2])/
-                (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*inContextPointOfIntersection[0]
+                ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/
+                (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*inContextPointOfIntersection[0]
                 +
-                ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[1][2])/
-                (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
+                ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[2][2])/
+                (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*verticesAtPointOfIntersection[1][0];
 
-            let kValue = ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[1][2])/
-            (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
+            let kValue = ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[2][2])/
+            (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*verticesAtPointOfIntersection[1][0];
 
-            let slopeValue = ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[0][2])/  
-            (verticesAtPointOfIntersection[1][0] - verticesAtPointOfIntersection[0][0]));
+            let slopeValue = ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/  
+            (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]));
             
+            //TODO: the top and bottom vertices system makes this inside triangle calculation invalid where the x axis is being used for compairson. 0.
             let isInsideTriangle = false;
             //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
             if (Math.abs(side1ZValueAtPointOfIntersection) === Infinity || Math.abs(side2ZValueAtPointOfIntersection) === Infinity ) {
@@ -342,7 +349,7 @@ class TriangularSurface {
                 if (
                     Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
                     numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[0][0], verticesAtPointOfIntersection[1][0])
+                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     console.log('is inside true at infinite side 1');
                     isInsideTriangle = true;
@@ -351,7 +358,7 @@ class TriangularSurface {
                 if (
                     Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
                     numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[0][0], verticesAtPointOfIntersection[1][0])
+                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     console.log('is inside true at infinite side 2');
                     isInsideTriangle = true;
@@ -360,7 +367,7 @@ class TriangularSurface {
             //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
             else {
                 if (
-                    numberIsBetween(verticesAtPointOfIntersection[1][0],0,verticesAtPointOfIntersection[0][0]) &&
+                    numberIsBetween(verticesAtPointOfIntersection[2][0],0,verticesAtPointOfIntersection[1][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],0,side1ZValueAtPointOfIntersection, true) &&
                     numberIsBetween(inContextPointOfIntersection[2],0,side2ZValueAtPointOfIntersection, true)
                 ) {
@@ -369,7 +376,7 @@ class TriangularSurface {
                 }
                 //otherwise, intersection must be between z values
                 if (
-                    !numberIsBetween(verticesAtPointOfIntersection[1][0],0,verticesAtPointOfIntersection[0][0]) &&
+                    !numberIsBetween(verticesAtPointOfIntersection[2][0],0,verticesAtPointOfIntersection[1][0]) &&
                     numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
                 ) {
                     console.log('is inside true at c is outside');
@@ -380,7 +387,7 @@ class TriangularSurface {
             console.log('is inside is',isInsideTriangle,'before lower bound check');
 
             //intersection has to be on same side of z as c
-            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,verticesAtPointOfIntersection[1][2], true)) {
+            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],0,verticesAtPointOfIntersection[2][2], true)) {
                 console.log('is inside triangle set to false at lower bound check');
                 isInsideTriangle = false;
             }
@@ -388,8 +395,8 @@ class TriangularSurface {
             console.log(`
                 Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
                 In context point of intersection: ${inContextPointOfIntersection}
-                In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[0]}
-                In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[1]}
+                In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
+                In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
                 c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
                 b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
 
