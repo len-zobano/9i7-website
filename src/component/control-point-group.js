@@ -1,4 +1,5 @@
 import * as glMatrix from 'gl-matrix';
+import engineMath from '../utility/engine-math';
 
 class ControlPointGroup {
     #world = null;
@@ -33,7 +34,7 @@ class ControlPointGroup {
     #drawDelegate = null;
 
     constructor(world) {
-        this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+        this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         world.addControlPointGroup(this);
         this.#linearMomentum = glMatrix.vec3.create();

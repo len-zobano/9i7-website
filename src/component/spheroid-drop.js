@@ -2,6 +2,7 @@ import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import SphericalControlPoint from './spherical-control-point';
+import engineMath from '../utility/engine-math';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
@@ -14,6 +15,11 @@ class SpheroidDrop {
   #speed = 5;
   #isCamera = false;
   #drawDelegate = null;
+  #visible = true;
+
+  set visible (v) {
+    this.#visible = v;
+  }
 
   #positionPoint = null; 
 
@@ -41,7 +47,7 @@ class SpheroidDrop {
     this.#world = world;
     this.#positionPoint = new SphericalControlPoint(this.#world, this, position);
     
-    this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+    this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
 
     let objFile = require('../models/drop.obj');
 
@@ -73,9 +79,9 @@ class SpheroidDrop {
             if (timesReturned === 3) {
                 timesReturned = 0;
                 currentColor = [
-                    Math.random()*0.5+0.25,
-                    Math.random()*0.5+0.25,
-                    Math.random()*0.5+0.25,
+                    engineMath.random()*0.5+0.25,
+                    engineMath.random()*0.5+0.25,
+                    engineMath.random()*0.5+0.25,
                     1.0
                 ];
                 // currentColor = [0.8,0.8,0.8,1.0];
@@ -138,9 +144,11 @@ class SpheroidDrop {
     });
   }
 
+
+
   draw() {
 
-    if (!this.#drawDelegate || this.#isCamera) {
+    if (!this.#drawDelegate || this.#isCamera || !this.#visible) {
         return;
     }
     // Set the drawing position to the "identity" point, which is

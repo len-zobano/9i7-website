@@ -1,6 +1,7 @@
 import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
+import engineMath from '../utility/engine-math';
 
 let globalSpeed = 10;
 let drawDelegates = {
@@ -103,6 +104,7 @@ class SphericalControlPoint {
     #position = null;
     #isSelected = false;
     #ID = null;
+    #bounciness = 0.5;
     get ID () {
         return this.#ID;
     }
@@ -171,7 +173,7 @@ class SphericalControlPoint {
     #drawDelegate = null;
 
     constructor(world, composite, position, drag) {
-        this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+        this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         this.#composite = composite;
         this.#position = glMatrix.vec3.fromValues(
@@ -466,6 +468,7 @@ class SphericalControlPoint {
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];
                         this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
+                        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, this.#bounciness);
                     }
                 }
             });

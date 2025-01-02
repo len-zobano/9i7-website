@@ -2,6 +2,7 @@ import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import ParticleControlPoint from './particle-control-point';
+import engineMath from '../utility/engine-math';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
@@ -40,7 +41,7 @@ class Sculpted {
 
   constructor(world) {
     this.#world = world;
-    this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+    this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
 
     let objFile = require('../models/blah.obj');
 
@@ -56,7 +57,7 @@ class Sculpted {
         });
 
         let colors = objOutput.models[0].vertices.map((vertex) => {
-          return [Math.random(), Math.random(), Math.random(), 1.0];
+          return [engineMath.random(), engineMath.random(), engineMath.random(), 1.0];
         }).reduce((a,b) => {
           return a.concat(b);
         });

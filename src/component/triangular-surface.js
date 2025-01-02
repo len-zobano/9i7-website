@@ -1,22 +1,6 @@
 import * as glMatrix from 'gl-matrix';
 import SimpleDrawDelegate from './simple-draw-delegate';
-
-function vec3ToArray (v) {
-    let arrayFromVector = [];
-    for (let i = 0; i < 3; ++i) {
-        arrayFromVector.push(v[i]);
-    }
-    return arrayFromVector;
-}
-
-function numberIsBetween (num, a, b, inclusive) {
-    if (inclusive) {
-        return (a <= num && num <= b) || (a >= num && num >= b);
-    }
-    else {
-        return (a < num && num < b) || (a > num && num > b);
-    }
-}
+import engineMath from '../utility/engine-math';
 
 class TriangularSurface {
     #thickness;
@@ -119,7 +103,7 @@ class TriangularSurface {
         this.#thickness = thickness;
         world.addDrawable(this);
         world.addTriangularSurface(this);
-        this.#ID = `${new Date().getTime()}${Math.round(Math.random()*10000)}`;
+        this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
 
         this.#middleVertices = vertices.map((vertex) => {
             return glMatrix.vec3.clone(vertex);
@@ -178,9 +162,9 @@ class TriangularSurface {
         this.#invertedVertexNormal = inverseProduct;
 
         let normalArray = [].concat(
-            vec3ToArray(product),
-            vec3ToArray(product),
-            vec3ToArray(product)
+            engineMath.vec3ToArray(product),
+            engineMath.vec3ToArray(product),
+            engineMath.vec3ToArray(product)
         );
 
         this.#cameraMatrix = this.createCameraMatrix();
@@ -214,13 +198,13 @@ class TriangularSurface {
         });
 
         let topVertexArray = this.#topVertices.map((vertex) => {
-            return vec3ToArray(vertex);
+            return engineMath.vec3ToArray(vertex);
         }).reduce((a, b) => {
             return a.concat(b);
         });
 
         let bottomVertexArray = this.#bottomVertices.map((vertex) => {
-            return vec3ToArray(vertex);
+            return engineMath.vec3ToArray(vertex);
         }).reduce((a, b) => {
             return a.concat(b);
         });
@@ -364,16 +348,16 @@ class TriangularSurface {
             if (Math.abs(side1ZValueAtPointOfIntersection) === Infinity || Math.abs(side2ZValueAtPointOfIntersection) === Infinity ) {
                 if (
                     Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
-                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
+                    engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true) &&
+                    engineMath.numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     isInsideTriangle = true;
                 }
 
                 if (
                     Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
-                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
+                    engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
+                    engineMath.numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
                 ) {
                     isInsideTriangle = true;
                 }
@@ -381,23 +365,23 @@ class TriangularSurface {
             //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
             else {
                 if (
-                    numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
-                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
-                    numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true)
+                    engineMath.numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
+                    engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
+                    engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true)
                 ) {
                     isInsideTriangle = true;
                 }
                 //otherwise, intersection must be between z values
                 if (
-                    !numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
-                    numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
+                    !engineMath.numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
+                    engineMath.numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
                 ) {
                     isInsideTriangle = true;
                 }
             }
 
             //intersection has to be on same side of z as c
-            if (isInsideTriangle && !numberIsBetween(inContextPointOfIntersection[2],ZBottom,verticesAtPointOfIntersection[2][2], true)) {
+            if (isInsideTriangle && !engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,verticesAtPointOfIntersection[2][2], true)) {
                 isInsideTriangle = false;
             }
 

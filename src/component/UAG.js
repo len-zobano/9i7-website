@@ -5,6 +5,7 @@ import World from './world';
 import Sculpted from './sculpted';
 import SpheroidDrop from './spheroid-drop'
 import TriangularSurface from './triangular-surface'
+import engineMath from '../utility/engine-math';
 
 import {
   BrowserRouter as Router,
@@ -65,46 +66,51 @@ function UAGComponent() {
 
       let dropGroup = new ControlPointGroup(world);
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
+      //TEMPORARY: 
+      numberOfDrops = 2;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance-100,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+50,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-70
         ].map((element) => {
-          return element+Math.random()*jitter;
+          return element+engineMath.random()*jitter;
         }));
 
         dropGroup.addControlPoint(cube.controlPoints[0]);
         cubes[i] = cube;
       }
 
-      // cubes.forEach((cube) => {
-      //   cube.positionPoint.bondToAnyWithinRadius(
-      //     cubes.map((otherCube) => {
-      //       return otherCube.positionPoint;
-      //     }),
-      //     1.7*distance,
-      //     5
-      //   )
-      // });
+      world.camera = cubes[1];
+      cubes[1].visible = false;
+
+      cubes.forEach((cube) => {
+        cube.positionPoint.bondToAnyWithinRadius(
+          cubes.map((otherCube) => {
+            return otherCube.positionPoint;
+          }),
+          1.7*distance,
+          5
+        )
+      });
 
       let 
         mesh = [],
         meshSize = 6,
         meshJitter = 100,
-        meshPosition = [-200,-30,-200],
+        meshPosition = [-200,-100,-200],
         meshSquareWidth = 50,
         meshSquareLength = 50,
         thickness = 10;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
-        mesh[i] = meshPosition[1] + Math.random()*meshJitter - meshJitter / 2;
+        mesh[i] = meshPosition[1] + engineMath.random()*meshJitter - meshJitter / 2;
       }
 
       let projectionPoint = glMatrix.vec3.fromValues(
         meshPosition[0],
-        meshPosition[1] + 10000,
+        meshPosition[1] - 10000,
         meshPosition[2]
       );
 
@@ -157,7 +163,7 @@ function UAGComponent() {
       }
     }
 
-    let ID = Math.floor(1000000*Math.random());
+    let ID = Math.floor(1000000*engineMath.random());
     
     document.addEventListener('keydown', function(event) {
       world.keyIsDown(event.keyCode);

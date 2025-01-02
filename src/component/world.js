@@ -160,11 +160,23 @@ class World {
   #gl = null;
   #globalGravityVector = glMatrix.vec3.fromValues(0, -50,0);
   #isRunning = false;
-  #cameraPosition = glMatrix.vec3.fromValues(0,-200,200);
+  #camera = null;
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
   get triangularSurfaces () {
     return this.#triangularSurfaces.slice(0);
+  }
+
+  set camera (controlPoint) {
+    this.#camera = controlPoint;
+  }
+
+  get cameraPosition () {
+    let originalPosition = this.#camera.position;
+    let offset = glMatrix.vec3.create();
+    glMatrix.vec3.scale(offset, this.#upPosition, 0.01);
+    glMatrix.vec3.add(originalPosition, originalPosition, offset);
+    return originalPosition;
   }
 
   //TODO: is this the best way to avoid chaotically strong repulsion?
@@ -317,7 +329,7 @@ constructor() {
         let cameraDirection = glMatrix.vec3.create();
         glMatrix.vec3.subtract(
             cameraDirection, 
-            vec3FromArray(this.#cameraPosition), 
+            this.cameraPosition, 
             vec3FromArray(this.#selected.position)               
         );
         glMatrix.vec3.normalize(cameraDirection, cameraDirection);
@@ -472,11 +484,11 @@ constructor() {
             Camera view
             */
 
-            if (this.#cameraPosition && this.#selected && this.#upPosition) {
+            if (this.cameraPosition && this.#selected && this.#upPosition) {
                 let cameraDirection = glMatrix.vec3.create();
                 glMatrix.vec3.subtract(
                     cameraDirection, 
-                    vec3FromArray(this.#cameraPosition), 
+                    this.cameraPosition, 
                     vec3FromArray(this.#selected.position)               
                 );
                 glMatrix.vec3.normalize(cameraDirection, cameraDirection);
@@ -499,7 +511,7 @@ constructor() {
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    -this.#cameraPosition[0], -this.#cameraPosition[1], -this.#cameraPosition[2], 1
+                    -this.cameraPosition[0], -this.cameraPosition[1], -this.cameraPosition[2], 1
                 );
 
                this.#modelViewMatrix = glMatrix.mat4.create();
