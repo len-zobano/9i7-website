@@ -280,6 +280,14 @@ class TriangularSurface {
                 };
             }            
 
+            if (intersection) {
+                console.log(`
+                    Y value: ${intersection.yValue}
+                    Portion of line after: ${intersection.portionOfLineAfterIntersection}
+                    For origin ${origin}, termination ${termination}, and padding ${intersectionPadding}
+                `);
+            }
+
             return intersection;
             /*
                 { yValue: 0, portionOfLineAfterIntersection: 0}
@@ -290,9 +298,9 @@ class TriangularSurface {
         //if the line segment doesn't hit y=0, return nothing
         if (intersectionData) {
             let inContextPointOfIntersection = [
-                inContextSegmentTermination[0]*intersectionData.portionOfLineAfterIntersection + inContextSegmentOrigin[0]*(1-intersectionData.portionOfLineAfterIntersection),
+                inContextSegmentTermination[0]*(1-intersectionData.portionOfLineAfterIntersection) + inContextSegmentOrigin[0]*intersectionData.portionOfLineAfterIntersection,
                 intersectionData.yValue,
-                inContextSegmentTermination[2]*intersectionData.portionOfLineAfterIntersection + inContextSegmentOrigin[2]*(1-intersectionData.portionOfLineAfterIntersection),
+                inContextSegmentTermination[2]*(1-intersectionData.portionOfLineAfterIntersection) + inContextSegmentOrigin[2]*intersectionData.portionOfLineAfterIntersection,
             ];
 
             let verticesAtPointOfIntersection = [];
@@ -385,26 +393,39 @@ class TriangularSurface {
                 isInsideTriangle = false;
             }
 
-            // console.log(`
-            //     Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
-            //     In context point of intersection: ${inContextPointOfIntersection}
-            //     In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
-            //     In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
-            //     In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
-            //     c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
-            //     b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
-            //     Z Bottom value: ${newZBottom}
-            //     X Right value: ${newXRight}
-
-            //     Along X Axis Quotient: ${alongXAxisQuotient}
-            //     Along Z Axis Quotient: ${alongZAxisQuotient}
-
-            //     k value: ${kValue}
-            //     slope value: ${slopeValue}
-            //     x value: ${inContextPointOfIntersection[0]}
-            // `);
-
             if (isInsideTriangle) {
+
+                console.log(`
+                    Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
+                    In context point of intersection: ${inContextPointOfIntersection}
+                    In context top vertex - 0: ${this.#topVerticesInContext[0]}
+                    In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
+                    In context top vertex - b: ${this.#topVerticesInContext[1]}
+                    In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
+                    In context top vertex - b: ${this.#topVerticesInContext[2]}
+                    In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
+                    c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
+                    b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
+                    Z Bottom value: ${newZBottom}
+                    X Right value: ${newXRight}
+
+                    Along X Axis Quotient: ${alongXAxisQuotient}
+                    Along Z Axis Quotient: ${alongZAxisQuotient}
+
+                    k value: ${kValue}
+                    slope value: ${slopeValue}
+                    x value: ${inContextPointOfIntersection[0]}
+                `);
+
+                // let topVertices = this.#topVertices, middleVertices = this.#middleVertices, bottomVertices = this.#bottomVertices;
+                // let vertexDistances = [0,1,2].map((index) => {
+                //     let distanceVector = glMatrix.vec3.create();
+                //     glMatrix.vec3.subtract(distanceVector, this.#topVerticesInContext[index], this.#bottomVerticesInContext[index]);
+                //     let length = glMatrix.vec3.length(distanceVector);
+                //     return length;
+                // });
+
+                // debugger;
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
@@ -414,6 +435,9 @@ class TriangularSurface {
                     this.#contextMatrix
                 );
 
+
+                //TODO: reexamine this mirroring code just to verify all the math is right
+                //and come up with some kind of a unit test for it
                 let mirroringContextMatrix = this.createContextMatrixAt(absolutePointOfIntersection);
                 let invertedMirroringContextMatrix = glMatrix.mat4.create();
                 glMatrix.mat4.invert(invertedMirroringContextMatrix, mirroringContextMatrix);
@@ -434,6 +458,7 @@ class TriangularSurface {
                 );
                 //move the vectors in the direction of the rebound by the amount of collision rebound padding
                 newLineSegmentPart = [absolutePointOfIntersection, absoluteMirroredSegmentTermination];
+                debugger;
             }
         }
 

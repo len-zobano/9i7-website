@@ -104,7 +104,7 @@ class SphericalControlPoint {
     #position = null;
     #isSelected = false;
     #ID = null;
-    #bounciness = 0.5;
+    #bounciness = 1.0;
     get ID () {
         return this.#ID;
     }

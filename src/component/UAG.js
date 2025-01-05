@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as glMatrix from 'gl-matrix';
-import RainbowCube from './rainbow-cube';
 import World from './world';
-import Sculpted from './sculpted';
 import SpheroidDrop from './spheroid-drop'
+import SimpleCamera from './simple-camera';
 import TriangularSurface from './triangular-surface'
 import engineMath from '../utility/engine-math';
 
@@ -59,19 +58,29 @@ function UAGComponent() {
 
     function initializeWorld() {
       world = new World();
-      let cubeSize = 4;
+      let cubeSize = 1;
       let distance =20;
       let cubes = [];
       let jitter = 8  ;
 
+      // let randomValues = [];
+      // for (let i = 0; i < 100; ++i) {
+      //   randomValues.push(engineMath.random());
+      // }
+      // randomValues.sort((a, b) => {
+      //   return a-b;
+      // });
+      // let differences = [];
+      // for (let i = 0; i < 99; ++i) {
+      //   differences.push(randomValues[i+1] - randomValues[i]);
+      // }
+
       let dropGroup = new ControlPointGroup(world);
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
-      //TEMPORARY: 
-      numberOfDrops = 2;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
           (i%cubeSize)*distance-100,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+50,
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+150,
           ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-70
         ].map((element) => {
           return element+engineMath.random()*jitter;
@@ -81,8 +90,8 @@ function UAGComponent() {
         cubes[i] = cube;
       }
 
-      world.camera = cubes[1];
-      cubes[1].visible = false;
+      let camera = new SimpleCamera(world, 20, 5);
+      camera.focused = cubes[0];
 
       cubes.forEach((cube) => {
         cube.positionPoint.bondToAnyWithinRadius(
@@ -97,11 +106,11 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 6,
-        meshJitter = 100,
+        meshJitter = 50,
         meshPosition = [-200,-100,-200],
         meshSquareWidth = 50,
         meshSquareLength = 50,
-        thickness = 10;
+        thickness = 100;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {

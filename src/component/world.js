@@ -153,6 +153,7 @@ class World {
   #currentTime = 0;
   #drawables = [];
   #controlPoints = [];
+  #cameras = [];
   #controlPointGroups = [];
   #selected = null;
   #projectionMatrix = null;
@@ -160,22 +161,17 @@ class World {
   #gl = null;
   #globalGravityVector = glMatrix.vec3.fromValues(0, -50,0);
   #isRunning = false;
-  #camera = null;
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
   get triangularSurfaces () {
     return this.#triangularSurfaces.slice(0);
   }
 
-  set camera (controlPoint) {
-    this.#camera = controlPoint;
-  }
-
   get cameraPosition () {
-    let originalPosition = this.#camera.position;
-    let offset = glMatrix.vec3.create();
-    glMatrix.vec3.scale(offset, this.#upPosition, 0.01);
-    glMatrix.vec3.add(originalPosition, originalPosition, offset);
+    let originalPosition = this.#cameras[0].position;
+    // let offset = glMatrix.vec3.create();
+    // glMatrix.vec3.scale(offset, this.#upPosition, 0.01);
+    // glMatrix.vec3.add(originalPosition, originalPosition, offset);
     return originalPosition;
   }
 
@@ -261,6 +257,10 @@ constructor() {
 
   addControlPointGroup(controlPointGroup) {
     this.#controlPointGroups.push(controlPointGroup);
+  }
+
+  addCamera(camera) {
+    this.#cameras.push(camera);
   }
 
   addTriangularSurface(triangularSurface) {
@@ -444,8 +444,16 @@ constructor() {
         controlPointGroup.calculateTrajectory(interval);
     });
 
+    this.#cameras.forEach((camera) => {
+        camera.calculateTrajectory(interval);
+    });
+
     this.#controlPointGroups.forEach((controlPointGroup) => {
         controlPointGroup.simulate(interval);
+    });
+
+    this.#cameras.forEach((camera) => {
+        camera.simulate(interval);
     });
 
     //only iterate after all other collisions are calculated
