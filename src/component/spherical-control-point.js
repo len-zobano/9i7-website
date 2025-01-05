@@ -162,7 +162,7 @@ class SphericalControlPoint {
     get right () {
         return glMatrix.vec3.clone(this.#right);
     }
-    #friction = 0.0;
+    #friction = 1.0;
     #composite = null;
     #radius = 1.2;
     get radius () {
@@ -464,6 +464,18 @@ class SphericalControlPoint {
                         collidedWithSurface = true;
                         lastCollidedSurface = triangularSurface;
                         ++numberOfCollisions;
+                        //calculate angular momentum
+                        let 
+                            firstLegOfBounce = glMatrix.vec3.create(),
+                            secondLegOfBounce = glMatrix.vec3.create();
+
+                        glMatrix.vec3.subtract(firstLegOfBounce, this.#position, mirroredSegment[0]);
+                        glMatrix.vec3.subtract(secondLegOfBounce, mirroredSegment[1], mirroredSegment[0]);
+                        let angleOfCollision = angleBetweenTwoVectors(firstLegOfBounce, secondLegOfBounce);
+                        let magnitudeOfRotation = glMatrix.vec3.length(this.#linearMomentum)*this.#friction;
+                        for (let i = 0; i < 3; ++i) {
+                            this.#angularMomentum[i] += angleOfCollision[i]*magnitudeOfRotation;
+                        }
                         //change particles
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];

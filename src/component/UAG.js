@@ -92,7 +92,7 @@ function UAGComponent() {
 
       let camera = new SimpleCamera(world, 20, 5);
       camera.position = glMatrix.vec3.fromValues(0,-100,-300);
-      // camera.focused = cubes[0];
+      camera.focused = cubes[0];
 
       // cubes.forEach((cube) => {
       //   cube.positionPoint.bondToAnyWithinRadius(
