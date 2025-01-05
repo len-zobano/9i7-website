@@ -13,6 +13,10 @@ class SimpleCamera {
         return glMatrix.vec3.clone(this.#position);
     }
 
+    set position (vertex) {
+        this.#position = glMatrix.vec3.clone(vertex);
+    }
+
     set focused (controlPoint) {
         this.#focused = controlPoint;
     }

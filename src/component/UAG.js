@@ -58,7 +58,7 @@ function UAGComponent() {
 
     function initializeWorld() {
       world = new World();
-      let cubeSize = 1;
+      let cubeSize = 4;
       let distance =20;
       let cubes = [];
       let jitter = 8  ;
@@ -91,17 +91,18 @@ function UAGComponent() {
       }
 
       let camera = new SimpleCamera(world, 20, 5);
+      camera.position = glMatrix.vec3.fromValues(0,-100,-300);
       // camera.focused = cubes[0];
 
-      cubes.forEach((cube) => {
-        cube.positionPoint.bondToAnyWithinRadius(
-          cubes.map((otherCube) => {
-            return otherCube.positionPoint;
-          }),
-          1.7*distance,
-          5
-        )
-      });
+      // cubes.forEach((cube) => {
+      //   cube.positionPoint.bondToAnyWithinRadius(
+      //     cubes.map((otherCube) => {
+      //       return otherCube.positionPoint;
+      //     }),
+      //     1.7*distance,
+      //     5
+      //   )
+      // });
 
       let 
         mesh = [],
