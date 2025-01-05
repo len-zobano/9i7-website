@@ -8,6 +8,11 @@ class TriangularSurface {
     #bottomVertices = [];
     #depth = 0;
     #vertexNormal = null;
+
+    get vertexNormal () {
+        return glMatrix.vec3.clone(this.#vertexNormal);
+    }
+
     #invertedVertexNormal = null;
     //TODO: make sure this is vertex index 1 and 2 transformed by the context matrix
     #verticesInContext = [];
