@@ -106,22 +106,16 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 6,
-        meshJitter = 50,
+        meshJitter = 100,
         meshPosition = [-200,-100,-200],
         meshSquareWidth = 50,
         meshSquareLength = 50,
-        thickness = 100;
+        thickness = -50;
 
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
         mesh[i] = meshPosition[1] + engineMath.random()*meshJitter - meshJitter / 2;
       }
-
-      let projectionPoint = glMatrix.vec3.fromValues(
-        meshPosition[0],
-        meshPosition[1] - 10000,
-        meshPosition[2]
-      );
 
       for (let x = 0; x < meshSize - 1; ++x) for (let y = 0; y < meshSize - 1; ++y) {
         let triangle1 = new TriangularSurface(
@@ -142,8 +136,24 @@ function UAGComponent() {
               mesh[(y+ 1)*meshSize + x],
               meshPosition[2] + (y + 1)*meshSquareLength
             ),
+          ],
+          [
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareWidth,
+              mesh[y*meshSize + x] + thickness,
+              meshPosition[2] + y*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareWidth,
+              mesh[y*meshSize + x + 1] + thickness,
+              meshPosition[2] + y*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareWidth,
+              mesh[(y+ 1)*meshSize + x] + thickness,
+              meshPosition[2] + (y + 1)*meshSquareLength
+            ),
           ], 
-          projectionPoint,
           thickness
         );
 
@@ -166,7 +176,23 @@ function UAGComponent() {
               meshPosition[2] + y*meshSquareLength
             ),
           ],
-          projectionPoint,
+          [
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareWidth,
+              mesh[(y+ 1)*meshSize + (x + 1)] + thickness,
+              meshPosition[2] + (y + 1)*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + x*meshSquareWidth,
+              mesh[(y+ 1)*meshSize + x] + thickness,
+              meshPosition[2] + (y + 1)*meshSquareLength
+            ),
+            glMatrix.vec3.fromValues(
+              meshPosition[0] + (x + 1)*meshSquareWidth,
+              mesh[y*meshSize + x + 1] + thickness,
+              meshPosition[2] + y*meshSquareLength
+            ),
+          ],
           thickness
         );
       }
