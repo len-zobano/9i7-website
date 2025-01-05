@@ -41,27 +41,29 @@ class SimpleCamera {
     }
 
     simulate(interval) {
-      //focus  
-      let relativePositionOfFocused = glMatrix.vec3.create();
+      //focus 
+      if (this.#focused) { 
+        let relativePositionOfFocused = glMatrix.vec3.create();
 
-        let focused = this.#focused;
-        let position = this.#position;
+            let focused = this.#focused;
+            let position = this.#position;
 
-      glMatrix.vec3.subtract(relativePositionOfFocused, this.#focused.position, this.#position);
-      let distanceFromFocused = glMatrix.vec3.length(relativePositionOfFocused);
-      //if distance is longer than this.#distance
-      if (distanceFromFocused > this.#distance) {
-        let distanceToMove = distanceFromFocused - this.#distance;
-        //note: the naming of this variable is no longer accurate. relativePositionOfFocused is now the amount to move
-        glMatrix.vec3.scale(relativePositionOfFocused, relativePositionOfFocused, distanceToMove/distanceFromFocused);
-        glMatrix.vec3.add(this.#position, this.#position, relativePositionOfFocused);
-      }
-      //otherwise, if distance is shorter than this.#near
-      if (distanceFromFocused < this.#near) {
-        let distanceToMove = this.#near - distanceFromFocused;
+        glMatrix.vec3.subtract(relativePositionOfFocused, this.#focused.position, this.#position);
+        let distanceFromFocused = glMatrix.vec3.length(relativePositionOfFocused);
+        //if distance is longer than this.#distance
+        if (distanceFromFocused > this.#distance) {
+            let distanceToMove = distanceFromFocused - this.#distance;
+            //note: the naming of this variable is no longer accurate. relativePositionOfFocused is now the amount to move
+            glMatrix.vec3.scale(relativePositionOfFocused, relativePositionOfFocused, distanceToMove/distanceFromFocused);
+            glMatrix.vec3.add(this.#position, this.#position, relativePositionOfFocused);
+        }
+        //otherwise, if distance is shorter than this.#near
+        if (distanceFromFocused < this.#near) {
+            let distanceToMove = this.#near - distanceFromFocused;
 
-        glMatrix.vec3.scale(relativePositionOfFocused, relativePositionOfFocused, distanceToMove/distanceFromFocused);
-        glMatrix.vec3.subtract(this.#position, this.#position, relativePositionOfFocused);
+            glMatrix.vec3.scale(relativePositionOfFocused, relativePositionOfFocused, distanceToMove/distanceFromFocused);
+            glMatrix.vec3.subtract(this.#position, this.#position, relativePositionOfFocused);
+        }
       }
     }
 }

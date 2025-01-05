@@ -91,7 +91,7 @@ function UAGComponent() {
       }
 
       let camera = new SimpleCamera(world, 20, 5);
-      camera.focused = cubes[0];
+      // camera.focused = cubes[0];
 
       cubes.forEach((cube) => {
         cube.positionPoint.bondToAnyWithinRadius(
