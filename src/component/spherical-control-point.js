@@ -104,7 +104,7 @@ class SphericalControlPoint {
     #position = null;
     #isSelected = false;
     #ID = null;
-    #bounciness = 1.0;
+    #bounciness = 1;
     get ID () {
         return this.#ID;
     }
@@ -460,7 +460,7 @@ class SphericalControlPoint {
                 ) {
                     let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
                     if (mirroredSegment && lastCollidedSurface !== triangularSurface) {
-                        //set repeat collision detection data
+                        //set repeat collision detection data 
                         collidedWithSurface = true;
                         lastCollidedSurface = triangularSurface;
                         ++numberOfCollisions;
@@ -471,13 +471,23 @@ class SphericalControlPoint {
                         glMatrix.vec3.subtract(secondLegOfBounce, mirroredSegment[1], mirroredSegment[0]);
                         let angleOfCollision = angleBetweenTwoVectors(triangularSurface.vertexNormal, secondLegOfBounce);
                         let magnitudeOfRotation = glMatrix.vec3.length(this.#linearMomentum)*this.#friction;
+                        //todo: radius should be factored into this
                         for (let i = 0; i < 3; ++i) {
                             this.#angularMomentum[i] += angleOfCollision[i]*magnitudeOfRotation/10;
                         }
+
+                        let mangitudeOfMomentum = glMatrix.vec3.length(this.#linearMomentum);
+                        let flattenParticle = mangitudeOfMomentum < 30;
                         //change particles
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];
+                        if (flattenParticle) {
+                            positionBeforeSurfaceCollision = triangularSurface.flattenAbsoluteVectorAlongPlane(positionBeforeSurfaceCollision);
+                        }
                         this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
+                        if (flattenParticle) {
+                            this.#linearMomentum = triangularSurface.flattenRelativeVectorAlongPlane(this.#linearMomentum);
+                        }
                         glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, this.#bounciness);
                     }
                 }

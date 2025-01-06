@@ -227,14 +227,6 @@ class TriangularSurface {
                 };
             }            
 
-            if (intersection) {
-                console.log(`
-                    Y value: ${intersection.yValue}
-                    Portion of line after: ${intersection.portionOfLineAfterIntersection}
-                    For origin ${origin}, termination ${termination}
-                `);
-            }
-
             return intersection;
             /*
                 { yValue: 0, portionOfLineAfterIntersection: 0}
@@ -262,11 +254,6 @@ class TriangularSurface {
                 for (let i = 0; i < 3; ++i) {
                     //get relative vertex
                     let relativePositionOfBottom = glMatrix.vec3.create();
-                    console.log(`
-                        Getting relative position of bottom
-                        Bottom vertex: ${this.#bottomVerticesInContext[i]}
-                        Vertex: ${this.#verticesInContext[i]}
-                    `);
                     glMatrix.vec3.subtract(relativePositionOfBottom, this.#bottomVerticesInContext[i], this.#verticesInContext[i]);
                     //get y value
                     let toScale = intersectionData.yValue / relativePositionOfBottom[1];
@@ -275,81 +262,6 @@ class TriangularSurface {
                     verticesAtPointOfIntersection[i] = relativePositionOfBottom;
                 }
             }
-
-            // //the triangle of intersection is on the x-z plane. The coordinates are [0,0], [c, 0], [dx, dz]
-            // let side1ZValueAtPointOfIntersection =                 
-            //     ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[0][2])/
-            //     (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[0][0]))*inContextPointOfIntersection[0]
-            //     +
-            //     ((verticesAtPointOfIntersection[0][2] - verticesAtPointOfIntersection[2][2])/
-            //     (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[0][0]))*verticesAtPointOfIntersection[0][0];
-            
-            // let side2ZValueAtPointOfIntersection =
-            //     ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/
-            //     (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*inContextPointOfIntersection[0]
-            //     +
-            //     ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[2][2])/
-            //     (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*verticesAtPointOfIntersection[1][0];
-
-            // let kValue = ((verticesAtPointOfIntersection[1][2] - verticesAtPointOfIntersection[2][2])/
-            // (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]))*verticesAtPointOfIntersection[1][0];
-
-            // let slopeValue = ((verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[1][2])/  
-            // (verticesAtPointOfIntersection[2][0] - verticesAtPointOfIntersection[1][0]));
-            
-            // let ZBottom = 0, XRight = 0, newZBottom = 0, newXRight = 0;
-            // //Z bottom should be calcuated from v[1] to v[0] z values
-            // let alongXAxisQuotient = (inContextPointOfIntersection[0] - verticesAtPointOfIntersection[1][0])/(verticesAtPointOfIntersection[0][0] - verticesAtPointOfIntersection[1][0]);
-            // if (alongXAxisQuotient < 0) alongXAxisQuotient = 0;
-            // if (alongXAxisQuotient > 1) alongXAxisQuotient = 1;
-            // ZBottom = newZBottom = (1-alongXAxisQuotient)*verticesAtPointOfIntersection[1][2] + alongXAxisQuotient*verticesAtPointOfIntersection[0][2];
-
-            // let alongZAxisQuotient = (inContextPointOfIntersection[2] - verticesAtPointOfIntersection[0][2])/(verticesAtPointOfIntersection[2][2] - verticesAtPointOfIntersection[0][2]);
-            // if (alongZAxisQuotient < 0) alongZAxisQuotient = 0;
-            // if (alongZAxisQuotient > 1) alongZAxisQuotient = 1;
-            // XRight = newXRight = (1-alongZAxisQuotient)*verticesAtPointOfIntersection[0][0] + alongZAxisQuotient*verticesAtPointOfIntersection[2][0];
-            // //TODO: the top and bottom vertices system makes this inside triangle calculation invalid where the x axis is being used for compairson. 0.
-            // let isInsideTriangle = false;
-            // //if one z value is infinite, must be lower than the other z value, and between the 2 vertices at x
-            // if (Math.abs(side1ZValueAtPointOfIntersection) === Infinity || Math.abs(side2ZValueAtPointOfIntersection) === Infinity ) {
-            //     if (
-            //         Math.abs(side1ZValueAtPointOfIntersection) === Infinity && 
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true) &&
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
-            //     ) {
-            //         isInsideTriangle = true;
-            //     }
-
-            //     if (
-            //         Math.abs(side2ZValueAtPointOfIntersection) === Infinity && 
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[0],verticesAtPointOfIntersection[1][0], verticesAtPointOfIntersection[2][0])
-            //     ) {
-            //         isInsideTriangle = true;
-            //     }
-            // }
-            // //if c is between b and 0 on the x axis, intersection must be closer to z=0 than both z values
-            // else {
-            //     if (
-            //         engineMath.numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side1ZValueAtPointOfIntersection, true) &&
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,side2ZValueAtPointOfIntersection, true)
-            //     ) {
-            //         isInsideTriangle = true;
-            //     }
-            //     //otherwise, intersection must be between z values
-            //     if (
-            //         !engineMath.numberIsBetween(verticesAtPointOfIntersection[2][0],XRight,verticesAtPointOfIntersection[1][0]) &&
-            //         engineMath.numberIsBetween(inContextPointOfIntersection[2],side1ZValueAtPointOfIntersection,side2ZValueAtPointOfIntersection, true)
-            //     ) {
-            //         isInsideTriangle = true;
-            //     }
-            // }
-
-            // //intersection has to be on same side of z as c
-            // if (isInsideTriangle && !engineMath.numberIsBetween(inContextPointOfIntersection[2],ZBottom,verticesAtPointOfIntersection[2][2], true)) {
-            //     isInsideTriangle = false;
-            // }
 
             function sign (p1, p2, p3)
             {
@@ -388,38 +300,6 @@ class TriangularSurface {
                     In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
                 `);
 
-                // console.log(`
-                //     Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
-                //     In context point of intersection: ${inContextPointOfIntersection}
-                //     In context top vertex - 0: ${this.#verticesInContext[0]}
-                //     In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
-                //     In context top vertex - b: ${this.#verticesInContext[1]}
-                //     In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
-                //     In context top vertex - b: ${this.#verticesInContext[2]}
-                //     In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
-                //     c -> 0 z value at point of intersection: ${side1ZValueAtPointOfIntersection}
-                //     b -> c z value at point of intersection: ${side2ZValueAtPointOfIntersection}
-                //     Z Bottom value: ${newZBottom}
-                //     X Right value: ${newXRight}
-
-                //     Along X Axis Quotient: ${alongXAxisQuotient}
-                //     Along Z Axis Quotient: ${alongZAxisQuotient}
-
-                //     k value: ${kValue}
-                //     slope value: ${slopeValue}
-                //     x value: ${inContextPointOfIntersection[0]}
-                // `);
-
-                // let topVertices = this.#topVertices, middleVertices = this.#middleVertices, bottomVertices = this.#bottomVertices;
-                // let vertexDistances = [0,1,2].map((index) => {
-                //     let distanceVector = glMatrix.vec3.create();
-                //     glMatrix.vec3.subtract(distanceVector, this.#topVerticesInContext[index], this.#bottomVerticesInContext[index]);
-                //     let length = glMatrix.vec3.length(distanceVector);
-                //     return length;
-                // });
-
-                // debugger;
-
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
                 glMatrix.vec3.transformMat4(
@@ -457,15 +337,35 @@ class TriangularSurface {
         return newLineSegmentPart;
     }
 
+    flattenAbsoluteVectorAlongPlane(vector) {
+        let flattenedVector = glMatrix.vec3.clone(vector);
+
+        glMatrix.vec3.transformMat4(flattenedVector, flattenedVector, this.#inverseContextMatrix);
+        flattenedVector[1] = 0;
+        glMatrix.vec3.transformMat4(flattenedVector, flattenedVector, this.#contextMatrix);
+
+        return flattenedVector;
+    }
+    
+    flattenRelativeVectorAlongPlane(vector) {
+        let flattenedVector = glMatrix.vec3.clone(vector);
+
+        glMatrix.vec3.transformMat4(flattenedVector, flattenedVector, this.#inverseDrawMatrix);
+        flattenedVector[1] = 0;
+        glMatrix.vec3.transformMat4(flattenedVector, flattenedVector, this.#drawMatrix);
+
+        return flattenedVector;
+    }
+
     mirrorAbsoluteVector(vector) {
         let mirroredVector = glMatrix.vec3.create();
-        glMatrix.vec3.transformMat4(mirroredVector, vector, this.#contextMatrix);
+        glMatrix.vec3.transformMat4(mirroredVector, vector, this.#inverseContextMatrix);
         mirroredVector = glMatrix.vec3.fromValues(
             mirroredVector[0],
             -mirroredVector[1],
             mirroredVector[2]
         );
-        glMatrix.vec3.transformMat4(mirroredVector, mirroredVector, this.#inverseContextMatrix);
+        glMatrix.vec3.transformMat4(mirroredVector, mirroredVector, this.#contextMatrix);
         return mirroredVector;
     }
 
