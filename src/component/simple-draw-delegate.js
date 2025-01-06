@@ -8,6 +8,7 @@ attribute vec4 aVertexColor;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uNormalMatrix;
+uniform vec4 uPointLightLocation;
 
 varying lowp vec4 vColor;
 varying highp vec3 vLighting;
@@ -22,7 +23,16 @@ void main() {
 
   highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
   highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+
+  highp vec4 relativePositionOfLight =  uModelViewMatrix * uPointLightLocation - uModelViewMatrix * aVertexPosition;
+  highp float distanceFromPointLight = length(relativePositionOfLight);
+
   vLighting = ambientLight + (directionalLightColor * directional);
+
+  if (distanceFromPointLight < 150.0) 
+  {
+    vLighting = vLighting * 0.2;
+  }
 }
 `,
 
@@ -201,6 +211,12 @@ class SimpleDrawDelegate {
           false,
           normalMatrix,
         );
+        
+        //set the light location
+        this.#world.gl.uniform3fv(
+          this.#programInfo.uniformLocations.pointLightLocation,
+          glMatrix.vec3.create(-200,-100,-200)
+        );
 
         {
           const type = this.#world.gl.UNSIGNED_SHORT;
@@ -212,7 +228,7 @@ class SimpleDrawDelegate {
           );
         }
       }
-      
+
     constructor(world, positions, colors, normals, indices) {
 
         if (!indices) {
@@ -282,6 +298,7 @@ class SimpleDrawDelegate {
                     projectionMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uProjectionMatrix"),
                     modelViewMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uModelViewMatrix"),
                     normalMatrix: world.gl.getUniformLocation(this.#shaderProgram,"uNormalMatrix"),
+                    pointLightLocation: world.gl.getUniformLocation(this.#shaderProgram, "uPointLightLocation")
                 },
             };
         }
