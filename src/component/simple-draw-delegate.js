@@ -29,7 +29,7 @@ void main() {
 
   vLighting = ambientLight + (directionalLightColor * directional);
 
-  if (distanceFromPointLight < 150.0) 
+  if (distanceFromPointLight < 50.0) 
   {
     vLighting = vLighting * 0.2;
   }
@@ -47,7 +47,8 @@ void main(void) {
 `,
 
 globalFragmentShader = null,
-globalVertexShader = null;
+globalVertexShader = null,
+globalPointLightControlPoint = null;
 
 class SimpleDrawDelegate {
     #buffers = null;
@@ -59,6 +60,10 @@ class SimpleDrawDelegate {
     #colors = null;
     #indices = null;
     #normals = null;
+
+    setGlobalPointLightControlPoint (controlPoint) {
+      globalPointLightControlPoint = controlPoint;
+    }
 
     setNormalAttribute() {
       const numComponents = 3;
@@ -213,9 +218,19 @@ class SimpleDrawDelegate {
         );
         
         //set the light location
-        this.#world.gl.uniform3fv(
+        let pointLightLocation = glMatrix.vec3.create(0,0,0);
+        if (globalPointLightControlPoint) {
+          pointLightLocation = globalPointLightControlPoint.position;
+        }
+
+        this.#world.gl.uniform4fv(
           this.#programInfo.uniformLocations.pointLightLocation,
-          glMatrix.vec3.create(-200,-100,-200)
+          glMatrix.vec4.fromValues(
+            pointLightLocation[0],
+            pointLightLocation[1],
+            pointLightLocation[2],
+            1.0
+          )
         );
 
         {

@@ -5,6 +5,7 @@ import SpheroidDrop from './spheroid-drop'
 import SimpleCamera from './simple-camera';
 import TriangularSurface from './triangular-surface'
 import engineMath from '../utility/engine-math';
+import SimpleDrawDelegate from './simple-draw-delegate';
 
 import {
   BrowserRouter as Router,
@@ -94,6 +95,9 @@ function UAGComponent() {
       camera.position = glMatrix.vec3.fromValues(0,-70,-300);
       // camera.focused = cubes[0];
 
+      //TEMPORARY: this should have a better system
+      let drawDelegate = new SimpleDrawDelegate(world, [], [], [], []);
+      drawDelegate.setGlobalPointLightControlPoint(cubes[0].controlPoints[0]);
       // cubes.forEach((cube) => {
       //   cube.positionPoint.bondToAnyWithinRadius(
       //     cubes.map((otherCube) => {
