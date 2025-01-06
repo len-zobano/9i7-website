@@ -180,7 +180,10 @@ class SpheroidDrop {
     let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, this.#positionPoint.drawMatrix);
 
-    this.#drawDelegate.draw(drawDelegateMatrix);
+    let lightPosition = this.#world.getLights()[0].position;
+    glMatrix.vec3.sub(lightPosition, lightPosition, drawPosition);
+
+    this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
     this.#world.gl.disable(this.#world.gl.DEPTH_TEST); 
     this.controlPoints.forEach((controlPoint) => {
         controlPoint.draw(glMatrix.mat4.clone(modelViewMatrix));

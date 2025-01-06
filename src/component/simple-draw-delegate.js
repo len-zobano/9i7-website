@@ -24,7 +24,7 @@ void main() {
   highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
   highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
 
-  highp vec4 relativePositionOfLight =  uModelViewMatrix * uPointLightLocation - uModelViewMatrix * aVertexPosition;
+  highp vec4 relativePositionOfLight = uModelViewMatrix * uPointLightLocation - uModelViewMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
 
   vLighting = ambientLight + (directionalLightColor * directional);
@@ -187,7 +187,7 @@ class SimpleDrawDelegate {
       return shader;
     }
 
-    draw(modelViewMatrix) {
+    draw(modelViewMatrix, lightPosition) {
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
         // Tell WebGL how to pull out the positions from the position
@@ -219,8 +219,8 @@ class SimpleDrawDelegate {
         
         //set the light location
         let pointLightLocation = glMatrix.vec3.create(0,0,0);
-        if (globalPointLightControlPoint) {
-          pointLightLocation = globalPointLightControlPoint.position;
+        if (lightPosition) {
+          pointLightLocation = lightPosition;
         }
 
         this.#world.gl.uniform4fv(

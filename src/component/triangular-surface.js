@@ -383,9 +383,10 @@ class TriangularSurface {
 
     draw() {
         const modelViewMatrix = this.#world.modelViewMatrix;
+        let lightPosition = this.#world.getLights()[0].position;
         //draw the triangle with the delegate
-        this.#topDrawDelegate.draw(modelViewMatrix);
-        this.#bottomDrawDelegate.draw(modelViewMatrix);
+        this.#topDrawDelegate.draw(modelViewMatrix, lightPosition);
+        this.#bottomDrawDelegate.draw(modelViewMatrix, lightPosition);
     }
 }
 

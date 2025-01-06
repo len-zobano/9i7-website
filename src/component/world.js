@@ -154,6 +154,7 @@ class World {
   #drawables = [];
   #controlPoints = [];
   #cameras = [];
+  #lights = [];
   #controlPointGroups = [];
   #selected = null;
   #projectionMatrix = null;
@@ -165,6 +166,14 @@ class World {
   #triangularSurfaces = [];
   get triangularSurfaces () {
     return this.#triangularSurfaces.slice(0);
+  }
+
+  addLight (controlPoint) {
+    this.#lights.push(controlPoint);
+  }
+
+  getLights () {
+    return this.#lights.slice(0);
   }
 
   get cameraPosition () {

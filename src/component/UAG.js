@@ -62,7 +62,8 @@ function UAGComponent() {
       let cubeSize = 4;
       let distance =20;
       let cubes = [];
-      let jitter = 8  ;
+      let jitter = 8;
+      let cubePosition = [-200,-90,-200];
 
       // let randomValues = [];
       // for (let i = 0; i < 100; ++i) {
@@ -80,9 +81,9 @@ function UAGComponent() {
       let numberOfDrops = cubeSize*cubeSize*cubeSize;
       for (let i = 0; i < numberOfDrops; ++i) {
         let cube = new SpheroidDrop(world, [
-          (i%cubeSize)*distance-100,
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+150,
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance-70
+          (i%cubeSize)*distance+cubePosition[0],
+          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+cubePosition[1],
+          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance+cubePosition[2]
         ].map((element) => {
           return element+engineMath.random()*jitter;
         }));
@@ -96,8 +97,7 @@ function UAGComponent() {
       // camera.focused = cubes[0];
 
       //TEMPORARY: this should have a better system
-      let drawDelegate = new SimpleDrawDelegate(world, [], [], [], []);
-      drawDelegate.setGlobalPointLightControlPoint(cubes[0].controlPoints[0]);
+      world.addLight(cubes[0].controlPoints[0]);
       // cubes.forEach((cube) => {
       //   cube.positionPoint.bondToAnyWithinRadius(
       //     cubes.map((otherCube) => {
@@ -110,8 +110,8 @@ function UAGComponent() {
 
       let 
         mesh = [],
-        meshSize = 6,
-        meshJitter = 70,
+        meshSize = 5,
+        meshJitter = 0,
         meshPosition = [-200,-100,-200],
         meshSquareWidth = 50,
         meshSquareLength = 50,
