@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as glMatrix from 'gl-matrix';
 import World from './world';
 import SpheroidDrop from './spheroid-drop'
-import SimpleCamera from './simple-camera';
+import SimpleFollowPoint from './simple-follow-point';
 import TriangularSurface from './triangular-surface'
 import engineMath from '../utility/engine-math';
 import SimpleDrawDelegate from './simple-draw-delegate';
@@ -63,7 +63,7 @@ function UAGComponent() {
       let distance =20;
       let cubes = [];
       let jitter = 8;
-      let cubePosition = [-200,-90,-200];
+      let cubePosition = [-150,-90,-150];
 
       // let randomValues = [];
       // for (let i = 0; i < 100; ++i) {
@@ -92,12 +92,16 @@ function UAGComponent() {
         cubes[i] = cube;
       }
 
-      let camera = new SimpleCamera(world, 20, 5);
-      camera.position = glMatrix.vec3.fromValues(0,-70,-300);
-      // camera.focused = cubes[0];
+      let camera = new SimpleFollowPoint(world, 20, 5, glMatrix.vec3.fromValues(10,10,10));
+      camera.position = glMatrix.vec3.fromValues(0,-30,-300);
+      camera.focused = cubes[0];
+
+      let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
+      light.position = glMatrix.vec3.fromValues(-200,-50,-200);
+      light.focused = cubes[0];
 
       //TEMPORARY: this should have a better system
-      world.addLight(cubes[0].controlPoints[0]);
+      world.addLight(light);
       // cubes.forEach((cube) => {
       //   cube.positionPoint.bondToAnyWithinRadius(
       //     cubes.map((otherCube) => {

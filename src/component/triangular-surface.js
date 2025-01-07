@@ -384,6 +384,7 @@ class TriangularSurface {
     draw() {
         const modelViewMatrix = this.#world.modelViewMatrix;
         let lightPosition = this.#world.getLights()[0].position;
+        glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
         //draw the triangle with the delegate
         this.#topDrawDelegate.draw(modelViewMatrix, lightPosition);
         this.#bottomDrawDelegate.draw(modelViewMatrix, lightPosition);

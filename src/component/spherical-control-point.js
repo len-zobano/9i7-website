@@ -466,14 +466,17 @@ class SphericalControlPoint {
                         ++numberOfCollisions;
                         //calculate angular momentum
                         let 
+                            firstLegOfBounce = glMatrix.vec3.create(),
                             secondLegOfBounce = glMatrix.vec3.create();
 
+                        glMatrix.vec3.subtract(firstLegOfBounce, mirroredSegment[0], this.#position);
                         glMatrix.vec3.subtract(secondLegOfBounce, mirroredSegment[1], mirroredSegment[0]);
                         let angleOfCollision = angleBetweenTwoVectors(triangularSurface.vertexNormal, secondLegOfBounce);
-                        let magnitudeOfRotation = glMatrix.vec3.length(this.#linearMomentum)*this.#friction;
+                        let lengthOfCollision = glMatrix.vec3.length(firstLegOfBounce) + glMatrix.vec3.length(secondLegOfBounce);
+                        let magnitudeOfRotation = lengthOfCollision*this.#friction;
                         //todo: radius should be factored into this
                         for (let i = 0; i < 3; ++i) {
-                            this.#angularMomentum[i] += angleOfCollision[i]*magnitudeOfRotation/10;
+                            this.#angularMomentum[i] += angleOfCollision[i]*magnitudeOfRotation;
                         }
 
                         let mangitudeOfMomentum = glMatrix.vec3.length(this.#linearMomentum);

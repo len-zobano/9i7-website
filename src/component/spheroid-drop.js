@@ -159,10 +159,11 @@ class SpheroidDrop {
     // Now move the drawing position a bit to where we want to
     // start drawing the square.
     let drawPosition = this.#positionPoint.position;
+    let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
 
     glMatrix.mat4.translate(
-      modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to translate
+      drawDelegateMatrix, // destination matrix
+      drawDelegateMatrix, // matrix to translate
       drawPosition,
     ); // amount to translate
 
@@ -177,11 +178,10 @@ class SpheroidDrop {
     glMatrix.vec3.subtract(normalizedToward, glMatrix.vec3.create(), normalizedToward);
     glMatrix.vec3.normalize(normalizedToward, normalizedToward);
 
-    let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, this.#positionPoint.drawMatrix);
 
     let lightPosition = this.#world.getLights()[0].position;
-    glMatrix.vec3.sub(lightPosition, lightPosition, drawPosition);
+    glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
     this.#world.gl.disable(this.#world.gl.DEPTH_TEST); 

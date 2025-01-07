@@ -1,13 +1,14 @@
 import * as glMatrix from 'gl-matrix';
 import engineMath from '../utility/engine-math';
 
-class SimpleCamera {
+class SimpleFollowPoint {
     #world = null;
     #distance = 10.0;
     #near = 10.0;
     #position = glMatrix.vec3.create();
     #ID = null;
     #focused = null;
+    #momentum = glMatrix.vec3.create();
 
     get position () {
         return glMatrix.vec3.clone(this.#position);
@@ -25,11 +26,12 @@ class SimpleCamera {
         return this.#ID;
     }
 
-    constructor(world, distance = 10.0, near) {
+    constructor(world, distance = 10.0, near, momentum) {
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         this.#world.addCamera(this);
         this.#distance = distance;
+        this.#momentum = momentum;
         if (!near) {
             this.#near = distance;
         }
@@ -45,12 +47,12 @@ class SimpleCamera {
     }
 
     simulate(interval) {
-      //focus 
       if (this.#focused) { 
         let relativePositionOfFocused = glMatrix.vec3.create();
 
-            let focused = this.#focused;
-            let position = this.#position;
+        let scaledMomentum = glMatrix.vec3.clone(this.#momentum);
+        glMatrix.vec3.scale(scaledMomentum, this.#momentum, interval);
+        glMatrix.vec3.add(this.#position, this.#position, scaledMomentum);
 
         glMatrix.vec3.subtract(relativePositionOfFocused, this.#focused.position, this.#position);
         let distanceFromFocused = glMatrix.vec3.length(relativePositionOfFocused);
@@ -72,4 +74,4 @@ class SimpleCamera {
     }
 }
 
-export default SimpleCamera;
+export default SimpleFollowPoint;
