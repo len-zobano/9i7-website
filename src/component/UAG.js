@@ -115,10 +115,10 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 30,
+        meshJitter = 0,
         meshPosition = [-200,-100,-200],
-        meshSquareWidth = 50,
-        meshSquareLength = 50,
+        meshSquareWidth = 70,
+        meshSquareLength = 70,
         thickness = -50;
 
 
