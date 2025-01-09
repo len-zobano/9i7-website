@@ -2,34 +2,16 @@ import * as glMatrix from 'gl-matrix';
 
 let globalVertexShaderSource = `
 attribute vec4 aVertexPosition;
-attribute vec3 aVertexNormal;
 attribute vec4 aVertexColor;
 
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
-uniform mat4 uNormalMatrix;
-uniform vec4 uPointLightLocation;
 
 varying lowp vec4 vColor;
-varying highp vec3 vLighting;
 
 void main() {
   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
   vColor = aVertexColor;
-
-  highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
-  highp vec3 directionalLightColor = vec3(1, 1, 0.7);
-  highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
-
-  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-  highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-
-  highp vec4 relativePositionOfLight = uPointLightLocation - uModelViewMatrix * aVertexPosition;
-  highp float distanceFromPointLight = length(relativePositionOfLight);
-  highp float pointLightDirectional = max(dot(transformedNormal.xyz, normalize(relativePositionOfLight.xyz)), 0.0);
-  highp float pointLightDistanceQuotient = 1.0 / (1.0 + min(distanceFromPointLight - 30.0, 0.0) / 100.0);
-  
-  vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
 }
 `,
 
@@ -38,16 +20,14 @@ varying lowp vec4 vColor;
 varying highp vec3 vLighting;
 
 void main(void) {
-  // gl_FragColor = vColor;
-  gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
+  gl_FragColor = vColor;
 }
 `,
 
 globalFragmentShader = null,
-globalVertexShader = null,
-globalPointLightControlPoint = null;
+globalVertexShader = null;
 
-class SimpleDrawDelegate {
+class DebugDrawDelegate {
     #buffers = null;
     #colorAttributes = null;
     #shaderProgram = null;
@@ -56,29 +36,6 @@ class SimpleDrawDelegate {
     #positions = null;
     #colors = null;
     #indices = null;
-    #normals = null;
-
-    setGlobalPointLightControlPoint (controlPoint) {
-      globalPointLightControlPoint = controlPoint;
-    }
-
-    setNormalAttribute() {
-      const numComponents = 3;
-      const type = this.#world.gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      const offset = 0;
-      this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, this.#buffers.normal);
-      this.#world.gl.vertexAttribPointer(
-        this.#programInfo.attribLocations.vertexNormal,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset,
-      );
-      this.#world.gl.enableVertexAttribArray(this.#programInfo.attribLocations.vertexNormal);
-    }
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     setPositionAttribute() {
@@ -132,17 +89,6 @@ class SimpleDrawDelegate {
       return indexBuffer;
     }
 
-    initNormalBuffer (normals) {
-      const normalBuffer = this.#world.gl.createBuffer();
-      this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, normalBuffer);
-      this.#world.gl.bufferData(
-        this.#world.gl.ARRAY_BUFFER,
-        new Float32Array(normals),
-        this.#world.gl.STATIC_DRAW
-      );
-      return normalBuffer;
-    }
-
     initColorBuffer(colors) {
       const colorBuffer = this.#world.gl.createBuffer();
       this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, colorBuffer);
@@ -184,7 +130,7 @@ class SimpleDrawDelegate {
       return shader;
     }
 
-    draw(modelViewMatrix, lightPosition) {
+    draw(modelViewMatrix) {
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
         // Tell WebGL how to pull out the positions from the position
@@ -192,11 +138,6 @@ class SimpleDrawDelegate {
         this.setPositionAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         // Tell WebGL to use our program when drawing
         this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
-        this.setNormalAttribute(this.#world.gl, this.#buffers, this.#programInfo);
-        
-        const normalMatrix = glMatrix.mat4.create();
-        glMatrix.mat4.invert(normalMatrix, modelViewMatrix);
-        glMatrix.mat4.transpose(normalMatrix, normalMatrix);
         // Set the shader uniforms
         this.#world.gl.uniformMatrix4fv(
             this.#programInfo.uniformLocations.projectionMatrix,
@@ -208,30 +149,10 @@ class SimpleDrawDelegate {
           false,
           modelViewMatrix,
         );
-        this.#world.gl.uniformMatrix4fv(
-          this.#programInfo.uniformLocations.normalMatrix,
-          false,
-          normalMatrix,
-        );
-        
-        //set the light location
-        let pointLightLocation = glMatrix.vec3.create(0,0,0);
-        if (lightPosition) {
-          pointLightLocation = lightPosition;
-        }
-
-        this.#world.gl.uniform4fv(
-          this.#programInfo.uniformLocations.pointLightLocation,
-          glMatrix.vec4.fromValues(
-            pointLightLocation[0],
-            pointLightLocation[1],
-            pointLightLocation[2],
-            1.0
-          )
-        );
 
         {
           const type = this.#world.gl.UNSIGNED_SHORT;
+          let indices = this.#indices;
           this.#world.gl.drawElements(
             this.#world.gl.TRIANGLES, 
             this.#indices.length,
@@ -241,7 +162,7 @@ class SimpleDrawDelegate {
         }
       }
 
-    constructor(world, positions, colors, normals, indices) {
+    constructor(world, positions, colors, indices) {
 
         if (!indices) {
           indices = [];
@@ -254,7 +175,6 @@ class SimpleDrawDelegate {
         this.#positions = positions;
         this.#colors = colors;
         this.#indices = indices; 
-        this.#normals = normals;
 
         if (!globalVertexShader) {
             globalVertexShader = this.loadShader(world.gl.VERTEX_SHADER, globalVertexShaderSource);
@@ -285,8 +205,7 @@ class SimpleDrawDelegate {
             this.#buffers = {
               position: this.initPositionBuffer(positions),
               indices: this.initIndexBuffer(indices),
-              color: this.initColorBuffer(colors),
-              normal: this.initNormalBuffer(normals)
+              color: this.initColorBuffer(colors)
             };
         }
     
@@ -298,15 +217,12 @@ class SimpleDrawDelegate {
             this.#programInfo = {
                 program: this.#shaderProgram,
                 attribLocations: {
-                    vertexNormal: world.gl.getAttribLocation(this.#shaderProgram, "aVertexNormal"),
                     vertexPosition: world.gl.getAttribLocation(this.#shaderProgram, "aVertexPosition"),
                     vertexColor: world.gl.getAttribLocation(this.#shaderProgram, "aVertexColor"),
                 },
                 uniformLocations: {
                     projectionMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uProjectionMatrix"),
                     modelViewMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uModelViewMatrix"),
-                    normalMatrix: world.gl.getUniformLocation(this.#shaderProgram,"uNormalMatrix"),
-                    pointLightLocation: world.gl.getUniformLocation(this.#shaderProgram, "uPointLightLocation")
                 },
             };
         }
@@ -314,4 +230,4 @@ class SimpleDrawDelegate {
 
 }
 
-export default SimpleDrawDelegate;
+export default DebugDrawDelegate;

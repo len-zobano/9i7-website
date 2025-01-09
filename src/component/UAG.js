@@ -59,42 +59,229 @@ function UAGComponent() {
 
     function initializeWorld() {
       world = new World();
-      let cubeSize = 4;
-      let distance =20;
       let cubes = [];
-      let jitter = 8;
-      let cubePosition = [-150,-90,-150];
+      let createDropArray = false;
+      let createTestBody = true;
 
-      // let randomValues = [];
-      // for (let i = 0; i < 100; ++i) {
-      //   randomValues.push(engineMath.random());
-      // }
-      // randomValues.sort((a, b) => {
-      //   return a-b;
-      // });
-      // let differences = [];
-      // for (let i = 0; i < 99; ++i) {
-      //   differences.push(randomValues[i+1] - randomValues[i]);
-      // }
+      if (createDropArray) {
+        let cubeSize = 4;
+        let distance =20;
+        let jitter = 8;
+        let cubePosition = [-150,-90,-150];
 
-      let dropGroup = new ControlPointGroup(world);
-      let numberOfDrops = cubeSize*cubeSize*cubeSize;
-      for (let i = 0; i < numberOfDrops; ++i) {
-        let cube = new SpheroidDrop(world, [
-          (i%cubeSize)*distance+cubePosition[0],
-          ((Math.floor(i/(cubeSize)))%cubeSize)*distance+cubePosition[1],
-          ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance+cubePosition[2]
-        ].map((element) => {
-          return element+engineMath.random()*jitter;
-        }));
+        // let randomValues = [];
+        // for (let i = 0; i < 100; ++i) {
+        //   randomValues.push(engineMath.random());
+        // }
+        // randomValues.sort((a, b) => {
+        //   return a-b;
+        // });
+        // let differences = [];
+        // for (let i = 0; i < 99; ++i) {
+        //   differences.push(randomValues[i+1] - randomValues[i]);
+        // }
 
-        dropGroup.addControlPoint(cube.controlPoints[0]);
-        cubes[i] = cube;
+        let dropGroup = new ControlPointGroup(world);
+        let numberOfDrops = cubeSize*cubeSize*cubeSize;
+        for (let i = 0; i < numberOfDrops; ++i) {
+          let cube = new SpheroidDrop(world, [
+            (i%cubeSize)*distance+cubePosition[0],
+            ((Math.floor(i/(cubeSize)))%cubeSize)*distance+cubePosition[1],
+            ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance+cubePosition[2]
+          ].map((element) => {
+            return element+engineMath.random()*jitter;
+          }));
+
+          dropGroup.addControlPoint(cube.controlPoints[0]);
+          cubes[i] = cube;
+        }
+      }
+
+      let bodyThickness = 0.25;
+
+      if (createTestBody) {
+        let bodyGroup = new ControlPointGroup(world);
+
+        let bodyDeclaration = [{
+          name: "head"
+        }, {
+          name: "backLeftShoulder",
+          relativeTo: "head",
+          position: [-1,-1,-bodyThickness/2],
+          bondTo: ["head"]
+        }, {
+          name: "frontLeftShoulder",
+          relativeTo: "head",
+          position: [-1,-1,bodyThickness/2],
+          bondTo: ["head","backLeftShoulder"]
+        }, {
+          name: "backRightShoulder",
+          relativeTo: "head",
+          position: [1,-1,-bodyThickness/2],
+          bondTo: ["head"]
+        }, {
+          name: "frontRightShoulder",
+          relativeTo: "head",
+          position: [1,-1,bodyThickness/2],
+          bondTo: ["head","backRightShoulder"]
+        },
+        {
+          name: "backLeftElbow",
+          relativeTo: "backLeftShoudler",
+          position: [-0.5,-2,0],
+          bondTo: ["backLeftShoulder"]
+        }, {
+          name: "frontLeftElbow",
+          relativeTo: "frontLeftShoulder",
+          position: [-0.5,-2,0],
+          bondTo: ["frontLeftShoulder", "backLeftElbow"]
+        },
+        {
+          name: "backRightElbow",
+          relativeTo: "backRightShoudler",
+          position: [0.5,-2,0],
+          bondTo: ["backRightShoulder"]
+        }, {
+          name: "frontRightElbow",
+          relativeTo: "frontRightShoulder",
+          position: [0.5,-2,0],
+          bondTo: ["frontRightShoulder", "backRightElbow"]
+        },
+        {
+          name: "leftHand",
+          relativeTo: "frontLeftElbow",
+          position: [-0.5, 2, 0],
+          bondTo: ["frontLeftElbow", "backLeftElbow"]
+        },
+        {
+          name: "rightHand",
+          relativeTo: "frontRightElbow",
+          position: [0.5, 2, 0],
+          bondTo: ["frontRightElbow", "backRightElbow"]
+        },
+        {
+          name: "leftAsscheek",
+          relativeTo: "backLeftShoulder",
+          position: [0.5,-4,0],
+          bondTo: ["backLeftShoulder"]
+        },
+        {
+          name: "rightAsscheek",
+          relativeTo: "backRightShoulder",
+          position: [-0.5,-4,0],
+          bondTo: ["backRightShoulder", "leftAsscheek"]
+        },
+        {
+          name: "leftHip",
+          relativeTo: "frontLeftShoulder",
+          position: [0,-4,0],
+          bondTo: ["frontLeftShoulder"]
+        },
+        {
+          name: "rightHip",
+          relativeTo: "frontRightShoulder",
+          position: [0,-4,0],
+          bondTo: ["frontRightShoulder"]
+        },
+        {
+          name: "nutsack",
+          relativeTo: "leftHip",
+          position: [1,0,0],
+          bondTo: ["leftHip","rightHip"]
+        },
+        {
+          name: "outsideLeftKnee",
+          relativeTo: "leftHip",
+          position: [0,-2,0],
+          bondTo: ["leftHip"]
+        },
+        {
+          name: "insideLeftKnee",
+          relativeTo: "nutsack",
+          position: [-0.25,-2, 0],
+          bondTo: ["nutsack","outsideLeftKnee"]
+        },
+        {
+          name: "outsideRightKnee",
+          relativeTo: "rightHip",
+          position: [0,-2,0],
+          bondTo: ["rightHip"]
+        },
+        {
+          name: "insideRightKnee",
+          relativeTo: "nutsack",
+          position: [0.25,-2, 0],
+          bondTo: ["nutsack","outsideRightKnee"]
+        },
+        {
+          name: "leftFoot",
+          relativeTo: "outsideLeftKnee",
+          position: [0.25,-2,0],
+          bondTo: ["insideLeftKnee","outsideLeftKnee"]
+        },
+        {
+          name: "rightFoot",
+          relativeTo: "outsideRightKnee",
+          position: [-0.25,-2,0],
+          bondTo: ["insideRightKnee","outsideRightKnee"]
+        }];
+
+        bodyDeclaration = bodyDeclaration.slice(0,5);
+
+        let bodyDeclarationMap = {}, bodyScale = 10;
+
+        bodyDeclaration.forEach((declaredPart) => {
+          bodyDeclarationMap[declaredPart.name] = {};
+          bodyDeclarationMap[declaredPart.name].bondTo = declaredPart.bondTo || []; 
+          if (!declaredPart.position) {
+            bodyDeclarationMap[declaredPart.name].absolutePosition = glMatrix.vec3.fromValues(0,0,0);
+          }
+          else {
+            bodyDeclarationMap[declaredPart.name].relativeTo = declaredPart.relativeTo;
+            bodyDeclarationMap[declaredPart.name].relativePosition = glMatrix.vec3.fromValues(
+              declaredPart.position[0],
+              declaredPart.position[1],
+              declaredPart.position[2]
+            );
+          }
+        });
+
+        bodyDeclaration.forEach((declaredPart) => {
+          //get absolute position
+          let mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[declaredPart.name], totalPosition = glMatrix.vec3.fromValues(0,0,0);
+          //as long as you're searching for the absolute position, keep looking and adding to relative position
+          while (mappedPartToSearchForAbsolutePosition) {
+            if (mappedPartToSearchForAbsolutePosition.absolutePosition) {
+              glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.absolutePosition);
+              bodyDeclarationMap[declaredPart.name].absolutePosition = totalPosition;
+              mappedPartToSearchForAbsolutePosition = null;
+            }
+            else {
+              glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.relativePosition);
+              bodyDeclarationMap[declaredPart.name].relativePosition = mappedPartToSearchForAbsolutePosition.relativeTo;
+              mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[mappedPartToSearchForAbsolutePosition.relativeTo];
+            }
+          }
+          //create drop
+          glMatrix.vec3.scale(totalPosition, totalPosition, bodyScale);
+          bodyDeclarationMap[declaredPart.name].drop = new SpheroidDrop (world, totalPosition);
+          cubes.push(bodyDeclarationMap[declaredPart.name].drop);
+          bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop.controlPoints[0]);
+        });
+
+        bodyDeclaration.forEach((declaredPart) => {
+          //bond to other
+          bodyDeclarationMap[declaredPart.name].bondTo.forEach((nameOfOther) => {
+            bodyDeclarationMap[declaredPart.name].drop.controlPoints[0].bondTo(
+              bodyDeclarationMap[nameOfOther].drop.controlPoints[0]
+            );
+          })
+        });
       }
 
       let camera = new SimpleFollowPoint(world, 20, 5, glMatrix.vec3.fromValues(10,10,10));
       camera.position = glMatrix.vec3.fromValues(0,-30,-300);
-      camera.focused = cubes[0];
+      // camera.focused = cubes[0];
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
       light.position = glMatrix.vec3.fromValues(-200,-50,-200);

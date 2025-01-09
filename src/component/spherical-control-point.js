@@ -1,5 +1,5 @@
 import * as glMatrix from 'gl-matrix';
-import SimpleDrawDelegate from './simple-draw-delegate';
+import DebugDrawDelegate from './debug-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import engineMath from '../utility/engine-math';
 
@@ -261,8 +261,12 @@ class SphericalControlPoint {
     
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
+        //TEMPORARY: calibrating strength?
+        let strengthScale = 5;
         //TEMPORARY: variables to refine the chaos of angular momentum
-        let twistScale = 0.1, whipScale = 0.1;
+        let twistScale = 0.5, whipScale = 1, angularMomentumScale = 0.5;
+        twistScale *= angularMomentumScale;
+        whipScale *= angularMomentumScale;
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
         let isMoving = false;
         //TEMPORARY: angular momentum has to be adjusted for stability
@@ -293,7 +297,7 @@ class SphericalControlPoint {
             let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
                 if (angle > Math.PI/2) angle = Math.PI - angle;
                 if (angle < -Math.PI/2) angle = -Math.PI - angle;
-                return angle*interval*bond.strength*globalSpeed*twistScale;
+                return angle*interval*bond.strength*strengthScale*globalSpeed*twistScale;
             });
             //add bond angle to angular momentum
             //interval * bondStrength * angle
@@ -315,7 +319,7 @@ class SphericalControlPoint {
             let relativePositionNormal = glMatrix.vec3.clone(realRelativePosition);
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
-            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, bondLinearMomentumScaling*distanceFromIdeal*interval*bond.strength*globalSpeed);
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, bondLinearMomentumScaling*distanceFromIdeal*interval*bond.strength*globalSpeed*strengthScale);
             if (glMatrix.vec3.length(relativePositionNormal) > 0) {
                 isMoving = true;
             }
@@ -337,7 +341,7 @@ class SphericalControlPoint {
                 glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
                 //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
                 //it should also scale with the distance
-                glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*globalSpeed*whipScale);
+                glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*strengthScale*globalSpeed*whipScale);
                 if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
                     isMoving = true;
                 }
@@ -549,9 +553,9 @@ class SphericalControlPoint {
             });
     
             drawDelegates = {
-                red: new SimpleDrawDelegate(this.#world, positions, colors.red, null, indices),
-                green: new SimpleDrawDelegate(this.#world, positions, colors.green, null, indices),
-                blue: new SimpleDrawDelegate(this.#world, positions, colors.blue, null, indices),
+                red: new DebugDrawDelegate(this.#world, positions, colors.red, indices),
+                green: new DebugDrawDelegate(this.#world, positions, colors.green, indices),
+                blue: new DebugDrawDelegate(this.#world, positions, colors.blue, indices),
             }
           });
     }
@@ -565,7 +569,7 @@ class SphericalControlPoint {
             })
         ); 
 
-        let pointScale = 0.1;
+        let pointScale = 0.3;
         glMatrix.mat4.scale(
             matrix,
             matrix,
@@ -593,17 +597,15 @@ class SphericalControlPoint {
           })
         ); 
 
-        if (this.#isSelected) {
-            this.#bonds.forEach((bond) => {
-                let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
-                glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
-                this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
-            });
+        this.#bonds.forEach((bond) => {
+            let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
+            glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
+            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
+        });
 
-            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
-            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');
-            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#right, 'blue');
-        }
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#top, 'red');
+        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), this.#right, 'blue');
     }
 
     changeLinearMomentum(momentumChangeArray) {

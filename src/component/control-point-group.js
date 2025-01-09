@@ -6,9 +6,13 @@ class ControlPointGroup {
     #position = null;
     #isSelected = false;
     #controlPoints = [];
-    #linearMomentumDecay = 0.7;
+    #linearMomentumDecay = 0.5;
     #angularMomentumDecay = 0.5;
     #ID = null;
+
+    get controlPoints () {
+        return this.#controlPoints.slice(0);
+    }
 
     get positionAsVector () {
         return glMatrix.vec3.clone(this.#position);

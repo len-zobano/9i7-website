@@ -160,7 +160,7 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0, -50,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0, 0,0);
   #isRunning = false;
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
@@ -355,7 +355,7 @@ constructor() {
     * end camera-relative control calculations
     */
     let speed = this.#downKeys[18] ? 100 : 6;
-    let angularSpeedFactor = 0.5;
+    let angularSpeedFactor = 0.1;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
 
@@ -539,8 +539,14 @@ constructor() {
                 */
 
                 this.#drawables.forEach((drawable) => {
-                drawable.draw(this);
-              }); 
+                    drawable.draw(this);
+                }); 
+
+                this.#controlPointGroups.forEach((controlPointGroup) => {
+                    controlPointGroup.controlPoints.forEach((controlPoint) => {
+                        controlPoint.draw(this);
+                    })
+                })
             }
         }
     }
