@@ -18,87 +18,6 @@ let
     topVector = glMatrix.vec3.fromValues(0.0,1.0,0.0),
     rightVector = glMatrix.vec3.fromValues(1.0,0.0,0.0);
 
-function transformVectorByAngle (vector, angle) {
-    let angleSines = [
-        Math.sin(angle[0]),
-        Math.sin(angle[1]),
-        Math.sin(angle[2])
-    ];
-
-    let angleCosines= [
-        Math.cos(angle[0]),
-        Math.cos(angle[1]),
-        Math.cos(angle[2])
-    ];
-
-    let rotationMatrices = [
-        glMatrix.mat3.fromValues(
-            1, 0, 0,
-            0, angleCosines[0], -angleSines[0],
-            0, angleSines[0], angleCosines[0]
-        ),
-        glMatrix.mat3.fromValues(
-            angleCosines[1], 0, angleSines[1],
-            0, 1, 0,
-            -angleSines[1], 0, angleCosines[1]
-        ),
-        glMatrix.mat3.fromValues(
-            angleCosines[2], -angleSines[2], 0,
-            angleSines[2], angleCosines[2], 0,
-            0, 0, 1
-        )
-    ];
-
-    rotationMatrices.forEach((matrix) => {
-        glMatrix.vec3.transformMat3(vector, vector, matrix);
-    });
-}
-
-function angleOfOne2DVector (a, b) {
-    if (a === -0) a = 0;
-    if (b === -0) b = 0;
-    return Math.atan2(b, a);
-}
-
-function shortestAngleBetweenTwo2DVectors (a, c) {
-    if (a[0] === 0 && a[1] === 0) return 0;
-    if (c[0] === 0 && c[1] === 0) return 0;
-    let angle = angleOfOne2DVector(c[1],c[0]) - angleOfOne2DVector(a[1],a[0]);
-    //if the angle is over 180, make it angle-360
-    if (angle > Math.PI) {
-        angle -= 2*Math.PI;
-    }
-    //if the angle is under -180, make it angle+360
-    else if (angle < -Math.PI) {
-        angle += 2*Math.PI;
-    }
-    
-    return angle;
-}
-
-function angleBetweenTwoVectors (a, c) {
-    //turn them to 3 2D angles
-    let 
-        AXY = glMatrix.vec2.fromValues(a[0], a[1]), 
-        CXY = glMatrix.vec2.fromValues(c[0], c[1]),
-        AZY = glMatrix.vec2.fromValues(-a[2], a[1]),
-        CZY = glMatrix.vec2.fromValues(-c[2], c[1]),
-        AXZ = glMatrix.vec2.fromValues(a[0], a[2]),
-        CXZ = glMatrix.vec2.fromValues(c[0], c[2]);
-
-    let ret = [];
-    ret[0] = shortestAngleBetweenTwo2DVectors(AZY, CZY);
-    ret[1] = -shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
-    ret[2] = shortestAngleBetweenTwo2DVectors(AXY, CXY);
-
-    return ret.map((element) => {
-        if (element === -0) {
-            element = 0;
-        }
-        return element;
-    });
-}
-
 class SphericalControlPoint {
     #world = null;
     #position = null;
@@ -262,9 +181,9 @@ class SphericalControlPoint {
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
         //TEMPORARY: calibrating strength?
-        let strengthScale = 5;
+        let strengthScale = 1;
         //TEMPORARY: variables to refine the chaos of angular momentum
-        let twistScale = 0.5, whipScale = 1, angularMomentumScale = 0.5;
+        let twistScale = 1, whipScale = 1, angularMomentumScale = 0.1;
         twistScale *= angularMomentumScale;
         whipScale *= angularMomentumScale;
         //TEMPORARY: this is to detect spontaneous momentum calculated in error
@@ -289,14 +208,12 @@ class SphericalControlPoint {
 
             glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
 
-            let angleOfBondToOther = angleBetweenTwoVectors(
+            let angleOfBondToOther = engineMath.angleBetweenTwoVectors(
                 idealRelativePosition,
                 realRelativePosition
-            )
+            );
             
-            let scaledAngleOfBondToOther = angleOfBondToOther.map((angle) => {
-                if (angle > Math.PI/2) angle = Math.PI - angle;
-                if (angle < -Math.PI/2) angle = -Math.PI - angle;
+            let scaledAngleOfBondToOther = engineMath.angleScaledToMagnitudeOfAttraction(angleOfBondToOther).map((angle) => {
                 return angle*interval*bond.strength*strengthScale*globalSpeed*twistScale;
             });
             //add bond angle to angular momentum
@@ -337,15 +254,24 @@ class SphericalControlPoint {
                 let realPositionOfThisFromOther = glMatrix.vec3.clone(this.position);
                 glMatrix.vec3.subtract(realPositionOfThisFromOther, realPositionOfThisFromOther, bond.controlPoint.position);
                     //subtract real from ideal to get the momentum vector for this one
+
+                let trajectoryAngle = engineMath.angleBetweenTwoVectors(idealPositionOfThisFromOther, realPositionOfThisFromOther);
+                let trajectoryMagnitude = engineMath.magnitudeOfAttractionForAngle(trajectoryAngle);
                 let scaledMomentumTowardIdeal = glMatrix.vec3.create();
                 glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
-                //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
-                //it should also scale with the distance
-                glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, bondLinearMomentumScaling*interval*bond.strength*strengthScale*globalSpeed*whipScale);
-                if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
-                    isMoving = true;
+                let magnitudeOfMomentumTowardIdeal = glMatrix.vec3.length(scaledMomentumTowardIdeal);
+                if (magnitudeOfMomentumTowardIdeal > 0) {
+                    //base this on the angle momentum calculation instead
+                    // let strengthOfAngularBond = 0.5/magnitudeOfMomentumTowardIdeal;
+                    let strengthOfAngularBond = trajectoryMagnitude;
+                    //this should be a relatively weak force compared to the linear bond, because this is a result of the neighbor twisting, not pulling
+                    //it should also scale with the distance
+                    glMatrix.vec3.scale(scaledMomentumTowardIdeal, scaledMomentumTowardIdeal, strengthOfAngularBond*bondLinearMomentumScaling*interval*bond.strength*strengthScale*globalSpeed*whipScale);
+                    if (glMatrix.vec3.length(scaledMomentumTowardIdeal) > 0) {
+                        isMoving = true;
+                    }
+                    glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
                 }
-                glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledMomentumTowardIdeal);
             }
         });
 
@@ -390,7 +316,7 @@ class SphericalControlPoint {
                     glMatrix.vec3.subtract(combinedLinearMomentum, this.#linearMomentum, otherSphericalControlPoint.linearMomentum);
                     let angularMomentumMagnitude = glMatrix.vec3.length(combinedLinearMomentum);
                     //the magnitude of the angular momentum should be the same as the angle between the combined momentum vector and (max abs pi/2)
-                    let angularMomentumChange = angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
+                    let angularMomentumChange = engineMath.angleBetweenTwoVectors(combinedLinearMomentum, relativePositionOfOther).map((element) => {
                         let momentumChange = element*globalSpeed*interval*angularMomentumMagnitude*angularMomentumFrictionFactor;
                         if (momentumChange > 0) {
                             isMoving = true;
@@ -478,7 +404,7 @@ class SphericalControlPoint {
 
                         glMatrix.vec3.subtract(firstLegOfBounce, mirroredSegment[0], this.#position);
                         glMatrix.vec3.subtract(secondLegOfBounce, mirroredSegment[1], mirroredSegment[0]);
-                        let angleOfCollision = angleBetweenTwoVectors(triangularSurface.vertexNormal, secondLegOfBounce);
+                        let angleOfCollision = engineMath.angleBetweenTwoVectors(triangularSurface.vertexNormal, secondLegOfBounce);
                         let lengthOfCollision = glMatrix.vec3.length(firstLegOfBounce) + glMatrix.vec3.length(secondLegOfBounce);
                         let magnitudeOfRotation = lengthOfCollision*this.#friction*5/this.#circumference;
                         //todo: radius should be factored into this
@@ -506,8 +432,8 @@ class SphericalControlPoint {
         
         this.#position = positionBeforeSurfaceCollision;
         //rotate top and right by scaled angular momentum
-        transformVectorByAngle(this.#top, scaledAngularMomentum);
-        transformVectorByAngle(this.#right, scaledAngularMomentum);
+        engineMath.transformVectorByAngle(this.#top, scaledAngularMomentum);
+        engineMath.transformVectorByAngle(this.#right, scaledAngularMomentum);
     }
 
     initializeDrawDelegates () {

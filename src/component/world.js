@@ -160,10 +160,11 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0, 0,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,0,0);
   #isRunning = false;
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];
+  #speed = 5;
   get triangularSurfaces () {
     return this.#triangularSurfaces.slice(0);
   }
@@ -286,14 +287,14 @@ constructor() {
     }
     let lastTime = this.#currentTime;
     this.#currentTime = new Date().getTime();
-    let interval = (this.#currentTime - lastTime)/1000;
+    let interval = this.#speed*(this.#currentTime - lastTime)/1000;
     
     if (interval <= 0 || !this.#isRunning) {
         return;
     }
 
-    if (interval > 0.05) {
-        interval = 0.05;
+    if (interval > 0.05*this.#speed) {
+        interval = 0.05*this.#speed;
     }
 
     if (!this.#gridSystem) {

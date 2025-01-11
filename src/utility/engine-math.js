@@ -123,6 +123,26 @@ function EngineMath () {
             return element;
         });
     }    
+
+    this.magnitudeOfAttractionForAngle = (angle) => {
+        //whole-angle magnitude model
+        let magnitude = 1;
+        angle.forEach((angleComponent) => {
+            let absoluteAngleComponent = Math.abs(angleComponent);
+            if (absoluteAngleComponent > Math.PI/2) {
+                magnitude *= (Math.PI-absoluteAngleComponent)/(Math.PI/2);
+            }
+        });
+        return magnitude;
+    }
+
+    this.angleScaledToMagnitudeOfAttraction = (angle) =>{
+
+        let magnitude = this.magnitudeOfAttractionForAngle(angle);
+        return angle.map((angleComponent) => {
+            return angleComponent*magnitude;
+        });
+    }
 }
 
 let engineMath = new EngineMath();

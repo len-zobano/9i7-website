@@ -279,8 +279,8 @@ function UAGComponent() {
         });
       }
 
-      let camera = new SimpleFollowPoint(world, 20, 5, glMatrix.vec3.fromValues(10,10,10));
-      camera.position = glMatrix.vec3.fromValues(0,-30,-300);
+      let camera = new SimpleFollowPoint(world, 100, 20, glMatrix.vec3.fromValues(10,10,10));
+      camera.position = glMatrix.vec3.fromValues(-100,-30,-200);
       // camera.focused = cubes[0];
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
