@@ -226,7 +226,7 @@ function UAGComponent() {
           bondTo: ["insideRightKnee","outsideRightKnee"]
         }];
 
-        bodyDeclaration = bodyDeclaration.slice(0,5);
+        // bodyDeclaration = bodyDeclaration.slice(0,8);
 
         let bodyDeclarationMap = {}, bodyScale = 10;
 
@@ -263,8 +263,9 @@ function UAGComponent() {
             }
           }
           //create drop
-          glMatrix.vec3.scale(totalPosition, totalPosition, bodyScale);
-          bodyDeclarationMap[declaredPart.name].drop = new SpheroidDrop (world, totalPosition);
+          let dropPosition = glMatrix.vec3.create();
+          glMatrix.vec3.scale(dropPosition, totalPosition, bodyScale);
+          bodyDeclarationMap[declaredPart.name].drop = new SpheroidDrop (world, dropPosition);
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
           bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop.controlPoints[0]);
         });
@@ -286,6 +287,10 @@ function UAGComponent() {
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
       light.position = glMatrix.vec3.fromValues(-200,-50,-200);
       light.focused = cubes[0];
+
+      let positions = cubes.map((cube) => {
+        return cube.controlPoints[0].position;
+      });
 
       //TEMPORARY: this should have a better system
       world.addLight(light);

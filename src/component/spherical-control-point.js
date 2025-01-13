@@ -70,6 +70,10 @@ class SphericalControlPoint {
     #linearAcceleration = null;
     //angular momentum is an array of three angles to rotate, one for the x, y, and z axis
     #angularMomentum = null;
+    get angularMomentum () {
+        return this.#angularMomentum.slice(0);
+    }
+
     #angularAcceleration = null;
     //top is a normal pointing in the direction of the top of the object (representing angular position)
     #top = null;
@@ -250,15 +254,18 @@ class SphericalControlPoint {
                 let idealPositionOfThisFromOther = glMatrix.vec3.clone(bond.reciprocalBond.idealRelativePosition);
                     //transform the ideal postion by the other particle's draw matrix
                 glMatrix.vec3.transformMat4(idealPositionOfThisFromOther, idealPositionOfThisFromOther, bond.controlPoint.drawMatrix);
+                let anticipatedIdealPositionOfThisFromOther = glMatrix.vec3.clone(idealPositionOfThisFromOther);
+                engineMath.transformVectorByAngle(anticipatedIdealPositionOfThisFromOther, bond.controlPoint.angularMomentum);
                     //get your real position by subtracting your position by theirs
                 let realPositionOfThisFromOther = glMatrix.vec3.clone(this.position);
                 glMatrix.vec3.subtract(realPositionOfThisFromOther, realPositionOfThisFromOther, bond.controlPoint.position);
                     //subtract real from ideal to get the momentum vector for this one
 
-                let trajectoryAngle = engineMath.angleBetweenTwoVectors(idealPositionOfThisFromOther, realPositionOfThisFromOther);
+                let trajectoryAngle = engineMath.angleBetweenTwoVectors(anticipatedIdealPositionOfThisFromOther, realPositionOfThisFromOther);
                 let trajectoryMagnitude = engineMath.magnitudeOfAttractionForAngle(trajectoryAngle);
+
                 let scaledMomentumTowardIdeal = glMatrix.vec3.create();
-                glMatrix.vec3.subtract(scaledMomentumTowardIdeal, idealPositionOfThisFromOther, realPositionOfThisFromOther);
+                glMatrix.vec3.subtract(scaledMomentumTowardIdeal, anticipatedIdealPositionOfThisFromOther, realPositionOfThisFromOther);
                 let magnitudeOfMomentumTowardIdeal = glMatrix.vec3.length(scaledMomentumTowardIdeal);
                 if (magnitudeOfMomentumTowardIdeal > 0) {
                     //base this on the angle momentum calculation instead
