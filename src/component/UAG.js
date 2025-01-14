@@ -6,6 +6,7 @@ import SimpleFollowPoint from './simple-follow-point';
 import TriangularSurface from './triangular-surface'
 import engineMath from '../utility/engine-math';
 import SimpleDrawDelegate from './simple-draw-delegate';
+import SimpleSpheroidDrop from './simple-spheroid-drop';
 
 import {
   BrowserRouter as Router,
@@ -229,6 +230,8 @@ function UAGComponent() {
         // bodyDeclaration = bodyDeclaration.slice(0,8);
 
         let bodyDeclarationMap = {}, bodyScale = 10;
+
+        let testSSD = new SimpleSpheroidDrop(world);
 
         bodyDeclaration.forEach((declaredPart) => {
           bodyDeclarationMap[declaredPart.name] = {};

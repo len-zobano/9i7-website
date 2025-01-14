@@ -137,7 +137,6 @@ function EngineMath () {
     }
 
     this.angleScaledToMagnitudeOfAttraction = (angle) =>{
-
         let magnitude = this.magnitudeOfAttractionForAngle(angle);
         return angle.map((angleComponent) => {
             return angleComponent*magnitude;
