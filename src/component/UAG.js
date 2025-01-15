@@ -227,11 +227,9 @@ function UAGComponent() {
           bondTo: ["insideRightKnee","outsideRightKnee"]
         }];
 
-        // bodyDeclaration = bodyDeclaration.slice(0,8);
+        bodyDeclaration = bodyDeclaration.slice(0,1);
 
         let bodyDeclarationMap = {}, bodyScale = 10;
-
-        let testSSD = new SimpleSpheroidDrop(world);
 
         bodyDeclaration.forEach((declaredPart) => {
           bodyDeclarationMap[declaredPart.name] = {};
@@ -268,9 +266,14 @@ function UAGComponent() {
           //create drop
           let dropPosition = glMatrix.vec3.create();
           glMatrix.vec3.scale(dropPosition, totalPosition, bodyScale);
-          bodyDeclarationMap[declaredPart.name].drop = new SpheroidDrop (world, dropPosition);
+          bodyDeclarationMap[declaredPart.name].drop = new SimpleSpheroidDrop (world, dropPosition, 1);
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
-          bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop.controlPoints[0]);
+
+          if (!world.selected) {
+            world.selected = bodyDeclarationMap[declaredPart.name].drop.controlPoints[0];
+          }
+          
+          bodyGroup.addControlPoints(bodyDeclarationMap[declaredPart.name].drop.controlPoints);
         });
 
         bodyDeclaration.forEach((declaredPart) => {
@@ -289,7 +292,7 @@ function UAGComponent() {
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
       light.position = glMatrix.vec3.fromValues(-200,-50,-200);
-      light.focused = cubes[0];
+      // light.focused = cubes[0].controlPoints[0];
 
       let positions = cubes.map((cube) => {
         return cube.controlPoints[0].position;

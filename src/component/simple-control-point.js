@@ -39,7 +39,7 @@ class SimpleControlPoint {
     #inertia = 1.0;
     #drawDelegate = null;
 
-    constructor(world, position, friction) {
+    constructor(world, position, radius, friction) {
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         this.#position = glMatrix.vec3.fromValues(
@@ -47,6 +47,12 @@ class SimpleControlPoint {
             position[1],
             position[2]
         );
+
+        if (!radius) {
+            radius = 1;
+        }
+
+        this.#radius = radius;
 
         if (friction) {
             this.#friction = friction;
@@ -58,7 +64,7 @@ class SimpleControlPoint {
     bondToAnyWithinRadius(others, radius, strength) {
         others.forEach((other) => {
             if (other !== this) {
-                let distance = glMatrix.vec3.distance(this.#position, other.positionAsVector);
+                let distance = glMatrix.vec3.distance(this.#position, other.position);
                 if (distance <= radius) {
                     this.bondTo(other, strength);
                 }
@@ -135,7 +141,7 @@ class SimpleControlPoint {
             let relativePositionNormal = glMatrix.vec3.clone(relativePosition);
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
-            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, distanceToIdeal*interval*bond.strength);
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, -distanceToIdeal*interval*bond.strength);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
         });
 
@@ -143,10 +149,10 @@ class SimpleControlPoint {
         let tile = this.#world.gridSystem.getPrimaryTileCoordinatesForControlPoint(this);
         let localControlPoints  = this.#world.gridSystem.getCurrentControlPointsForTileCoordinates(tile);
 
-        if (checkForParticleCollision) localControlPoints.forEach((otherControlPoint) => {
+        localControlPoints.forEach((otherControlPoint) => {
             if (otherControlPoint !== this && !bondedControlPoints[otherControlPoint.ID]) {
                 let distance = glMatrix.vec3.distance(this.#position, otherControlPoint.position);
-                let sharedDistance = this.radius + otherSphericalControlPoint.radius;
+                let sharedDistance = this.radius + otherControlPoint.radius;
 
                 if (distance < sharedDistance) {
                     //calculate the momentum of repulsion
@@ -155,13 +161,10 @@ class SimpleControlPoint {
                         magnitude = this.#world.maxRepulsionMagnitude;
                     }
                     let relativePositionOfOther = glMatrix.vec3.create();
-                    glMatrix.vec3.sub(relativePositionOfOther, otherSphericalControlPoint.position, this.#position);
+                    glMatrix.vec3.sub(relativePositionOfOther, otherControlPoint.position, this.#position);
                     let repulsionMomentum = glMatrix.vec3.clone(relativePositionOfOther);
                     //repulsion is away, so this has to be subtracted from zero
                     glMatrix.vec3.scale(repulsionMomentum,repulsionMomentum, -magnitude);
-                    if (glMatrix.vec3.length(repulsionMomentum) > 0) {
-                        isMoving = true;
-                    }
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, repulsionMomentum);
                 }
             }
@@ -220,7 +223,7 @@ class SimpleControlPoint {
                         let lengthOfCollision = glMatrix.vec3.length(firstLegOfBounce) + glMatrix.vec3.length(secondLegOfBounce);
 
                         let mangitudeOfMomentum = glMatrix.vec3.length(this.#linearMomentum);
-                        let flattenParticle = mangitudeOfMomentum < 100;
+                        let flattenParticle = mangitudeOfMomentum < 10;
                         //change particles
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];
@@ -326,12 +329,6 @@ class SimpleControlPoint {
             return coordinate;
           })
         ); 
-
-        this.#bonds.forEach((bond) => {
-            let idealRelativePosition = glMatrix.vec3.clone(bond.idealRelativePosition);
-            glMatrix.vec3.transformMat4(idealRelativePosition, idealRelativePosition, this.drawMatrix);
-            this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), idealRelativePosition, 'green');
-        });
 
         this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
     }

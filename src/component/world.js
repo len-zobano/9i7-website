@@ -157,6 +157,15 @@ class World {
   #lights = [];
   #controlPointGroups = [];
   #selected = null;
+  
+  get selected () {
+    return this.#selected;
+  }
+
+  set selected(toSelect) {
+    this.#selected = toSelect;
+  }
+
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
@@ -219,6 +228,7 @@ constructor() {
 }
 
   keyIsUp(keyCode) {
+    console.log('key up: ',keyCode);
     delete this.#downKeys[keyCode];
     //bracket - switch selected
     if (keyCode === 221) {
@@ -260,9 +270,6 @@ constructor() {
 
   addControlPoint(controlPoint) {
     this.#controlPoints.push(controlPoint);
-    if (!this.#selected) {
-        this.#selected = controlPoint;
-    }
   }
 
   addControlPointGroup(controlPointGroup) {
@@ -303,8 +310,10 @@ constructor() {
 
     //collision detection if optimized
     if (this.#gridSystem ) {
-        this.#controlPoints.forEach((controlPoint) => {
-            this.#gridSystem.plotControlPoint(controlPoint);
+        this.#controlPointGroups.forEach((controlPointGroup) => {
+            controlPointGroup.controlPoints.forEach((controlPoint) => {
+                this.#gridSystem.plotControlPoint(controlPoint);
+            });
         });
 
         // this.#controlPoints.forEach((worldControlPoint) => {
@@ -363,17 +372,16 @@ constructor() {
     let manupulationType = this.#downKeys[18] ? 'Acceleration' : 'Momentum';
     let angularFunctionName = `changeAngular${manupulationType}`;
     let linearFunctionName = `changeLinear${manupulationType}`;
-    if (this.#downKeys[32]) {
-        this.#selected.freeze();
-    }
     // //a is down
     if (this.#downKeys[65]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraUp.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
+            // let selected = this.#selected;
+            // debugger;
             this.#selected[linearFunctionName](cameraRight.map((element) => {
                 return -element*speed;
             }));
@@ -382,7 +390,7 @@ constructor() {
 
     //d is down
     if (this.#downKeys[68]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraUp.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
@@ -396,7 +404,7 @@ constructor() {
 
     // //w
     if (this.#downKeys[87]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraRight.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
@@ -410,7 +418,7 @@ constructor() {
 
     // //s
     if (this.#downKeys[83]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraRight.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
@@ -424,7 +432,7 @@ constructor() {
     
     //x
     if (this.#downKeys[88]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraDirection.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
@@ -438,7 +446,7 @@ constructor() {
     
     //z
     if (this.#downKeys[90]) {
-        if (this.#downKeys[16]) {
+        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
             this.#selected[angularFunctionName](cameraDirection.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 

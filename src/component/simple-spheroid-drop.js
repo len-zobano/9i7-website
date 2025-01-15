@@ -3,6 +3,7 @@ import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import SphericalControlPoint from './spherical-control-point';
 import engineMath from '../utility/engine-math';
+import SimpleControlPoint from './simple-control-point';
 
 //3 floats position per vertex, 4 float colors per vertex, 3 indices per triangle
 
@@ -17,8 +18,8 @@ class SimpleSpheroidDrop {
   }
 
   #topPoint = null;
-  #leftPoint = null;
-  #rightPoint = null;
+  #backLeftPoint = null;
+  #backRightPoint = null;
   #towardPoint = null;
 
   /*
@@ -29,7 +30,7 @@ class SimpleSpheroidDrop {
   */
 
   get controlPoints () {
-    return [this.#topPoint, this.#leftPoint, this.#rightPoint, this.#towardPoint];
+    return [this.#topPoint, this.#backLeftPoint, this.#backRightPoint, this.#towardPoint];
   }
 
   set isCamera (isCamera) {
@@ -44,26 +45,34 @@ class SimpleSpheroidDrop {
     return 1;
   }
 
-  constructor(world, position, size) {
+  constructor(world, position, radius) {
     this.#world = world;
-    if (!size) {
-        size = 1.0;
+    if (!radius) {
+        radius = 1.0;
     }
 
     let 
         normalTopPosition = glMatrix.vec3.fromValues(1, 1, -1),
-        normalFrontLeftPosition = glMatrix.vec3.fromValues(-1, 1, 1),
-        normalRightPosition = glMatrix.vec3.fromValues(-1, -1, -1),
-        normalBackLeftPosition = glMatrix.vec3.fromValues(1, -1, 1);
+        normalTowardPosition = glMatrix.vec3.fromValues(-1, 1, 1),
+        normalBackLeftPosition = glMatrix.vec3.fromValues(-1, -1, -1),
+        normalBackRightPosition = glMatrix.vec3.fromValues(1, -1, 1);
 
-    let vertices = [normalTopPosition, normalFrontLeftPosition, normalRightPosition, normalBackLeftPosition];
+    let vertices = [normalTopPosition, normalTowardPosition, normalBackLeftPosition, normalBackRightPosition];
     
-    let rotatedVertices = vertices.map((vertex) => {
-        vertex = glMatrix.vec3.clone(vertex);
+    vertices.forEach((vertex) => {
         engineMath.transformVectorByAngle(vertex, [0, -Math.PI/4, 0]);
         engineMath.transformVectorByAngle(vertex, [-0.95535, 0, 0]);
-        glMatrix.vec3.scale(vertex, vertex, 1/Math.pow(3, 0.5));
-        return vertex;
+        glMatrix.vec3.scale(vertex, vertex, radius/Math.pow(3, 0.5));
+        glMatrix.vec3.add(vertex, vertex, position);
+    });
+
+    this.#topPoint = new SimpleControlPoint(world, normalTopPosition, radius*0.3);
+    this.#towardPoint = new SimpleControlPoint(world, normalTowardPosition, radius*0.3);
+    this.#backLeftPoint = new SimpleControlPoint(world, normalBackLeftPosition, radius*0.3);
+    this.#backRightPoint = new SimpleControlPoint(world, normalBackRightPosition, radius*0.3);
+
+    this.controlPoints.forEach((controlPoint) => {
+        controlPoint.bondToAnyWithinRadius(this.controlPoints, radius*2, 10);
     });
 
     this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
@@ -127,39 +136,16 @@ class SimpleSpheroidDrop {
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
 
-    //   world.addControlPoint(this.#positionPoint);
+    //   this.controlPoints.forEach((controlPoint) => {
+    //     world.addControlPoint(controlPoint);
+    //   });
       world.addDrawable(this);
   }
 
-    //get position out of control point
-    get position () {
-    //   return this.#positionPoint.position;
-    }
-
-    get positionPoint () {
-        // return this.#positionPoint;
-    }
-
-  #programInfo = null;
   #world = null;
   get world() {
     return this.#world;
   }
-  #buffers = null;
-
-  calculateTrajectory(interval) {
-    this.controlPoints.forEach((controlPoint) => {
-        controlPoint.calculateTrajectory(interval);
-    });
-  }
-
-  simulate(interval) {
-    this.controlPoints.forEach((controlPoint) => {
-        controlPoint.simulate(interval);
-    });
-  }
-
-
 
   draw() {
 

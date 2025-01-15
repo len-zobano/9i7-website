@@ -6,7 +6,7 @@ class ControlPointGroup {
     #position = null;
     #isSelected = false;
     #controlPoints = [];
-    #linearMomentumDecay = 0.5;
+    #linearMomentumDecay = 0.8;
     #angularMomentumDecay = 0.5;
     #ID = null;
 
@@ -46,6 +46,12 @@ class ControlPointGroup {
 
     addControlPoint (controlPoint) {
         this.#controlPoints.push(controlPoint);
+    }
+
+    addControlPoints (controlPoints) {
+        controlPoints.forEach((controlPoint) => {
+            this.addControlPoint(controlPoint);
+        });
     }
 
     freeze() {
