@@ -227,7 +227,7 @@ function UAGComponent() {
           bondTo: ["insideRightKnee","outsideRightKnee"]
         }];
 
-        bodyDeclaration = bodyDeclaration.slice(0,1);
+        // bodyDeclaration = bodyDeclaration.slice(0,2);
 
         let bodyDeclarationMap = {}, bodyScale = 10;
 
@@ -271,6 +271,7 @@ function UAGComponent() {
 
           if (!world.selected) {
             world.selected = bodyDeclarationMap[declaredPart.name].drop.controlPoints[0];
+            world.selected.anchor = true;
           }
           
           bodyGroup.addControlPoints(bodyDeclarationMap[declaredPart.name].drop.controlPoints);
@@ -279,9 +280,12 @@ function UAGComponent() {
         bodyDeclaration.forEach((declaredPart) => {
           //bond to other
           bodyDeclarationMap[declaredPart.name].bondTo.forEach((nameOfOther) => {
-            bodyDeclarationMap[declaredPart.name].drop.controlPoints[0].bondTo(
-              bodyDeclarationMap[nameOfOther].drop.controlPoints[0]
-            );
+            for (let i = 0; i < 3; ++i) {
+              bodyDeclarationMap[declaredPart.name].drop.controlPoints[i].bondTo(
+                bodyDeclarationMap[nameOfOther].drop.controlPoints[i],
+                10
+              );
+            }
           })
         });
       }
@@ -292,7 +296,7 @@ function UAGComponent() {
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
       light.position = glMatrix.vec3.fromValues(-200,-50,-200);
-      // light.focused = cubes[0].controlPoints[0];
+      light.focused = cubes[0].controlPoints[0];
 
       let positions = cubes.map((cube) => {
         return cube.controlPoints[0].position;
@@ -313,7 +317,7 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 0,
+        meshJitter = 50,
         meshPosition = [-200,-100,-200],
         meshSquareWidth = 70,
         meshSquareLength = 70,

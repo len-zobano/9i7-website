@@ -149,28 +149,56 @@ class SimpleSpheroidDrop {
 
   draw() {
 
-    // if (!this.#drawDelegate || this.#isCamera || !this.#visible) {
-    //     return;
-    // }
+    if (!this.#drawDelegate || this.#isCamera || !this.#visible) {
+        return;
+    }
     // // Set the drawing position to the "identity" point, which is
     // // the center of the scene.
     // // const modelViewMatrix = glMatrix.mat4.create();
-    // const modelViewMatrix = this.#world.modelViewMatrix;
+    const modelViewMatrix = this.#world.modelViewMatrix;
   
     // // Now move the drawing position a bit to where we want to
     // // start drawing the square.
-    // let drawPosition = this.#positionPoint.position;
-    // let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
+    let drawPosition = engineMath.averageOfVectors([
+        this.#backLeftPoint.position,
+        this.#backRightPoint.position,
+        this.#towardPoint.position
+    ]);
+    let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
 
-    // glMatrix.mat4.translate(
-    //   drawDelegateMatrix, // destination matrix
-    //   drawDelegateMatrix, // matrix to translate
-    //   drawPosition,
-    // ); // amount to translate
+    //TEMORARY: testing draw position fix
+    // glMatrix.vec3.scale(drawPosition, drawPosition, -1);
+    glMatrix.mat4.translate(
+      drawDelegateMatrix, // destination matrix
+      drawDelegateMatrix, // matrix to translate
+      drawPosition,
+    ); // amount to translate
 
-    // let normalizedUp = this.#positionPoint.top;
-    // glMatrix.vec3.normalize(normalizedUp, normalizedUp);
+    let topPoint = this.#topPoint;
+    let normalizedUp = glMatrix.vec3.create();
+    glMatrix.vec3.sub(normalizedUp, this.#topPoint.position, drawPosition);
+    glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
+    let normalizedTowardPoint = glMatrix.vec3.create();
+    glMatrix.vec3.sub(normalizedTowardPoint, this.#towardPoint.position, drawPosition);
+    glMatrix.vec3.normalize(normalizedTowardPoint, normalizedTowardPoint);
+
+    let normalizedRight = glMatrix.vec3.create();
+    glMatrix.vec3.cross(normalizedRight, normalizedUp, normalizedTowardPoint);
+    glMatrix.vec3.normalize(normalizedRight, normalizedRight);
+    
+    let normalizedDrawToward = glMatrix.vec3.create();
+    glMatrix.vec3.cross(normalizedDrawToward, normalizedRight, normalizedUp);
+    glMatrix.vec3.normalize(normalizedDrawToward, normalizedDrawToward);
+
+    let drawMatrix = glMatrix.mat4.fromValues(
+        normalizedRight[0], normalizedUp[0], normalizedDrawToward[0], 0,
+        normalizedRight[1], normalizedUp[1], normalizedDrawToward[1], 0,
+        normalizedRight[2], normalizedUp[2], normalizedDrawToward[2], 0,
+        0, 0, 0, 1
+    );
+
+    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawMatrix);
     // let normalizedRight = this.#positionPoint.right;
     // glMatrix.vec3.normalize(normalizedRight, normalizedRight);
 
@@ -181,10 +209,10 @@ class SimpleSpheroidDrop {
 
     // glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, this.#positionPoint.drawMatrix);
 
-    // let lightPosition = this.#world.getLights()[0].position;
-    // glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
+    let lightPosition = this.#world.getLights()[0].position;
+    glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
 
-    // this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
+    this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
   }
 }
 

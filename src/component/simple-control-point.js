@@ -224,6 +224,8 @@ class SimpleControlPoint {
 
                         let mangitudeOfMomentum = glMatrix.vec3.length(this.#linearMomentum);
                         let flattenParticle = mangitudeOfMomentum < 10;
+                        //TEMPORARY: always bounce
+                        flattenParticle = false;
                         //change particles
                         this.#position = mirroredSegment[0];
                         positionBeforeSurfaceCollision = mirroredSegment[1];

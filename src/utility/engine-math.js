@@ -142,6 +142,15 @@ function EngineMath () {
             return angleComponent*magnitude;
         });
     }
+
+    this.averageOfVectors = (vectors) => {
+        let average = glMatrix.vec3.create();
+        vectors.forEach((vector) => {
+            glMatrix.vec3.add(average, average, vector);
+        });
+        glMatrix.vec3.scale(average, average, 1/vectors.length);
+        return average;
+    };
 }
 
 let engineMath = new EngineMath();
