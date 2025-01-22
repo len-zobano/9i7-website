@@ -7,6 +7,7 @@ import TriangularSurface from './triangular-surface'
 import engineMath from '../utility/engine-math';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import SimpleSpheroidDrop from './simple-spheroid-drop';
+import Human from '../bodies/human';
 
 import {
   BrowserRouter as Router,
@@ -15,6 +16,7 @@ import {
   Link
 } from 'react-router-dom';
 import ControlPointGroup from './control-point-group';
+import SimpleControlPoint from './simple-control-point';
 
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window;
@@ -70,22 +72,10 @@ function UAGComponent() {
         let jitter = 8;
         let cubePosition = [-150,-90,-150];
 
-        // let randomValues = [];
-        // for (let i = 0; i < 100; ++i) {
-        //   randomValues.push(engineMath.random());
-        // }
-        // randomValues.sort((a, b) => {
-        //   return a-b;
-        // });
-        // let differences = [];
-        // for (let i = 0; i < 99; ++i) {
-        //   differences.push(randomValues[i+1] - randomValues[i]);
-        // }
-
         let dropGroup = new ControlPointGroup(world);
         let numberOfDrops = cubeSize*cubeSize*cubeSize;
         for (let i = 0; i < numberOfDrops; ++i) {
-          let cube = new SpheroidDrop(world, [
+          let cube = new SimpleControlPoint(world, [
             (i%cubeSize)*distance+cubePosition[0],
             ((Math.floor(i/(cubeSize)))%cubeSize)*distance+cubePosition[1],
             ((Math.floor(i/(cubeSize*cubeSize)))%cubeSize)*distance+cubePosition[2]
@@ -93,139 +83,17 @@ function UAGComponent() {
             return element+engineMath.random()*jitter;
           }));
 
-          dropGroup.addControlPoint(cube.controlPoints[0]);
+          dropGroup.addControlPoint(cube);
           cubes[i] = cube;
         }
       }
 
-      let bodyThickness = 0.25;
+      let bodyThickness = 1;
 
       if (createTestBody) {
         let bodyGroup = new ControlPointGroup(world);
 
-        let bodyDeclaration = [{
-          name: "head"
-        }, {
-          name: "backLeftShoulder",
-          relativeTo: "head",
-          position: [-1,-1,-bodyThickness/2],
-          bondTo: ["head"]
-        }, {
-          name: "frontLeftShoulder",
-          relativeTo: "head",
-          position: [-1,-1,bodyThickness/2],
-          bondTo: ["head","backLeftShoulder"]
-        }, {
-          name: "backRightShoulder",
-          relativeTo: "head",
-          position: [1,-1,-bodyThickness/2],
-          bondTo: ["head"]
-        }, {
-          name: "frontRightShoulder",
-          relativeTo: "head",
-          position: [1,-1,bodyThickness/2],
-          bondTo: ["head","backRightShoulder"]
-        },
-        {
-          name: "backLeftElbow",
-          relativeTo: "backLeftShoudler",
-          position: [-0.5,-2,0],
-          bondTo: ["backLeftShoulder"]
-        }, {
-          name: "frontLeftElbow",
-          relativeTo: "frontLeftShoulder",
-          position: [-0.5,-2,0],
-          bondTo: ["frontLeftShoulder", "backLeftElbow"]
-        },
-        {
-          name: "backRightElbow",
-          relativeTo: "backRightShoudler",
-          position: [0.5,-2,0],
-          bondTo: ["backRightShoulder"]
-        }, {
-          name: "frontRightElbow",
-          relativeTo: "frontRightShoulder",
-          position: [0.5,-2,0],
-          bondTo: ["frontRightShoulder", "backRightElbow"]
-        },
-        {
-          name: "leftHand",
-          relativeTo: "frontLeftElbow",
-          position: [-0.5, 2, 0],
-          bondTo: ["frontLeftElbow", "backLeftElbow"]
-        },
-        {
-          name: "rightHand",
-          relativeTo: "frontRightElbow",
-          position: [0.5, 2, 0],
-          bondTo: ["frontRightElbow", "backRightElbow"]
-        },
-        {
-          name: "leftAsscheek",
-          relativeTo: "backLeftShoulder",
-          position: [0.5,-4,0],
-          bondTo: ["backLeftShoulder"]
-        },
-        {
-          name: "rightAsscheek",
-          relativeTo: "backRightShoulder",
-          position: [-0.5,-4,0],
-          bondTo: ["backRightShoulder", "leftAsscheek"]
-        },
-        {
-          name: "leftHip",
-          relativeTo: "frontLeftShoulder",
-          position: [0,-4,0],
-          bondTo: ["frontLeftShoulder"]
-        },
-        {
-          name: "rightHip",
-          relativeTo: "frontRightShoulder",
-          position: [0,-4,0],
-          bondTo: ["frontRightShoulder"]
-        },
-        {
-          name: "nutsack",
-          relativeTo: "leftHip",
-          position: [1,0,0],
-          bondTo: ["leftHip","rightHip"]
-        },
-        {
-          name: "outsideLeftKnee",
-          relativeTo: "leftHip",
-          position: [0,-2,0],
-          bondTo: ["leftHip"]
-        },
-        {
-          name: "insideLeftKnee",
-          relativeTo: "nutsack",
-          position: [-0.25,-2, 0],
-          bondTo: ["nutsack","outsideLeftKnee"]
-        },
-        {
-          name: "outsideRightKnee",
-          relativeTo: "rightHip",
-          position: [0,-2,0],
-          bondTo: ["rightHip"]
-        },
-        {
-          name: "insideRightKnee",
-          relativeTo: "nutsack",
-          position: [0.25,-2, 0],
-          bondTo: ["nutsack","outsideRightKnee"]
-        },
-        {
-          name: "leftFoot",
-          relativeTo: "outsideLeftKnee",
-          position: [0.25,-2,0],
-          bondTo: ["insideLeftKnee","outsideLeftKnee"]
-        },
-        {
-          name: "rightFoot",
-          relativeTo: "outsideRightKnee",
-          position: [-0.25,-2,0],
-          bondTo: ["insideRightKnee","outsideRightKnee"]
-        }];
+        let bodyDeclaration = new Human (1);
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 
@@ -266,26 +134,28 @@ function UAGComponent() {
           //create drop
           let dropPosition = glMatrix.vec3.create();
           glMatrix.vec3.scale(dropPosition, totalPosition, bodyScale);
-          bodyDeclarationMap[declaredPart.name].drop = new SimpleSpheroidDrop (world, dropPosition, 1);
+          let drop = new SimpleControlPoint(world, dropPosition, 1);
+          bodyDeclarationMap[declaredPart.name].drop = drop;
+          if (declaredPart.anchor) {
+            drop.anchor = true;
+          }
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
 
           if (!world.selected) {
-            world.selected = bodyDeclarationMap[declaredPart.name].drop.controlPoints[0];
+            world.selected = bodyDeclarationMap[declaredPart.name].drop;
             world.selected.anchor = true;
           }
           
-          bodyGroup.addControlPoints(bodyDeclarationMap[declaredPart.name].drop.controlPoints);
+          bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop);
         });
 
         bodyDeclaration.forEach((declaredPart) => {
           //bond to other
           bodyDeclarationMap[declaredPart.name].bondTo.forEach((nameOfOther) => {
-            for (let i = 0; i < 3; ++i) {
-              bodyDeclarationMap[declaredPart.name].drop.controlPoints[i].bondTo(
-                bodyDeclarationMap[nameOfOther].drop.controlPoints[i],
-                10
-              );
-            }
+            bodyDeclarationMap[declaredPart.name].drop.bondTo(
+              bodyDeclarationMap[nameOfOther].drop,
+              3
+            );
           })
         });
       }
@@ -296,10 +166,10 @@ function UAGComponent() {
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
       light.position = glMatrix.vec3.fromValues(-200,-50,-200);
-      light.focused = cubes[0].controlPoints[0];
+      light.focused = cubes[0];
 
       let positions = cubes.map((cube) => {
-        return cube.controlPoints[0].position;
+        return cube.position;
       });
 
       //TEMPORARY: this should have a better system

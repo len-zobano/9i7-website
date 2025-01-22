@@ -2,11 +2,13 @@ import * as glMatrix from 'gl-matrix';
 import DebugDrawDelegate from './debug-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import engineMath from '../utility/engine-math';
+import WireframeDrawDelegate from './wireframe-draw-delegate';
 
 let drawDelegates = {
     red: null,
     green: null,
-    blue: null
+    blue: null,
+    wireframe: null
 };
 
 class SimpleControlPoint {
@@ -288,6 +290,7 @@ class SimpleControlPoint {
             });
     
             drawDelegates = {
+                wireframe: new WireframeDrawDelegate(this.#world),
                 red: new DebugDrawDelegate(this.#world, positions, colors.red, indices),
                 green: new DebugDrawDelegate(this.#world, positions, colors.green, indices),
                 blue: new DebugDrawDelegate(this.#world, positions, colors.blue, indices),
@@ -321,18 +324,47 @@ class SimpleControlPoint {
     }
 
     draw() {
-        const modelViewMatrix = this.#world.modelViewMatrix;
+        const referencePointMatrix = this.#world.modelViewMatrix;
         // Now move the drawing position a bit to where we want to
         // start drawing the square.
         glMatrix.mat4.translate(
-          modelViewMatrix, // destination matrix
-          modelViewMatrix, // matrix to translate
-          this.#position.map((coordinate) => {
-            return coordinate;
-          })
+            referencePointMatrix, // destination matrix
+            referencePointMatrix, // matrix to translate
+            this.#position.map((coordinate) => {
+                return coordinate;
+            })
         ); 
 
-        this.drawReferencePoint(glMatrix.mat4.clone(modelViewMatrix), [0,0,0], 'green');
+        this.drawReferencePoint(glMatrix.mat4.clone(referencePointMatrix), [0,0,0], 'green');
+
+        let vertices = [], bonds = this.#bonds;
+        this.#bonds.forEach((bond) => {
+            let otherControlPoint = bond.controlPoint;
+            //TODO: optimize this, the array shouldn't be duplicated each loop
+            let transformedPosition = glMatrix.vec3.clone(this.#position);
+            let transformationMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.multiply(transformationMatrix, this.#world.projectionMatrix, this.#world.modelViewMatrix);
+            glMatrix.vec3.transformMat4(transformedPosition, transformedPosition, transformationMatrix);
+            vertices = vertices.concat(
+                transformedPosition[0],
+                transformedPosition[1],
+                transformedPosition[2]
+            );
+
+            let transformedOtherPosition = glMatrix.vec3.clone(otherControlPoint.position);
+            glMatrix.vec3.transformMat4(transformedOtherPosition, transformedOtherPosition, transformationMatrix);
+            vertices = vertices.concat(
+                transformedOtherPosition[0],
+                transformedOtherPosition[1],
+                transformedOtherPosition[2]
+            );
+        });
+
+        // debugger;
+
+        if (drawDelegates.wireframe) {
+            drawDelegates.wireframe.draw(vertices);
+        }
     }
 
     changeLinearMomentum(momentumChangeArray) {
