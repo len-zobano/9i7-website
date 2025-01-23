@@ -16,6 +16,15 @@ class SimpleControlPoint {
     #position = null;
     #ID = null;
     #bounciness = 1;
+    #isAnchored = false;
+
+    set isAnchored (isAnchored) {
+        this.#isAnchored = isAnchored;
+    }
+
+    get isAnchored () {
+        return this.#isAnchored;
+    }
 
     get ID () {
         return this.#ID;
@@ -123,6 +132,9 @@ class SimpleControlPoint {
     
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
+        if (this.#isAnchored) {
+            return;
+        }
         // //calculate attraction by bonds
         let bondedControlPoints = {};
 
@@ -179,6 +191,9 @@ class SimpleControlPoint {
     }
 
     decay (groupMomentum, scaledMomentumDecay, scaledAngularMomentumDecay) {
+        if (this.#isAnchored) {
+            return;
+        }
         //calculate the momentum relative to the frame of reference
         let relativeMomentum = glMatrix.vec3.create();
         glMatrix.vec3.sub(relativeMomentum, this.#linearMomentum, groupMomentum);
@@ -189,6 +204,9 @@ class SimpleControlPoint {
     }
 
     simulate(interval) {
+        if (this.#isAnchored) {
+            return;
+        }
         //scale linear momentum by interval
         let scaledLinearMomentum = glMatrix.vec3.create();
         glMatrix.vec3.scale(scaledLinearMomentum, this.#linearMomentum, interval);
@@ -307,7 +325,7 @@ class SimpleControlPoint {
             })
         ); 
 
-        let pointScale = 0.3;
+        let pointScale = 1;
         glMatrix.mat4.scale(
             matrix,
             matrix,

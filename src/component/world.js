@@ -230,18 +230,28 @@ constructor() {
   keyIsUp(keyCode) {
     console.log('key up: ',keyCode);
     delete this.#downKeys[keyCode];
+
+    let controlPoints = this.#controlPointGroups[0].controlPoints;
+    let indexOfSelected = controlPoints.indexOf(this.#selected);
     //bracket - switch selected
     if (keyCode === 221) {
-        let indexOfSelected = this.#controlPoints.indexOf(this.#selected);
-        let indexOfNextSelected = (indexOfSelected + 1) % this.#controlPoints.length;
+        let indexOfNextSelected = (indexOfSelected + 1) % controlPoints.length;
         let lastSelected = this.#selected;
-        this.#selected = this.#controlPoints[indexOfNextSelected];
-        lastSelected.select(false);
-        this.#selected.select(true);
+        this.#selected = controlPoints[indexOfNextSelected];
+    }
+
+    if (keyCode === 219) {
+        let indexOfNextSelected = (indexOfSelected - 1) % controlPoints.length;
+        let lastSelected = this.#selected;
+        this.#selected = controlPoints[indexOfNextSelected];
     }
 
     if (keyCode === 32) {
         this.#isRunning = !this.#isRunning;
+    }
+
+    if (keyCode === 80) {
+        this.#selected.isAnchored = !this.#selected.isAnchored;
     }
 
     // this.#controlPoints.forEach((controlPoint) => {

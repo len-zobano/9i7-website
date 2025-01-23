@@ -8,6 +8,7 @@ import engineMath from '../utility/engine-math';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import SimpleSpheroidDrop from './simple-spheroid-drop';
 import Human from '../bodies/human';
+import Cube from '../bodies/cube';
 
 import {
   BrowserRouter as Router,
@@ -93,7 +94,7 @@ function UAGComponent() {
       if (createTestBody) {
         let bodyGroup = new ControlPointGroup(world);
 
-        let bodyDeclaration = new Human (1);
+        let bodyDeclaration = new Cube (1);
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 
@@ -119,26 +120,41 @@ function UAGComponent() {
           //get absolute position
           let mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[declaredPart.name], totalPosition = glMatrix.vec3.fromValues(0,0,0);
           //as long as you're searching for the absolute position, keep looking and adding to relative position
+          console.log('beginning search for position for ',declaredPart.name);
           while (mappedPartToSearchForAbsolutePosition) {
+            console.log('searching mapped part',mappedPartToSearchForAbsolutePosition,'for ',declaredPart.name);
             if (mappedPartToSearchForAbsolutePosition.absolutePosition) {
               glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.absolutePosition);
+              console.log('added absolute position',mappedPartToSearchForAbsolutePosition.absolutePosition);
               bodyDeclarationMap[declaredPart.name].absolutePosition = totalPosition;
               mappedPartToSearchForAbsolutePosition = null;
             }
             else {
               glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.relativePosition);
-              bodyDeclarationMap[declaredPart.name].relativePosition = mappedPartToSearchForAbsolutePosition.relativeTo;
-              mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[mappedPartToSearchForAbsolutePosition.relativeTo];
+              console.log('added relative position',mappedPartToSearchForAbsolutePosition.relativePosition);
+              // bodyDeclarationMap[declaredPart.name].relativePosition = mappedPartToSearchForAbsolutePosition.relativeTo;
+              let nameOfNextToSearchForPosition = mappedPartToSearchForAbsolutePosition.relativeTo;
+              mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[nameOfNextToSearchForPosition];
+              console.log('searching next: ',nameOfNextToSearchForPosition,'for position of ',declaredPart.name);
+              console.log('part for search next',mappedPartToSearchForAbsolutePosition);
+              // if (!mappedPartToSearchForAbsolutePosition) {
+              //   debugger;
+              // }
             }
           }
+
+          // if (declaredPart.name === 'backLeftElbow') {
+            bodyDeclarationMap[declaredPart.name].absolutePosition = totalPosition;
+            // debugger;
+          // }
           //create drop
           let dropPosition = glMatrix.vec3.create();
           glMatrix.vec3.scale(dropPosition, totalPosition, bodyScale);
-          let drop = new SimpleControlPoint(world, dropPosition, 1);
+          let drop = new SimpleControlPoint(world, dropPosition, 0.1);
           bodyDeclarationMap[declaredPart.name].drop = drop;
           if (declaredPart.anchor) {
-            drop.anchor = true;
-          }
+            drop.isAnchored = true;
+        }
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
 
           if (!world.selected) {
@@ -158,6 +174,8 @@ function UAGComponent() {
             );
           })
         });
+
+        // debugger;
       }
 
       let camera = new SimpleFollowPoint(world, 100, 20, glMatrix.vec3.fromValues(10,10,10));

@@ -289,16 +289,16 @@ class TriangularSurface {
                 verticesAtPointOfIntersection[2]
             )) {
 
-                console.log(`
-                    Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
-                    In context point of intersection: ${inContextPointOfIntersection}
-                    In context top vertex - 0: ${this.#verticesInContext[0]}
-                    In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
-                    In context top vertex - b: ${this.#verticesInContext[1]}
-                    In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
-                    In context top vertex - b: ${this.#verticesInContext[2]}
-                    In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
-                `);
+                // console.log(`
+                //     Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}
+                //     In context point of intersection: ${inContextPointOfIntersection}
+                //     In context top vertex - 0: ${this.#verticesInContext[0]}
+                //     In context vertex at point of intersection - 0: ${verticesAtPointOfIntersection[0]}
+                //     In context top vertex - b: ${this.#verticesInContext[1]}
+                //     In context vertex at point of intersection - b: ${verticesAtPointOfIntersection[1]}
+                //     In context top vertex - b: ${this.#verticesInContext[2]}
+                //     In context vertex at point of intersection - c: ${verticesAtPointOfIntersection[2]}
+                // `);
 
                 let absolutePointOfIntersection = glMatrix.vec3.create();
 
