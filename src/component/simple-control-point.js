@@ -40,6 +40,10 @@ class SimpleControlPoint {
         return glMatrix.vec3.clone(this.#linearMomentum);
     }
 
+    get mass () {
+        return this.#mass;
+    }
+
     #friction = 1.0;
     #radius = 1.0;
 
@@ -47,7 +51,7 @@ class SimpleControlPoint {
         return this.#radius;
     }
 
-    #inertia = 1.0;
+    #mass = 1.0;
     #drawDelegate = null;
 
     constructor(world, position, radius, friction) {
@@ -155,7 +159,7 @@ class SimpleControlPoint {
             let relativePositionNormal = glMatrix.vec3.clone(relativePosition);
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
-            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, -distanceToIdeal*interval*bond.strength);
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, -distanceToIdeal*interval*bond.strength/this.#mass);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
         });
 
@@ -174,6 +178,8 @@ class SimpleControlPoint {
                     if (magnitude > this.#world.maxRepulsionMagnitude) {
                         magnitude = this.#world.maxRepulsionMagnitude;
                     }
+                    magnitude /= this.#mass;
+
                     let relativePositionOfOther = glMatrix.vec3.create();
                     glMatrix.vec3.sub(relativePositionOfOther, otherControlPoint.position, this.#position);
                     let repulsionMomentum = glMatrix.vec3.clone(relativePositionOfOther);
