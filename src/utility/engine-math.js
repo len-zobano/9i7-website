@@ -116,12 +116,14 @@ function EngineMath () {
         ret[1] = -this.shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
         ret[2] = this.shortestAngleBetweenTwo2DVectors(AXY, CXY);
     
-        return ret.map((element) => {
+        ret = ret.map((element) => {
             if (element === -0) {
                 element = 0;
             }
             return element;
         });
+
+        return glMatrix.vec3.fromValues(ret[0], ret[1], ret[2]);
     }    
 
     this.magnitudeOfAttractionForAngle = (angle) => {

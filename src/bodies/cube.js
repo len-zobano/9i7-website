@@ -1,6 +1,7 @@
   function Cube (bodyThickness) {
     return [{
-        name: "backUpperLeft"
+        name: "backUpperLeft",
+        rigidGroup: "cube"
     }, {
         name: "backUpperRight",
         bondTo: ["backUpperLeft"],

@@ -91,23 +91,24 @@ class RigidGroup {
             distanceToScaledDown = glMatrix.vec3.squaredDistance(relativeOriginPlusMomentum, scaledDownRelativeOrigin),
             distanceToScaledUp = glMatrix.vec3.squaredDistance(relativeOriginPlusMomentum, scaledUpRelativeOrigin);
 
-        let directionalAngularMomentumFactor = 
-            1 -
-            Math.abs(distanceToScaledDown - distanceToScaledUp) / 
-            (distanceToScaledDown + distanceToScaledUp);
+        if (distanceToScaledUp !== 0) {
+            let directionalAngularMomentumFactor = 
+                1 -
+                Math.abs(distanceToScaledDown - distanceToScaledUp) / 
+                (distanceToScaledDown + distanceToScaledUp);
 
-        let lengthAngularMomentumFactor = lengthOfRelativeOrigin / this.#radius;
+            let lengthAngularMomentumFactor = lengthOfRelativeOrigin / this.#radius;
 
-        //should this factor in the mass of the 
-        let 
-            angularMomentumFactor = directionalAngularMomentumFactor * lengthAngularMomentumFactor,
-            angularMomentum = engineMath.angleBetweenTwoVectors(relativeOrigin, relativeOriginPlusMomentum);
-        
-        glMatrix.vec3.scale(scaledLinearMomentum, momentum, (1 - angularMomentumFactor)*magnitude);
-        glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
+            let 
+                angularMomentumFactor = directionalAngularMomentumFactor * lengthAngularMomentumFactor,
+                angularMomentum = engineMath.angleBetweenTwoVectors(relativeOrigin, relativeOriginPlusMomentum);
+            
+            glMatrix.vec3.scale(scaledLinearMomentum, momentum, (1 - angularMomentumFactor)*magnitude);
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
 
-        glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, angularMomentumFactor*magnitude);
-        glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
+            glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, angularMomentumFactor*magnitude);
+            glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
+        }
     }
 
     decay (groupMomentum, scaledMomentumDecay) {
@@ -124,15 +125,22 @@ class RigidGroup {
         this.#controlPoints.forEach((controlPoint) => {
             let newPosition = controlPoint.position;
             let positionRelativeToCenter = glMatrix.vec3.create();
-            glMatrix.vec3.subtract(positionRelativeToCenter, this.#centerOfMass, newPosition);
+            glMatrix.vec3.subtract(positionRelativeToCenter, newPosition, this.#centerOfMass);
             let rotatedPositionRelativeToCenter = glMatrix.vec3.clone(positionRelativeToCenter);
+            let angularMomentum = this.#angularMomentum, linearMomentum = this.#linearMomentum;
             engineMath.transformVectorByAngle(rotatedPositionRelativeToCenter, this.#angularMomentum);
             let anglePositionComponent = glMatrix.vec3.create();
             glMatrix.vec3.subtract(anglePositionComponent, rotatedPositionRelativeToCenter, positionRelativeToCenter);
 
-            glMatrix.vec3.add(newPosition, newPosition, this.#linearMomentum);
             glMatrix.vec3.add(newPosition, newPosition, anglePositionComponent);
 
+            // //scale rotated to original length
+            // let newPositionRelativeToCenter = glMatrix.vec3.create();
+            // glMatrix.vec3.subtract(newPositionRelativeToCenter, newPosition, this.#centerOfMass);
+            // glMatrix.vec3.scale(newPositionRelativeToCenter, newPositionRelativeToCenter, glMatrix.vec3.length(positionRelativeToCenter)/glMatrix.vec3.length(newPositionRelativeToCenter));
+            // glMatrix.vec3.add(newPosition, newPositionRelativeToCenter, this.#centerOfMass);
+            
+            glMatrix.vec3.add(newPosition, newPosition, this.#linearMomentum);
             controlPoint.position = newPosition;
         });
     }
