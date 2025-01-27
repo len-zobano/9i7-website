@@ -157,6 +157,7 @@ class World {
   #lights = [];
   #controlPointGroups = [];
   #selected = null;
+  #rigidGroups = [];
   
   get selected () {
     return this.#selected;
@@ -284,6 +285,10 @@ constructor() {
 
   addControlPointGroup(controlPointGroup) {
     this.#controlPointGroups.push(controlPointGroup);
+  }
+
+  addRigidGroup(rigidGroup) {
+    this.#rigidGroups.push(rigidGroup);
   }
 
   addCamera(camera) {
@@ -468,6 +473,10 @@ constructor() {
         }
     }
     
+    this.#rigidGroups.forEach((rigidGroup) => {
+        rigidGroup.calculateProperties();
+    });
+
     this.#controlPointGroups.forEach((controlPointGroup) => {
         controlPointGroup.calculateTrajectory(interval);
     });
@@ -478,6 +487,10 @@ constructor() {
 
     this.#controlPointGroups.forEach((controlPointGroup) => {
         controlPointGroup.simulate(interval);
+    });
+
+    this.#rigidGroups.forEach((rigidGroup) => {
+        rigidGroup.applyTrajectory();
     });
 
     this.#cameras.forEach((camera) => {

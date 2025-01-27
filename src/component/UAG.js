@@ -9,6 +9,7 @@ import SimpleDrawDelegate from './simple-draw-delegate';
 import SimpleSpheroidDrop from './simple-spheroid-drop';
 import Human from '../bodies/human';
 import Cube from '../bodies/cube';
+import RigidGroup from './rigid-group';
 
 import {
   BrowserRouter as Router,
@@ -98,7 +99,7 @@ function UAGComponent() {
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 
-        let bodyDeclarationMap = {}, bodyScale = 10;
+        let bodyDeclarationMap = {}, bodyScale = 10, rigidGroupMap = {};
 
         bodyDeclaration.forEach((declaredPart) => {
           bodyDeclarationMap[declaredPart.name] = {};
@@ -154,7 +155,14 @@ function UAGComponent() {
           bodyDeclarationMap[declaredPart.name].drop = drop;
           if (declaredPart.anchor) {
             drop.isAnchored = true;
-        }
+          }
+          if (declaredPart.rigidGroup) {
+            if (!rigidGroupMap[declaredPart.rigidGroup]) {
+              rigidGroupMap[declaredPart.rigidGroup] = new RigidGroup (world);
+            }
+            let thisRigidGroup = rigidGroupMap[declaredPart.rigidGroup];
+            thisRigidGroup.addControlPoint(drop);
+          }
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
 
           if (!world.selected) {

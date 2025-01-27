@@ -1,5 +1,6 @@
 import * as glMatrix from 'gl-matrix';
 import engineMath from '../utility/engine-math';
+import ControlPointGroup from './control-point-group';
 
 class RigidGroup {
     #world = null;
@@ -24,12 +25,15 @@ class RigidGroup {
     }
 
     constructor(world) {
+        console.log("in rigid group constructor?");
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
+        world.addRigidGroup(this);
     }
 
     addControlPoint (controlPoint) {
         this.#controlPoints.push(controlPoint);
+        controlPoint.rigidGroup = this;
     }
 
     addControlPoints (controlPoints) {
@@ -63,8 +67,9 @@ class RigidGroup {
         });
     }
 
-    changeTrajectory (controlPoint, momentum) {
+    changeTrajectory (controlPoint) {
         let 
+            momentum = controlPoint.linearMomentum,
             origin = controlPoint.position,
             relativeOrigin = glMatrix.vec3.create(),
             relativeOriginPlusMomentum = glMatrix.vec3.create(),
@@ -105,6 +110,16 @@ class RigidGroup {
         glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
     }
 
+    decay (groupMomentum, scaledMomentumDecay) {
+        //calculate the momentum relative to the frame of reference
+        let relativeMomentum = glMatrix.vec3.create();
+        glMatrix.vec3.sub(relativeMomentum, this.#linearMomentum, groupMomentum);
+        //decay that momentum
+        glMatrix.vec3.scale(relativeMomentum, relativeMomentum, scaledMomentumDecay);
+        //add the decayed value and the frame of reference momentum to get the absolute momentum
+        glMatrix.vec3.add(this.#linearMomentum, relativeMomentum, groupMomentum);
+    }
+
     applyTrajectory () {
         this.#controlPoints.forEach((controlPoint) => {
             let newPosition = controlPoint.position;
@@ -123,4 +138,4 @@ class RigidGroup {
     }
 }
 
-export default ControlPointGroup;
+export default RigidGroup;
