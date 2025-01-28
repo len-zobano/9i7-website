@@ -44,16 +44,20 @@ function EngineMath () {
 
 
     this.transformVectorByAngle = (vector, angle) => {
+
+        //TEMPORARY: to see if I got the ordering of these wrong
+        let angleIndices = [0,1,2];
+
         let angleSines = [
-            Math.sin(angle[0]),
-            Math.sin(angle[1]),
-            Math.sin(angle[2])
+            Math.sin(angle[angleIndices[0]]),
+            Math.sin(angle[angleIndices[1]]),
+            Math.sin(angle[angleIndices[2]])
         ];
     
         let angleCosines= [
-            Math.cos(angle[0]),
-            Math.cos(angle[1]),
-            Math.cos(angle[2])
+            Math.cos(angle[angleIndices[0]]),
+            Math.cos(angle[angleIndices[1]]),
+            Math.cos(angle[angleIndices[2]])
         ];
     
         let rotationMatrices = [
@@ -73,7 +77,7 @@ function EngineMath () {
                 0, 0, 1
             )
         ];
-    
+
         rotationMatrices.forEach((matrix) => {
             glMatrix.vec3.transformMat3(vector, vector, matrix);
         });
@@ -101,19 +105,25 @@ function EngineMath () {
         return angle;
     }
     
-    this.angleBetweenTwoVectors = (a, c) => {
+    this.angleBetweenTwoVectors = (c, a) => {
+        //XY, ZX, YZ
+
         //turn them to 3 2D angles
         let 
             AXY = glMatrix.vec2.fromValues(a[0], a[1]), 
             CXY = glMatrix.vec2.fromValues(c[0], c[1]),
-            AZY = glMatrix.vec2.fromValues(-a[2], a[1]),
-            CZY = glMatrix.vec2.fromValues(-c[2], c[1]),
-            AXZ = glMatrix.vec2.fromValues(a[0], a[2]),
-            CXZ = glMatrix.vec2.fromValues(c[0], c[2]);
+            AYZ = glMatrix.vec2.fromValues(a[1], a[2]),
+            CYZ = glMatrix.vec2.fromValues(c[1], c[2]),
+            AZX = glMatrix.vec2.fromValues(a[2], a[0]),
+            CZX = glMatrix.vec2.fromValues(c[2], c[0]);
     
         let ret = [];
-        ret[0] = this.shortestAngleBetweenTwo2DVectors(AZY, CZY);
-        ret[1] = -this.shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
+        // ret[0] = this.shortestAngleBetweenTwo2DVectors(AZY, CZY);
+        // ret[1] = -this.shortestAngleBetweenTwo2DVectors(AXZ, CXZ);
+        // ret[2] = this.shortestAngleBetweenTwo2DVectors(AXY, CXY);
+
+        ret[0] = this.shortestAngleBetweenTwo2DVectors(AYZ, CYZ);
+        ret[1] = this.shortestAngleBetweenTwo2DVectors(AZX, CZX);
         ret[2] = this.shortestAngleBetweenTwo2DVectors(AXY, CXY);
     
         ret = ret.map((element) => {

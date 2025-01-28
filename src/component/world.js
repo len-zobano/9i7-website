@@ -379,7 +379,7 @@ constructor() {
     /*
     * end camera-relative control calculations
     */
-    let speed = this.#downKeys[18] ? 100 : 6;
+    let speed = this.#downKeys[18] ? 100 : 20;
     let angularSpeedFactor = 0.1;
 
     //change this from setting vertex, sign, type from downKeys rather than custom line for each one
@@ -497,6 +497,9 @@ constructor() {
         camera.simulate(interval);
     });
 
+    this.#rigidGroups.forEach((rigidGroup) => {
+        rigidGroup.decay(interval);
+    });
     //only iterate after all other collisions are calculated
     if (this.#gridSystem) {
         this.#gridSystem.iterate();

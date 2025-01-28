@@ -398,8 +398,6 @@ class SimpleControlPoint {
             );
         });
 
-        // debugger;
-
         if (drawDelegates.wireframe) {
             drawDelegates.wireframe.draw(vertices);
         }

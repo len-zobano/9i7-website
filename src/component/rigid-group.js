@@ -11,6 +11,8 @@ class RigidGroup {
     #linearMomentum = glMatrix.vec3.create();
     #angularMomentum = glMatrix.vec3.create();
     #ID = null;
+    #linearMomentumDecay = 0.8;
+    #angularMomentumDecay = 0.8;
 
     get controlPoints () {
         return this.#controlPoints.slice(0);
@@ -25,7 +27,6 @@ class RigidGroup {
     }
 
     constructor(world) {
-        console.log("in rigid group constructor?");
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         world.addRigidGroup(this);
@@ -98,27 +99,22 @@ class RigidGroup {
                 (distanceToScaledDown + distanceToScaledUp);
 
             let lengthAngularMomentumFactor = lengthOfRelativeOrigin / this.#radius;
-
+            
             let 
                 angularMomentumFactor = directionalAngularMomentumFactor * lengthAngularMomentumFactor,
-                angularMomentum = engineMath.angleBetweenTwoVectors(relativeOrigin, relativeOriginPlusMomentum);
+                angularMomentum = engineMath.angleBetweenTwoVectors(relativeOriginPlusMomentum, relativeOrigin);
             
             glMatrix.vec3.scale(scaledLinearMomentum, momentum, (1 - angularMomentumFactor)*magnitude);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
 
-            glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, angularMomentumFactor*magnitude);
+            glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, angularMomentumFactor*magnitude/10);
             glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
         }
     }
 
-    decay (groupMomentum, scaledMomentumDecay) {
-        //calculate the momentum relative to the frame of reference
-        let relativeMomentum = glMatrix.vec3.create();
-        glMatrix.vec3.sub(relativeMomentum, this.#linearMomentum, groupMomentum);
-        //decay that momentum
-        glMatrix.vec3.scale(relativeMomentum, relativeMomentum, scaledMomentumDecay);
-        //add the decayed value and the frame of reference momentum to get the absolute momentum
-        glMatrix.vec3.add(this.#linearMomentum, relativeMomentum, groupMomentum);
+    decay (interval) {
+        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, Math.pow(this.#linearMomentumDecay, interval));
+        glMatrix.vec3.scale(this.#angularMomentum, this.#angularMomentum,  Math.pow(this.#angularMomentumDecay, interval));
     }
 
     applyTrajectory () {
@@ -127,18 +123,12 @@ class RigidGroup {
             let positionRelativeToCenter = glMatrix.vec3.create();
             glMatrix.vec3.subtract(positionRelativeToCenter, newPosition, this.#centerOfMass);
             let rotatedPositionRelativeToCenter = glMatrix.vec3.clone(positionRelativeToCenter);
-            let angularMomentum = this.#angularMomentum, linearMomentum = this.#linearMomentum;
             engineMath.transformVectorByAngle(rotatedPositionRelativeToCenter, this.#angularMomentum);
             let anglePositionComponent = glMatrix.vec3.create();
             glMatrix.vec3.subtract(anglePositionComponent, rotatedPositionRelativeToCenter, positionRelativeToCenter);
 
+            //TODO: calculate total energty of rotation momentum and normalize it to the amount of momentum going into the application of the trajectory
             glMatrix.vec3.add(newPosition, newPosition, anglePositionComponent);
-
-            // //scale rotated to original length
-            // let newPositionRelativeToCenter = glMatrix.vec3.create();
-            // glMatrix.vec3.subtract(newPositionRelativeToCenter, newPosition, this.#centerOfMass);
-            // glMatrix.vec3.scale(newPositionRelativeToCenter, newPositionRelativeToCenter, glMatrix.vec3.length(positionRelativeToCenter)/glMatrix.vec3.length(newPositionRelativeToCenter));
-            // glMatrix.vec3.add(newPosition, newPositionRelativeToCenter, this.#centerOfMass);
             
             glMatrix.vec3.add(newPosition, newPosition, this.#linearMomentum);
             controlPoint.position = newPosition;

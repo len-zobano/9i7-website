@@ -95,7 +95,7 @@ function UAGComponent() {
       if (createTestBody) {
         let bodyGroup = new ControlPointGroup(world);
 
-        let bodyDeclaration = new Cube (1);
+        let bodyDeclaration = new Human (1);
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 

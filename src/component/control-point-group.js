@@ -7,7 +7,7 @@ class ControlPointGroup {
     #isSelected = false;
     #controlPoints = [];
     #linearMomentumDecay = 0.8;
-    #angularMomentumDecay = 0.5;
+    #angularMomentumDecay = 0.8;
     #ID = null;
 
     get controlPoints () {
