@@ -105,6 +105,23 @@ function EngineMath () {
         return angle;
     }
     
+    this.isInsideTriangle = (pt, v1, v2, v3) => {
+        function sign (p1, p2, p3)
+        {
+            return (p1[0] - p3[0]) * (p2[2] - p3[2]) - (p2[0] - p3[0]) * (p1[2] - p3[2]);
+        }
+
+        let 
+            d1 = sign(pt, v1, v2),
+            d2 = sign(pt, v2, v3),
+            d3 = sign(pt, v3, v1);
+    
+        let has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        let has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    
+        return !(has_neg && has_pos);
+    }
+
     this.angleBetweenTwoVectors = (c, a) => {
         //XY, ZX, YZ
 

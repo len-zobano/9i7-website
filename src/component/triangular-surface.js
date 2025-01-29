@@ -189,9 +189,9 @@ class TriangularSurface {
         this.#bottomDrawDelegate = new SimpleDrawDelegate(this.#world, bottomVertexArray, bottomColorArray, normalArray, indices);
     }
 
-    momentumChangeForControlPoint(controlPoint) {
-        let inContextControlPointPosition = glMatrix.vec3.clone(controlPoint.position);
-    }
+    // momentumChangeForControlPoint(controlPoint) {
+    //     let inContextControlPointPosition = glMatrix.vec3.clone(controlPoint.position);
+    // }
 
     mirrorLineSegmentAfterIntersection(segmentOrigin, segmentTermination) {
         let newLineSegmentPart = null;
@@ -266,27 +266,8 @@ class TriangularSurface {
                     verticesAtPointOfIntersection[i] = relativePositionOfBottom;
                 }
             }
-
-            function sign (p1, p2, p3)
-            {
-                return (p1[0] - p3[0]) * (p2[2] - p3[2]) - (p2[0] - p3[0]) * (p1[2] - p3[2]);
-            }
             
-            function isInsideTriangle (pt, v1, v2, v3)
-            {
-            
-                let 
-                    d1 = sign(pt, v1, v2),
-                    d2 = sign(pt, v2, v3),
-                    d3 = sign(pt, v3, v1);
-            
-                let has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-                let has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-            
-                return !(has_neg && has_pos);
-            }
-            
-            if (isInsideTriangle(
+            if (engineMath.isInsideTriangle(
                 inContextPointOfIntersection,
                 verticesAtPointOfIntersection[0], 
                 verticesAtPointOfIntersection[1],
