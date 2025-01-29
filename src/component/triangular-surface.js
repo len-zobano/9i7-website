@@ -189,9 +189,26 @@ class TriangularSurface {
         this.#bottomDrawDelegate = new SimpleDrawDelegate(this.#world, bottomVertexArray, bottomColorArray, normalArray, indices);
     }
 
-    // momentumChangeForControlPoint(controlPoint) {
-    //     let inContextControlPointPosition = glMatrix.vec3.clone(controlPoint.position);
-    // }
+    trajectoryChangeForControlPoint (controlPoint) {
+        let trajectoryChange = null;
+
+        let inContextControlPointPosition = glMatrix.vec3.clone(controlPoint.position);
+        glMatrix.vec3.transformMat4(
+            inContextControlPointPosition,
+            inContextControlPointPosition,
+            this.#inverseContextMatrix
+        );
+
+        if (engineMath.isInsideNormalTruncatedPyramid(
+            inContextControlPointPosition,
+            this.#verticesInContext,
+            this.#bottomVerticesInContext
+        )) {
+            trajectoryChange = glMatrix.vec3.clone(this.#vertexNormal);
+        }
+
+        return trajectoryChange;
+    }
 
     mirrorLineSegmentAfterIntersection(segmentOrigin, segmentTermination) {
         let newLineSegmentPart = null;
@@ -246,33 +263,13 @@ class TriangularSurface {
                 inContextSegmentTermination[2]*(1-intersectionData.portionOfLineAfterIntersection) + inContextSegmentOrigin[2]*intersectionData.portionOfLineAfterIntersection,
             ];
 
-            //TODO: you could optimize this by precalculating the bottom vertices to be where their relative position is y = -1
-            let verticesAtPointOfIntersection = [];
-            let depthOfVertices = [];
-            //if y value is zero, just clone the vertices
-            if (intersectionData.yValue === 0) {
-                verticesAtPointOfIntersection = this.#vertices;
-            }
-            //otherwise, for each vertex
-            else {
-                for (let i = 0; i < 3; ++i) {
-                    //get relative vertex
-                    let relativePositionOfBottom = glMatrix.vec3.create();
-                    glMatrix.vec3.subtract(relativePositionOfBottom, this.#bottomVerticesInContext[i], this.#verticesInContext[i]);
-                    //get y value
-                    let toScale = intersectionData.yValue / relativePositionOfBottom[1];
-                    glMatrix.vec3.scale(relativePositionOfBottom, relativePositionOfBottom, toScale);
-                    glMatrix.vec3.add(relativePositionOfBottom, this.#verticesInContext[i], relativePositionOfBottom);
-                    verticesAtPointOfIntersection[i] = relativePositionOfBottom;
-                }
-            }
-            
-            if (engineMath.isInsideTriangle(
-                inContextPointOfIntersection,
-                verticesAtPointOfIntersection[0], 
-                verticesAtPointOfIntersection[1],
-                verticesAtPointOfIntersection[2]
-            )) {
+            if (
+                engineMath.isInsideNormalTruncatedPyramid(
+                    inContextPointOfIntersection,
+                    this.#verticesInContext,
+                    this.#bottomVerticesInContext
+                )
+            ) {
 
                 // console.log(`
                 //     Particle crossed the triangular plane. Is inside triangle: ${isInsideTriangle}

@@ -105,6 +105,33 @@ function EngineMath () {
         return angle;
     }
     
+    //normal truncated pyramid's top triangle is along the plane y=0
+    this.isInsideNormalTruncatedPyramid = (vertex, topVertices, bottomVertices) => {
+        if (vertex[1] > 0) {
+            return false;
+        }
+        //TODO: you could optimize this by precalculating the bottom vertices to be where their relative position is y = -1
+        let verticesAtPointOfIntersection = [];
+        //if y value is zero, just clone the vertices
+        for (let i = 0; i < 3; ++i) {
+            //get relative vertex
+            let relativePositionOfBottom = glMatrix.vec3.create();
+            glMatrix.vec3.subtract(relativePositionOfBottom, bottomVertices[i], topVertices[i]);
+            //get y value
+            let toScale = vertex[1] / relativePositionOfBottom[1];
+            glMatrix.vec3.scale(relativePositionOfBottom, relativePositionOfBottom, toScale);
+            glMatrix.vec3.add(relativePositionOfBottom, topVertices[i], relativePositionOfBottom);
+            verticesAtPointOfIntersection[i] = relativePositionOfBottom;
+        }
+        
+        return engineMath.isInsideTriangle(
+            vertex,
+            verticesAtPointOfIntersection[0], 
+            verticesAtPointOfIntersection[1],
+            verticesAtPointOfIntersection[2]
+        );
+    }
+    //TODO: this is a 2D function, and should be expressed as such
     this.isInsideTriangle = (pt, v1, v2, v3) => {
         function sign (p1, p2, p3)
         {

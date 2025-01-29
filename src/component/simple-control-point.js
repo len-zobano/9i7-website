@@ -199,6 +199,20 @@ class SimpleControlPoint {
             }
         });
 
+        let triangularSurfaces = this.#world.triangularSurfaces;
+        //repulsion method of collision handling
+        triangularSurfaces.forEach((triangularSurface) => {
+            if (
+                triangularSurface.lineSegmentMayIntersect(this.#position, this.#position)
+            ) {
+                let trajectoryChange = triangularSurface.trajectoryChangeForControlPoint(this);
+                if (trajectoryChange) {
+                    // debugger;
+                    glMatrix.vec3.scale(trajectoryChange, trajectoryChange, interval*50);
+                    glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, trajectoryChange);
+                }
+            }
+        });
         //add gravity to linear momentum
         let gravity = this.#world.getGravityForLocation(this.#position);
         glMatrix.vec3.scale(gravity, gravity, interval);
@@ -237,6 +251,8 @@ class SimpleControlPoint {
         let triangularSurfaces = this.#world.triangularSurfaces;
         
         let collidedWithSurface = true, numberOfCollisions = 0;
+        //TEMPORARY: disable reflection method of collision handling
+        collidedWithSurface = false;
         //keep searching for collisions until all surfaces are looped through without a collision occurring
         //don't collide with the same surface twice in a row. That's just a rounding error
         let lastCollidedSurface = null;

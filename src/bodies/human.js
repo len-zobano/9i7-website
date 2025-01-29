@@ -1,7 +1,6 @@
   function Human (bodyThickness) {
     return [{
       name: "head",
-      anchor: true,
       rigidGroup: "torso"
     }, {
       name: "backLeftShoulder",
@@ -29,38 +28,102 @@
       rigidGroup: "torso"
     },
     {
-      name: "backLeftElbow",
+      name: "backLeftArmpit",
       relativeTo: "backLeftShoulder",
-      position: [-2,0,0],
-      bondTo: ["backLeftShoulder"]
-    }, {
-      name: "frontLeftElbow",
+      position: [0,-1,0],
+      bondTo: ["backLeftShoulder"],
+      rigidGroup: "torso"
+    },
+    {
+      name: "frontLeftArmpit",
       relativeTo: "frontLeftShoulder",
-      position: [-2,0,0],
-      bondTo: ["frontLeftShoulder", "backLeftElbow"]
+      position: [0,-1,0],
+      bondTo: ["frontLeftShoulder"],
+      rigidGroup: "torso"
     },
     {
-      name: "backRightElbow",
+      name: "backRightArmpit",
       relativeTo: "backRightShoulder",
-      position: [2,0,0],
-      bondTo: ["backRightShoulder",]
-    }, {
-      name: "frontRightElbow",
+      position: [0,-1,0],
+      bondTo: ["backRightShoulder"],
+      rigidGroup: "torso"
+    },
+    {
+      name: "frontRightArmpit",
       relativeTo: "frontRightShoulder",
-      position: [2,0,0],
-      bondTo: ["frontRightShoulder", "backRightElbow"]
+      position: [0,-1,0],
+      bondTo: ["frontRightShoulder"],
+      rigidGroup: "torso"
     },
     {
-      name: "leftHand",
-      relativeTo: "frontLeftElbow",
-      position: [-2, 0, 0],
-      bondTo: ["frontLeftElbow", "backLeftElbow"]
+      name: "backRightArmHinge",
+      relativeTo: "backRightShoulder",
+      position: [0.5,0, 0],
+      bondTo: ["backRightShoulder","head"],
+      rigidGroup: "rightArm"
     },
     {
-      name: "rightHand",
-      relativeTo: "frontRightElbow",
-      position: [2, 0, 0],
-      bondTo: ["frontRightElbow", "backRightElbow"]
+      name: "frontRightArmHinge",
+      relativeTo: "frontRightShoulder",
+      position: [0.5,0, 0],
+      bondTo: ["backRightArmHinge", "frontRightShoulder","head"],
+      rigidGroup: "rightArm"
+    },
+    {
+      name: "backRightArmFulcrum",
+      relativeTo: "backRightArmHinge",
+      position: [0.25,-0.5,0],
+      bondTo: ["backRightArmHinge","backRightArmpit","rightHip"],
+      rigidGroup: "rightArm"
+    },
+    {
+      name: "frontRightArmFulcrum",
+      relativeTo: "frontRightArmHinge",
+      position: [0.25,-0.5,0],
+      bondTo: ["frontRightArmHinge","frontRightArmpit","rightHip"],
+      rigidGroup: "rightArm"
+    },
+    {
+      name: "backRightArmElbow",
+      relativeTo: "backRightArmFulcrum",
+      position: [1.25, -1, 0],
+      bondTo: ["backRightArmFulcrum"],
+      rigidGroup: "rightArm"
+    },
+    {
+      name: "frontRightArmElbow",
+      relativeTo: "frontRightArmFulcrum",
+      position: [1.25, -1, 0],
+      bondTo: ["frontRightArmFulcrum","backRightArmElbow"],
+      rigidGroup: "rightArm"
+    },
+    {
+      name: "backRightArmWrist",
+      relativeTo: "backRightArmElbow",
+      position: [1.25, -1, bodyThickness/4],
+      bondTo: ["backRightArmElbow"],
+      rigidGroup: "rightHand"
+    },
+    {
+      name: "frontRightArmWrist",
+      relativeTo: "frontRightArmElbow",
+      position: [1.25, -1, -bodyThickness/4],
+      bondTo: ["frontRightArmElbow","backRightArmWrist"],
+      rigidGroup: "rightHand"
+    },
+    {
+      name: "backRightArmKnuckles",
+      relativeTo: "backRightArmWrist",
+      position: [0.5,-0.5,0],
+      bondTo: ["backRightArmWrist"],
+      rigidGroup: "rightHand"
+    },
+    {
+      name: "frontRightArmKnuckles",
+      relativeTo: "frontRightArmWrist",
+      position: [0.5,-0.5,0],
+      bondTo: ["frontRightArmWrist","backRightArmKnuckles"],
+      rigidGroup: "rightHand"
     },
     {
       name: "leftHip",
@@ -82,42 +145,6 @@
       position: [1,0,bodyThickness/2],
       bondTo: ["leftHip","rightHip"],
       rigidGroup: "torso"
-    },
-    {
-      name: "outsideLeftKnee",
-      relativeTo: "leftHip",
-      position: [0,-2,0],
-      bondTo: ["leftHip","nutsack"]
-    },
-    {
-      name: "insideLeftKnee",
-      relativeTo: "nutsack",
-      position: [-0.25,-2, 0],
-      bondTo: ["nutsack","leftHip","outsideLeftKnee"]
-    },
-    {
-      name: "outsideRightKnee",
-      relativeTo: "rightHip",
-      position: [0,-2,0],
-      bondTo: ["rightHip","nutsack"]
-    },
-    {
-      name: "insideRightKnee",
-      relativeTo: "nutsack",
-      position: [0.25,-2, 0],
-      bondTo: ["nutsack","rightHip","outsideRightKnee"]
-    },
-    {
-      name: "leftFoot",
-      relativeTo: "outsideLeftKnee",
-      position: [0.25,-2,0],
-      bondTo: ["insideLeftKnee","outsideLeftKnee"]
-    },
-    {
-      name: "rightFoot",
-      relativeTo: "outsideRightKnee",
-      position: [-0.25,-2,0],
-      bondTo: ["insideRightKnee","outsideRightKnee"]
     }];
   }
 

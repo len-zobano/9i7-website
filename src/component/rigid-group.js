@@ -11,8 +11,8 @@ class RigidGroup {
     #linearMomentum = glMatrix.vec3.create();
     #angularMomentum = glMatrix.vec3.create();
     #ID = null;
-    #linearMomentumDecay = 0.8;
-    #angularMomentumDecay = 0.8;
+    #linearMomentumDecay = 0.7;
+    #angularMomentumDecay = 0.7;
 
     get controlPoints () {
         return this.#controlPoints.slice(0);
