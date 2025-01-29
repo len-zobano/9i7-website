@@ -8,6 +8,7 @@ import engineMath from '../utility/engine-math';
 import SimpleDrawDelegate from './simple-draw-delegate';
 import SimpleSpheroidDrop from './simple-spheroid-drop';
 import Human from '../bodies/human';
+import NonRigidHuman from '../bodies/non-rigid-human';
 import Cube from '../bodies/cube';
 import RigidGroup from './rigid-group';
 
@@ -95,7 +96,7 @@ function UAGComponent() {
       if (createTestBody) {
         let bodyGroup = new ControlPointGroup(world);
 
-        let bodyDeclaration = new Human (1);
+        let bodyDeclaration = new NonRigidHuman (1);
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 

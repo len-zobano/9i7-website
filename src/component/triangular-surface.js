@@ -189,6 +189,10 @@ class TriangularSurface {
         this.#bottomDrawDelegate = new SimpleDrawDelegate(this.#world, bottomVertexArray, bottomColorArray, normalArray, indices);
     }
 
+    momentumChangeForControlPoint(controlPoint) {
+        let inContextControlPointPosition = glMatrix.vec3.clone(controlPoint.position);
+    }
+
     mirrorLineSegmentAfterIntersection(segmentOrigin, segmentTermination) {
         let newLineSegmentPart = null;
         //transform a and B in context matrix
