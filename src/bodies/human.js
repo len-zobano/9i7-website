@@ -59,28 +59,28 @@
       name: "backRightArmHinge",
       relativeTo: "backRightShoulder",
       position: [0.5,0, 0],
-      bondTo: ["backRightShoulder","head"],
+      bondTo: ["backRightShoulder"],
       rigidGroup: "rightArm"
     },
     {
       name: "frontRightArmHinge",
       relativeTo: "frontRightShoulder",
       position: [0.5,0, 0],
-      bondTo: ["backRightArmHinge", "frontRightShoulder","head"],
+      bondTo: ["backRightArmHinge", "frontRightShoulder"],
       rigidGroup: "rightArm"
     },
     {
       name: "backRightArmFulcrum",
       relativeTo: "backRightArmHinge",
       position: [0.25,-0.5,0],
-      bondTo: ["backRightArmHinge","backRightArmpit","rightHip"],
+      bondTo: ["backRightArmHinge","backRightArmpit"],
       rigidGroup: "rightArm"
     },
     {
       name: "frontRightArmFulcrum",
       relativeTo: "frontRightArmHinge",
       position: [0.25,-0.5,0],
-      bondTo: ["frontRightArmHinge","frontRightArmpit","rightHip"],
+      bondTo: ["frontRightArmHinge","frontRightArmpit"],
       rigidGroup: "rightArm"
     },
     {

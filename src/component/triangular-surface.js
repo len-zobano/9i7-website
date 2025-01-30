@@ -205,6 +205,7 @@ class TriangularSurface {
             this.#bottomVerticesInContext
         )) {
             trajectoryChange = glMatrix.vec3.clone(this.#vertexNormal);
+            glMatrix.vec3.scale(trajectoryChange, trajectoryChange, -inContextControlPointPosition[1]*0.1);
         }
 
         return trajectoryChange;

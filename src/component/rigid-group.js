@@ -7,12 +7,13 @@ class RigidGroup {
     #totalMass = null;
     #centerOfMass = null;
     #radius = null;
+    #circumference = null;
     #controlPoints = [];
     #linearMomentum = glMatrix.vec3.create();
     #angularMomentum = glMatrix.vec3.create();
     #ID = null;
-    #linearMomentumDecay = 0.7;
-    #angularMomentumDecay = 0.7;
+    #linearMomentumDecay = 0.5;
+    #angularMomentumDecay = 0.5;
 
     get controlPoints () {
         return this.#controlPoints.slice(0);
@@ -66,6 +67,8 @@ class RigidGroup {
                 this.#radius = thisRadiusLength;
             }
         });
+
+        this.#circumference = Math.PI*2*this.#radius;
     }
 
     changeTrajectory (controlPoint) {
@@ -105,10 +108,28 @@ class RigidGroup {
                 angularMomentum = engineMath.angleBetweenTwoVectors(relativeOriginPlusMomentum, relativeOrigin);
             
             glMatrix.vec3.scale(scaledLinearMomentum, momentum, (1 - angularMomentumFactor)*magnitude);
-            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
 
-            glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, angularMomentumFactor*magnitude/10);
-            glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
+            let totalLengthOfAngularMomentum = 0;
+
+            this.#controlPoints.forEach((controlPoint) => {
+                let newPosition = controlPoint.position;
+                let positionRelativeToCenter = glMatrix.vec3.create();
+                glMatrix.vec3.subtract(positionRelativeToCenter, newPosition, this.#centerOfMass);
+                let rotatedPositionRelativeToCenter = glMatrix.vec3.clone(positionRelativeToCenter);
+                engineMath.transformVectorByAngle(rotatedPositionRelativeToCenter, angularMomentum);
+                let anglePositionComponent = glMatrix.vec3.create();
+                glMatrix.vec3.subtract(anglePositionComponent, rotatedPositionRelativeToCenter, positionRelativeToCenter);
+                totalLengthOfAngularMomentum += glMatrix.vec3.length(anglePositionComponent)*controlPoint.mass;
+            });
+            
+            //total length should be momentum*angularMomentumFactor*controlPoint.mass
+            if (totalLengthOfAngularMomentum > 0) {
+                glMatrix.vec3.scale(scaledAngularMomentum, angularMomentum, lengthOfMomentum*angularMomentumFactor*controlPoint.mass/totalLengthOfAngularMomentum);
+                glMatrix.vec3.add(this.#angularMomentum, this.#angularMomentum, scaledAngularMomentum);
+            }
+
+
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
         }
     }
 

@@ -164,11 +164,14 @@ class SimpleControlPoint {
 
                 //calculate linear momentum using a comparison of the length of the vectors
             let distanceToIdeal = bond.idealDistance - glMatrix.vec3.length(relativePosition);
+            let signofDistanceToIdeal = distanceToIdeal > 0 ? -1 : 1;
                 //linear momentum should only be proportional to the distance when angle is corrected for
             let relativePositionNormal = glMatrix.vec3.clone(relativePosition);
             glMatrix.vec3.normalize(relativePositionNormal, relativePositionNormal);
                 //so the difference in distance from center is corrected for angle
-            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal, -distanceToIdeal*interval*bond.strength/this.#mass);
+            glMatrix.vec3.scale(relativePositionNormal, relativePositionNormal,
+                 -distanceToIdeal*interval*bond.strength/this.#mass
+            );
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, relativePositionNormal);
         });
 

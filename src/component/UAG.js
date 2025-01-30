@@ -214,7 +214,7 @@ function UAGComponent() {
       let 
         mesh = [],
         meshSize = 5,
-        meshJitter = 50,
+        meshJitter = 70,
         meshPosition = [-200,-100,-200],
         meshSquareWidth = 70,
         meshSquareLength = 70,
