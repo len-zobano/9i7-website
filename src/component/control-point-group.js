@@ -6,6 +6,7 @@ class ControlPointGroup {
     #position = null;
     #isSelected = false;
     #controlPoints = [];
+    #controlPointsByName = {};
     #linearMomentumDecay = 0.5;
     #angularMomentumDecay = 0.5;
     #ID = null;
@@ -44,8 +45,12 @@ class ControlPointGroup {
         this.#linearMomentum = glMatrix.vec3.create();
     }
 
-    addControlPoint (controlPoint) {
+    addControlPoint (controlPoint, name) {
         this.#controlPoints.push(controlPoint);
+
+        if (name) {
+            this.#controlPointsByName[name] = controlPoint;
+        }
     }
 
     addControlPoints (controlPoints) {

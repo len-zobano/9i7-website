@@ -108,7 +108,7 @@ function UAGComponent() {
           if (!declaredPart.position) {
             bodyDeclarationMap[declaredPart.name].absolutePosition = glMatrix.vec3.fromValues(0,0,0);
           }
-          else {
+          else if (declaredPart.relativeTo) {
             bodyDeclarationMap[declaredPart.name].relativeTo = declaredPart.relativeTo;
             bodyDeclarationMap[declaredPart.name].relativePosition = glMatrix.vec3.fromValues(
               declaredPart.position[0],
@@ -171,7 +171,7 @@ function UAGComponent() {
             world.selected.anchor = true;
           }
           
-          bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop);
+          bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop, declaredPart.name);
         });
 
         bodyDeclaration.forEach((declaredPart) => {
