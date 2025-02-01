@@ -112,7 +112,14 @@ function UAGComponent() {
         bodyDeclaration.forEach((declaredPart) => {
           bodyDeclarationMap[declaredPart.name] = {};
           bodyDeclarationMap[declaredPart.name].bondTo = declaredPart.bondTo || []; 
-          if (!declaredPart.position) {
+          if (declaredPart.absolutePosition) {
+            bodyDeclarationMap[declaredPart.name].absolutePosition = glMatrix.vec3.fromValues(
+                declaredPart.absolutePosition[0],
+                declaredPart.absolutePosition[1],
+                declaredPart.absolutePosition[2]
+            );
+          }
+          else if (!declaredPart.position) {
             bodyDeclarationMap[declaredPart.name].absolutePosition = glMatrix.vec3.fromValues(0,0,0);
           }
           else if (declaredPart.relativeTo) {
@@ -183,11 +190,19 @@ function UAGComponent() {
 
         bodyDeclaration.forEach((declaredPart) => {
           //bond to other
-          bodyDeclarationMap[declaredPart.name].bondTo.forEach((nameOfOther) => {
-            bodyDeclarationMap[declaredPart.name].drop.bondTo(
-              bodyDeclarationMap[nameOfOther].drop,
-              3
-            );
+          bodyDeclarationMap[declaredPart.name].bondTo.forEach((bondTo) => {
+            if (typeof bondTo === 'string' || bondTo instanceof String) {
+              bodyDeclarationMap[declaredPart.name].drop.bondTo(
+                bodyDeclarationMap[bondTo].drop,
+                1
+              );
+            }
+            else {
+              bodyDeclarationMap[declaredPart.name].drop.bondTo(
+                bodyDeclarationMap[bondTo.name].drop,
+                bondTo.strength
+              );
+            }
           })
         });
 

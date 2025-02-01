@@ -27,40 +27,106 @@
           newBackHingeBond = backHinge.getBondForControlPoint(backRightShoulder),
           newFrontHingeBond = frontHinge.getBondForControlPoint(frontRightShoulder);
 
-        newBackHingeBond.idealDistance /= 4;
-        newFrontHingeBond.idealDistance /= 4;
+        newBackHingeBond.idealDistance /= 2;
+        newFrontHingeBond.idealDistance /= 2;
         
         backHinge.setBondForControlPoint(backRightShoulder, newBackHingeBond);
         frontHinge.setBondForControlPoint(frontRightShoulder, newFrontHingeBond);
       }
     }];
     
+    let jawBondStrength = 2.5;
+
     body.controlPoints = [{
-      name: "head",
-      rigidGroup: "torso"
-    }, {
+      name: "crown",
+      rigidGroup: "head"
+    },
+    {
+      name: "core",
+      rigidGroup: "torso",
+      relativeTo: "crown",
+      position: [0,-4,0],
+      bondTo: [{strength: 10, name: "crown"}],
+    },
+    {
+      name: "backLeftSkull",
+      relativeTo: "crown",
+      position: [-0.75,-1,-bodyThickness],
+      bondTo: ["crown"],
+      rigidGroup: "head"
+    },
+    {
+      name: "backRightSkull",
+      relativeTo: "crown",
+      position: [0.75,-1,-bodyThickness],
+      bondTo: ["crown"],
+      rigidGroup: "head"
+    },
+    {
+      name: "frontLeftSkull",
+      relativeTo: "crown",
+      position: [-0.75,-1,bodyThickness/2],
+      bondTo: ["crown"],
+      rigidGroup: "head"
+    },
+    {
+      name: "frontRightSkull",
+      relativeTo: "crown",
+      position: [0.75,-1,bodyThickness/2],
+      bondTo: ["crown"],
+      rigidGroup: "head"
+    },
+    {
+      name: "backLeftJaw",
+      relativeTo: "crown",
+      position: [-0.75,-2,-bodyThickness/2],
+      bondTo: ["backLeftSkull"],
+      rigidGroup: "head"
+    },
+    {
+      name: "backRightJaw",
+      relativeTo: "crown",
+      position: [0.75,-2,-bodyThickness/2],
+      bondTo: ["backRightSkull"],
+      rigidGroup: "head"
+    },
+    {
+      name: "frontLeftJaw",
+      relativeTo: "crown",
+      position: [-0.75,-2,bodyThickness/2],
+      bondTo: ["frontLeftSkull"],
+      rigidGroup: "head"
+    },
+    {
+      name: "frontRightJaw",
+      relativeTo: "crown",
+      position: [0.75,-2,bodyThickness/2],
+      bondTo: ["frontRightSkull"],
+      rigidGroup: "head"
+    },
+    {
       name: "backLeftShoulder",
-      relativeTo: "head",
-      position: [-1,-1,-bodyThickness/2],
-      bondTo: ["head"],
+      relativeTo: "crown",
+      position: [-1.5,-3,-bodyThickness/2],
+      bondTo: [{strength: jawBondStrength, name: "backLeftJaw"}],
       rigidGroup: "torso"
     }, {
       name: "frontLeftShoulder",
-      relativeTo: "head",
-      position: [-1,-1,bodyThickness/2],
-      bondTo: ["head","backLeftShoulder"],
+      relativeTo: "crown",
+      position: [-1.5,-3,bodyThickness/2],
+      bondTo: [{strength: jawBondStrength, name: "frontLeftJaw"},"backLeftShoulder"],
       rigidGroup: "torso"
     }, {
       name: "backRightShoulder",
-      relativeTo: "head",
-      position: [1,-1,-bodyThickness/2],
-      bondTo: ["head","backLeftShoulder"],
+      relativeTo: "crown",
+      position: [1.5,-3,-bodyThickness/2],
+      bondTo: [{strength: jawBondStrength, name: "backRightJaw"},"backLeftShoulder"],
       rigidGroup: "torso"
     }, {
       name: "frontRightShoulder",
-      relativeTo: "head",
-      position: [1,-1,bodyThickness/2],
-      bondTo: ["head","backRightShoulder","frontLeftShoulder"],
+      relativeTo: "crown",
+      position: [1.5,-3,bodyThickness/2],
+      bondTo: [{strength: jawBondStrength, name: "frontRightJaw"},"backRightShoulder","frontLeftShoulder"],
       rigidGroup: "torso"
     },
     {
@@ -92,96 +158,34 @@
       rigidGroup: "torso"
     },
     {
-      name: "backRightArmHinge",
-      relativeTo: "backRightShoulder",
-      position: [1.5,0, 0],
-      bondTo: ["backRightShoulder"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "frontRightArmHinge",
-      relativeTo: "frontRightShoulder",
-      position: [1.5,0, 0],
-      bondTo: ["backRightArmHinge", "frontRightShoulder"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "backRightArmFulcrum",
-      relativeTo: "backRightArmHinge",
-      position: [0.25,-1,0],
-      bondTo: ["backRightArmHinge","backRightArmpit","backRightShoulder"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "frontRightArmFulcrum",
-      relativeTo: "frontRightArmHinge",
-      position: [0.25,-1,0],
-      bondTo: ["frontRightArmHinge","frontRightArmpit","frontRightShoulder"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "backRightArmElbow",
-      relativeTo: "backRightArmFulcrum",
-      position: [1.25, -1, 0],
-      bondTo: ["backRightArmFulcrum"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "frontRightArmElbow",
-      relativeTo: "frontRightArmFulcrum",
-      position: [1.25, -1, 0],
-      bondTo: ["frontRightArmFulcrum","backRightArmElbow"],
-      rigidGroup: "rightArm"
-    },
-    {
-      name: "backRightArmWrist",
-      relativeTo: "backRightArmElbow",
-      position: [1.25, -1, bodyThickness/4],
-      bondTo: ["backRightArmElbow"],
-      rigidGroup: "rightHand"
-    },
-    {
-      name: "frontRightArmWrist",
-      relativeTo: "frontRightArmElbow",
-      position: [1.25, -1, -bodyThickness/4],
-      bondTo: ["frontRightArmElbow","backRightArmWrist"],
-      rigidGroup: "rightHand"
-    },
-    {
-      name: "backRightArmKnuckles",
-      relativeTo: "backRightArmWrist",
-      position: [0.5,-0.5,0],
-      bondTo: ["backRightArmWrist"],
-      rigidGroup: "rightHand"
-    },
-    {
-      name: "frontRightArmKnuckles",
-      relativeTo: "frontRightArmWrist",
-      position: [0.5,-0.5,0],
-      bondTo: ["frontRightArmWrist","backRightArmKnuckles"],
-      rigidGroup: "rightHand"
-    },
-    {
-      name: "leftHip",
+      name: "frontLeftHip",
       relativeTo: "frontLeftShoulder",
-      position: [0,-4,0],
-      bondTo: ["frontLeftShoulder","backLeftShoulder"],
+      position: [0.5,-4,0],
+      bondTo: ["frontLeftArmpit"],
       rigidGroup: "torso"
     },
     {
-      name: "rightHip",
+      name: "frontRightHip",
       relativeTo: "frontRightShoulder",
-      position: [0,-4,0],
-      bondTo: ["frontRightShoulder","backRightShoulder","leftHip"],
+      position: [-0.5,-4,0],
+      bondTo: ["frontRightArmpit","frontLeftHip"],
       rigidGroup: "torso"
     },
     {
-      name: "nutsack",
-      relativeTo: "leftHip",
-      position: [1,0,bodyThickness/2],
-      bondTo: ["leftHip","rightHip"],
+      name: "backLeftHip",
+      relativeTo: "backLeftShoulder",
+      position: [0.5,-4,0],
+      bondTo: ["backLeftArmpit","frontLeftHip"],
       rigidGroup: "torso"
-    }];
+    },
+    {
+      name: "backRightHip",
+      relativeTo: "backRightShoulder",
+      position: [-0.5,-4,0],
+      bondTo: ["backRightArmpit","backLeftHip","frontRightHip"],
+      rigidGroup: "torso"
+    },
+  ];
 
     return body;
   }
