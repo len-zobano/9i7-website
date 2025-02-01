@@ -1,5 +1,41 @@
   function Human (bodyThickness) {
-    return [{
+    let body = {} 
+
+    body.keyCommands = [{
+      keyCode: 49,
+      onKeyUp(controlPointsByName, state) {
+        let 
+          backHinge = controlPointsByName['backRightArmHinge'],
+          frontHinge = controlPointsByName['frontRightArmHinge'],
+          backRightShoulder = controlPointsByName['backRightShoulder'],
+          frontRightShoulder = controlPointsByName['frontRightShoulder'];
+
+          backHinge.setBondForControlPoint(backRightShoulder, state.backHingeBond);
+          frontHinge.setBondForControlPoint(frontRightShoulder, state.frontHingeBond); 
+      },
+      onKeyDown(controlPointsByName, state) {
+        let 
+          backHinge = controlPointsByName['backRightArmHinge'],
+          frontHinge = controlPointsByName['frontRightArmHinge'],
+          backRightShoulder = controlPointsByName['backRightShoulder'],
+          frontRightShoulder = controlPointsByName['frontRightShoulder'];
+
+        state.backHingeBond = backHinge.getBondForControlPoint(backRightShoulder);
+        state.frontHingeBond = frontHinge.getBondForControlPoint(frontRightShoulder);
+
+        let 
+          newBackHingeBond = backHinge.getBondForControlPoint(backRightShoulder),
+          newFrontHingeBond = frontHinge.getBondForControlPoint(frontRightShoulder);
+
+        newBackHingeBond.idealDistance /= 4;
+        newFrontHingeBond.idealDistance /= 4;
+        
+        backHinge.setBondForControlPoint(backRightShoulder, newBackHingeBond);
+        frontHinge.setBondForControlPoint(frontRightShoulder, newFrontHingeBond);
+      }
+    }];
+    
+    body.controlPoints = [{
       name: "head",
       rigidGroup: "torso"
     }, {
@@ -73,14 +109,14 @@
       name: "backRightArmFulcrum",
       relativeTo: "backRightArmHinge",
       position: [0.25,-1,0],
-      bondTo: ["backRightArmHinge","backRightArmpit"],
+      bondTo: ["backRightArmHinge","backRightArmpit","backRightShoulder"],
       rigidGroup: "rightArm"
     },
     {
       name: "frontRightArmFulcrum",
       relativeTo: "frontRightArmHinge",
       position: [0.25,-1,0],
-      bondTo: ["frontRightArmHinge","frontRightArmpit"],
+      bondTo: ["frontRightArmHinge","frontRightArmpit","frontRightShoulder"],
       rigidGroup: "rightArm"
     },
     {
@@ -146,6 +182,8 @@
       bondTo: ["leftHip","rightHip"],
       rigidGroup: "torso"
     }];
+
+    return body;
   }
 
   export default Human;

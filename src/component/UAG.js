@@ -96,7 +96,14 @@ function UAGComponent() {
       if (createTestBody) {
         let bodyGroup = new ControlPointGroup(world);
 
-        let bodyDeclaration = new Human (1);
+        let testBody = new Human (1);
+        let bodyDeclaration = testBody.controlPoints;
+
+        if (testBody.keyCommands && testBody.keyCommands.length > 0) {
+          testBody.keyCommands.forEach((keyCommand) => {
+            bodyGroup.addKeyCommand(keyCommand.keyCode,keyCommand.onKeyUp,keyCommand.onKeyDown);
+          });
+        };
 
         // bodyDeclaration = bodyDeclaration.slice(0,2);
 

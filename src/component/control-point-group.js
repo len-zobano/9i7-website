@@ -47,6 +47,7 @@ class ControlPointGroup {
 
     addControlPoint (controlPoint, name) {
         this.#controlPoints.push(controlPoint);
+        controlPoint.group = this;
 
         if (name) {
             this.#controlPointsByName[name] = controlPoint;
@@ -93,6 +94,33 @@ class ControlPointGroup {
     changeAngularMomentum(momentumChangeArray) {
         return false;
     }
+
+    #keyCodesToCommands = {};
+
+    addKeyCommand(keyCode, onKeyUp, onKeyDown) {
+        this.#keyCodesToCommands[keyCode] = {
+            onKeyUp,
+            onKeyDown,
+            state: {}
+        };
+    }
+
+    onKeyUp(keyCode) {
+        //TODO: start here. finish this, then hook the key commands in world up to this
+        if (this.#keyCodesToCommands[keyCode]) {
+            let command = this.#keyCodesToCommands[keyCode];
+            command.onKeyUp(this.#controlPointsByName, command.state);
+        }
+    }
+
+    onKeyDown(keyCode) {
+        //TODO: start here. finish this, then hook the key commands in world up to this
+        if (this.#keyCodesToCommands[keyCode]) {
+            let command = this.#keyCodesToCommands[keyCode];
+            command.onKeyDown(this.#controlPointsByName, command.state);
+        }
+    }
+
 }
 
 export default ControlPointGroup;

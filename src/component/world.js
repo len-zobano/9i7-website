@@ -232,6 +232,7 @@ constructor() {
     console.log('key up: ',keyCode);
     delete this.#downKeys[keyCode];
 
+    let keyWasCaptured = false;
     let controlPoints = this.#controlPointGroups[0].controlPoints;
     let indexOfSelected = controlPoints.indexOf(this.#selected);
     //bracket - switch selected
@@ -239,40 +240,38 @@ constructor() {
         let indexOfNextSelected = (indexOfSelected + 1) % controlPoints.length;
         let lastSelected = this.#selected;
         this.#selected = controlPoints[indexOfNextSelected];
+        keyWasCaptured = true;
     }
 
     if (keyCode === 219) {
         let indexOfNextSelected = (indexOfSelected - 1) % controlPoints.length;
         let lastSelected = this.#selected;
         this.#selected = controlPoints[indexOfNextSelected];
+        keyWasCaptured = true;
     }
 
     if (keyCode === 32) {
         this.#isRunning = !this.#isRunning;
+        keyWasCaptured = true;
     }
 
     if (keyCode === 80) {
         this.#selected.isAnchored = !this.#selected.isAnchored;
+        keyWasCaptured = true;
     }
 
-    // this.#controlPoints.forEach((controlPoint) => {
-    //     if (!controlPoint) {
-    //         debugger;
-    //     }
-    //     controlPoint.keyIsUp(keyCode);
-    // });
+    if (!keyWasCaptured) {
+        this.#selected.group.onKeyUp(keyCode);
+    }
   }
 
   keyIsDown(keyCode) {
-    console.log('key down:',keyCode);
-    this.#downKeys[keyCode] = true;
-    // this.#controlPoints.forEach((controlPoint) => {
-    //     if (!controlPoint) {
-    //         debugger;
-    //     }
-    //     debugger;
-    //     controlPoint.keyIsDown(keyCode);
-    // });
+    if (!this.#downKeys[keyCode]) {
+        console.log('key down:',keyCode);
+        this.#downKeys[keyCode] = true;
+
+        this.#selected.group.onKeyDown(keyCode);
+    }
   }
 
   get projectionMatrix() {

@@ -18,6 +18,15 @@ class SimpleControlPoint {
     #bounciness = 1;
     #rigidGroup = null;
     #isAnchored = false;
+    #group = null;
+
+    get group () {
+        return this.#group;
+    }
+
+    set group (group) {
+        this.#group = group;
+    }
 
     set rigidGroup (rigidGroup) {
         this.#rigidGroup = rigidGroup;
@@ -44,7 +53,9 @@ class SimpleControlPoint {
     }
 
     #bonds = [];
+    #particleIDsToBonds = {};
     #linearMomentum = null;
+
     get linearMomentum () {
         return glMatrix.vec3.clone(this.#linearMomentum);
     }
@@ -132,6 +143,7 @@ class SimpleControlPoint {
         };
 
         this.#bonds.push(bond);
+        this.#particleIDsToBonds[other.ID] = bond;
 
         //create reciprocal bonds and update properties
         if (!isReciprocalBond) {
@@ -142,7 +154,24 @@ class SimpleControlPoint {
 
         return bond;
     }
+
+    getBondForControlPoint(controlPoint) {
+        let bond = this.#particleIDsToBonds[controlPoint.ID];
+
+        return {
+            strength: bond.strength,
+            idealDistance: bond.idealDistance
+        };
+    }
     
+    setBondForControlPoint(controlPoint, bondObject) {
+        let bond = this.#particleIDsToBonds[controlPoint.ID];
+        for (let key in bondObject) {
+            bond[key] = bondObject[key];
+            bond.reciprocalBond[key] = bondObject[key];
+        }
+    }
+
     //simulate against all control points in a tile
     calculateTrajectory(interval) {
         if (this.#isAnchored) {
