@@ -4,38 +4,42 @@
     body.keyCommands = [{
       keyCode: 49,
       onKeyUp(controlPointsByName, state) {
-        let 
-          backHinge = controlPointsByName['backRightArmHinge'],
-          frontHinge = controlPointsByName['frontRightArmHinge'],
-          backRightShoulder = controlPointsByName['backRightShoulder'],
-          frontRightShoulder = controlPointsByName['frontRightShoulder'];
-
-          backHinge.setBondForControlPoint(backRightShoulder, state.backHingeBond);
-          frontHinge.setBondForControlPoint(frontRightShoulder, state.frontHingeBond); 
+        controlPointsByName['frontLeftShoulder'].setBondForControlPoint(
+          controlPointsByName['frontRightJaw'],
+          state.turnHeadLeftBond 
+        );
       },
       onKeyDown(controlPointsByName, state) {
-        let 
-          backHinge = controlPointsByName['backRightArmHinge'],
-          frontHinge = controlPointsByName['frontRightArmHinge'],
-          backRightShoulder = controlPointsByName['backRightShoulder'],
-          frontRightShoulder = controlPointsByName['frontRightShoulder'];
-
-        state.backHingeBond = backHinge.getBondForControlPoint(backRightShoulder);
-        state.frontHingeBond = frontHinge.getBondForControlPoint(frontRightShoulder);
-
-        let 
-          newBackHingeBond = backHinge.getBondForControlPoint(backRightShoulder),
-          newFrontHingeBond = frontHinge.getBondForControlPoint(frontRightShoulder);
-
-        newBackHingeBond.idealDistance /= 2;
-        newFrontHingeBond.idealDistance /= 2;
-        
-        backHinge.setBondForControlPoint(backRightShoulder, newBackHingeBond);
-        frontHinge.setBondForControlPoint(frontRightShoulder, newFrontHingeBond);
+        state.turnHeadLeftBond = controlPointsByName['frontLeftShoulder'].getBondForControlPoint(controlPointsByName['frontRightJaw']);
+        let newTurnHeadLeftBond = controlPointsByName['frontLeftShoulder'].getBondForControlPoint(controlPointsByName['frontRightJaw']);
+        newTurnHeadLeftBond.idealDistance *= 2;
+        controlPointsByName['frontLeftShoulder'].setBondForControlPoint(
+          controlPointsByName['frontRightJaw'],
+          newTurnHeadLeftBond
+        );
       }
     }];
     
-    let jawBondStrength = 2.5;
+    let jawBondStrength = 1;
+
+    body.joints = [{
+      type: "circular",
+      groups: [
+        [
+          "backLeftShoulder",
+          "backRightShoulder",
+          "frontRightShoulder",
+          "frontLeftShoulder"
+        ],
+        [
+          "backLeftJaw",
+          "backRightJaw",
+          "frontRightJaw",
+          "frontLeftJaw"
+        ]
+      ],
+      strength: jawBondStrength
+    }];
 
     body.controlPoints = [{
       name: "crown",
@@ -46,7 +50,13 @@
       rigidGroup: "torso",
       relativeTo: "crown",
       position: [0,-4,0],
-      bondTo: [{strength: 10, name: "crown"}],
+      bondTo: [
+        {strength: 10, name: "crown"},
+        {strength: 10, name: "frontBottomLeftArmBall"},
+        // {strength: 10, name: "backBottomLeftArmBall"},
+        // {strength: 10, name: "frontTopLeftArmBall"},
+        // {strength: 10, name: "backTopLeftArmBall"},
+      ],
     },
     {
       name: "backLeftSkull",
@@ -108,25 +118,43 @@
       name: "backLeftShoulder",
       relativeTo: "crown",
       position: [-1.5,-3,-bodyThickness/2],
-      bondTo: [{strength: jawBondStrength, name: "backLeftJaw"}],
+      // bondTo: [
+      //   {strength: jawBondStrength, name: "backLeftJaw"},
+      //   {strength: jawBondStrength, name: "frontLeftJaw"},
+      //   {strength: jawBondStrength, name: "backRightJaw"}
+      // ],
       rigidGroup: "torso"
     }, {
       name: "frontLeftShoulder",
       relativeTo: "crown",
       position: [-1.5,-3,bodyThickness/2],
-      bondTo: [{strength: jawBondStrength, name: "frontLeftJaw"},"backLeftShoulder"],
+      bondTo: [        
+      //   {strength: jawBondStrength, name: "backLeftJaw"},
+      //   {strength: jawBondStrength, name: "frontLeftJaw"},
+      //   {strength: jawBondStrength, name: "frontRightJaw"},
+        "backLeftShoulder"
+      ],
       rigidGroup: "torso"
     }, {
       name: "backRightShoulder",
       relativeTo: "crown",
       position: [1.5,-3,-bodyThickness/2],
-      bondTo: [{strength: jawBondStrength, name: "backRightJaw"},"backLeftShoulder"],
+      bondTo: [        
+      //   {strength: jawBondStrength, name: "backLeftJaw"},
+      //   {strength: jawBondStrength, name: "frontRightJaw"},
+      //   {strength: jawBondStrength, name: "backRightJaw"},
+        "backLeftShoulder"
+      ],
       rigidGroup: "torso"
     }, {
       name: "frontRightShoulder",
       relativeTo: "crown",
       position: [1.5,-3,bodyThickness/2],
-      bondTo: [{strength: jawBondStrength, name: "frontRightJaw"},"backRightShoulder","frontLeftShoulder"],
+      bondTo: [
+        // {strength: jawBondStrength, name: "backRightJaw"},
+        // {strength: jawBondStrength, name: "frontRightJaw"},
+        // {strength: jawBondStrength, name: "frontLeftJaw"},
+        ,"backRightShoulder","frontLeftShoulder"],
       rigidGroup: "torso"
     },
     {
@@ -156,6 +184,35 @@
       position: [0,-1,0],
       bondTo: ["frontRightShoulder"],
       rigidGroup: "torso"
+    },
+    //upper arm, armBall
+    {
+      name: "frontTopLeftArmBall",
+      relativeTo: "frontLeftShoulder",
+      position: [-0.5,0,0],
+      bondTo: ["frontLeftShoulder"],
+      rigidGroup: "leftArm"
+    },
+    {
+      name: "frontBottomLeftArmBall",
+      relativeTo: "frontLeftArmpit",
+      position: [-0.5,0,0],
+      bondTo: ["frontLeftArmpit","frontTopLeftArmBall"],
+      rigidGroup: "leftArm"
+    },
+    {
+      name: "backTopLeftArmBall",
+      relativeTo: "backLeftShoulder",
+      position: [-0.5,0,0],
+      bondTo: ["backLeftShoulder","frontTopLeftArmBall"],
+      rigidGroup: "leftArm"
+    },
+    {
+      name: "backBottomLeftArmBall",
+      relativeTo: "backLeftArmpit",
+      position: [-0.5,0,0],
+      bondTo: ["backLeftArmpit","backTopLeftArmBall","frontBottomLeftArmBall"],
+      rigidGroup: "leftArm"
     },
     {
       name: "frontLeftHip",
