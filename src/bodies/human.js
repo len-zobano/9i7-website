@@ -20,7 +20,7 @@
       }
     }];
     
-    let jawBondStrength = 1, armBallDistance = 0.5;
+    let jawBondStrength = 1, armBoneLength = 2, hipHeight = 1, bodyWidth = 3, thighLength = 2;
 
     body.joints = [{
       type: "circular",
@@ -73,7 +73,58 @@
         ]
       ],
       strength: jawBondStrength
-    }];
+    },{
+      type: "circular",
+      groups: [
+        [
+          "frontInsideLeftElbowSocket",
+          "backInsideLeftElbowSocket",
+          "backOutsideLeftElbowSocket",
+          "frontOutsideLeftElbowSocket"
+        ],
+        [
+          "frontInsideLeftElbowInsert",
+          "backInsideLeftElbowInsert",
+          "backOutsideLeftElbowInsert",
+          "frontOutsideLeftElbowInsert"
+        ]
+      ],
+      strength: jawBondStrength
+    },{
+      type: "circular",
+      groups: [
+        [
+          "frontLeftHipSocket",
+          "backLeftHipSocket",
+          "backRightHipSocket",
+          "frontRightHipSocket"
+        ],
+        [
+          "frontLeftHipInsert",
+          "backLeftHipInsert",
+          "backRightHipInsert",
+          "frontRightHipInsert"
+        ]
+      ],
+      strength: jawBondStrength
+    },{
+      type: "circular",
+      groups: [
+        [
+          "frontLeftLeftThighSocket",
+          "frontGroin",
+          "backGroin",
+          "backLeftLeftThighSocket"
+        ],
+        [
+          "frontLeftLeftThighInsert",
+          "frontRightLeftThighInsert",
+          "backRightLeftThighInsert",
+          "backLeftLeftThighInsert"
+        ]
+      ],
+      strength: jawBondStrength
+    }/**/];
 
     body.controlPoints = [{
       name: "crown",
@@ -149,24 +200,24 @@
     {
       name: "backLeftShoulder",
       relativeTo: "crown",
-      position: [-1.5,-3,-bodyThickness/2],
+      position: [-bodyWidth/2,-3,-bodyThickness/2],
       rigidGroup: "torso"
     }, {
       name: "frontLeftShoulder",
       relativeTo: "crown",
-      position: [-1.5,-3,bodyThickness/2],
+      position: [-bodyWidth/2,-3,bodyThickness/2],
       bondTo: ["backLeftShoulder"],
       rigidGroup: "torso"
     }, {
       name: "backRightShoulder",
       relativeTo: "crown",
-      position: [1.5,-3,-bodyThickness/2],
+      position: [bodyWidth/2,-3,-bodyThickness/2],
       bondTo: ["backLeftShoulder"],
       rigidGroup: "torso"
     }, {
       name: "frontRightShoulder",
       relativeTo: "crown",
-      position: [1.5,-3,bodyThickness/2],
+      position: [bodyWidth/2,-3,bodyThickness/2],
       bondTo: ["backRightShoulder","frontLeftShoulder"],
       rigidGroup: "torso"
     },
@@ -203,28 +254,27 @@
       name: "frontTopLeftArmBall",
       relativeTo: "frontLeftShoulder",
       position: [0,0,0],
-      bondTo: ["frontLeftShoulder"],
       rigidGroup: "leftShoulder"
     },
     {
       name: "frontBottomLeftArmBall",
       relativeTo: "frontLeftArmpit",
       position: [0,0,0],
-      bondTo: ["frontLeftArmpit","frontTopLeftArmBall"],
+      bondTo: ["frontTopLeftArmBall"],
       rigidGroup: "leftShoulder"
     },
     {
       name: "backTopLeftArmBall",
       relativeTo: "backLeftShoulder",
       position: [0,0,0],
-      bondTo: ["backLeftShoulder","frontTopLeftArmBall"],
+      bondTo: ["frontTopLeftArmBall"],
       rigidGroup: "leftShoulder"
     },
     {
       name: "backBottomLeftArmBall",
       relativeTo: "backLeftArmpit",
       position: [0,0,0],
-      bondTo: ["backLeftArmpit","backTopLeftArmBall","frontBottomLeftArmBall"],
+      bondTo: ["backTopLeftArmBall","frontBottomLeftArmBall"],
       rigidGroup: "leftShoulder"
     },
     {
@@ -246,87 +296,262 @@
       name: "frontInsideLeftShoulderInsert",
       relativeTo: "frontBottomLeftArmBall",
       position: [0,0,0],
-      bondTo: ["frontBottomLeftArmBall"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "backInsideLeftShoulderInsert",
       relativeTo: "backBottomLeftArmBall",
       position: [0,0,0],
-      bondTo: ["backBottomLeftArmBall"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "frontOutsideLeftShoulderInsert",
       relativeTo: "frontLeftOutsideShoulder",
       position: [0,0,0],
-      bondTo: ["frontLeftOutsideShoulder"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "backOutsideLeftShoulderInsert",
       relativeTo: "backLeftOutsideShoulder",
       position: [0,0,0],
-      bondTo: ["backLeftOutsideShoulder"],
       rigidGroup: "leftUpperArm"
     },
     //elbow socket
     {
       name: "backInsideLeftElbowSocket",
       relativeTo: "backInsideLeftShoulderInsert",
-      position: [0,-3,bodyThickness/4],
+      position: [0,-armBoneLength,bodyThickness/4],
       bondTo: ["backInsideLeftShoulderInsert"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "frontInsideLeftElbowSocket",
       relativeTo: "frontInsideLeftShoulderInsert",
-      position: [0,-3,-bodyThickness/4],
+      position: [0,-armBoneLength,-bodyThickness/4],
       bondTo: ["frontInsideLeftShoulderInsert"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "backOutsideLeftElbowSocket",
       relativeTo: "backOutsideLeftShoulderInsert",
-      position: [0,-3,bodyThickness/4],
+      position: [0,-armBoneLength,bodyThickness/4],
       bondTo: ["backOutsideLeftShoulderInsert"],
       rigidGroup: "leftUpperArm"
     },
     {
       name: "frontOutsideLeftElbowSocket",
       relativeTo: "frontOutsideLeftShoulderInsert",
-      position: [0,-3,-bodyThickness/4],
+      position: [0,-armBoneLength,-bodyThickness/4],
       bondTo: ["frontOutsideLeftShoulderInsert"],
       rigidGroup: "leftUpperArm"
     },
+    //elbow insert
     {
-      name: "frontLeftHip",
+      name: "backInsideLeftElbowInsert",
+      relativeTo: "backInsideLeftElbowSocket",
+      position: [0,0,0],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "frontInsideLeftElbowInsert",
+      relativeTo: "frontInsideLeftElbowSocket",
+      position: [0,0,0],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "backOutsideLeftElbowInsert",
+      relativeTo: "backOutsideLeftElbowSocket",
+      position: [0,0,0],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "frontOutsideLeftElbowInsert",
+      relativeTo: "frontOutsideLeftElbowSocket",
+      position: [0,0,0],
+      rigidGroup: "leftForearm"
+    },
+    //wrist socket
+    {
+      name: "backInsideLeftWristSocket",
+      relativeTo: "backInsideLeftElbowInsert",
+      position: [0,-armBoneLength,0],
+      bondTo: ["backInsideLeftElbowInsert"],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "frontInsideLeftWristSocket",
+      relativeTo: "frontInsideLeftElbowInsert",
+      position: [0,-armBoneLength,0],
+      bondTo: ["frontInsideLeftElbowInsert"],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "backOutsideLeftWristSocket",
+      relativeTo: "backOutsideLeftElbowInsert",
+      position: [0,-armBoneLength,0],
+      bondTo: ["backOutsideLeftElbowInsert"],
+      rigidGroup: "leftForearm"
+    },
+    {
+      name: "frontOutsideLeftWristSocket",
+      relativeTo: "frontOutsideLeftElbowInsert",
+      position: [0,-armBoneLength,0],
+      bondTo: ["frontOutsideLeftElbowInsert"],
+      rigidGroup: "leftForearm"
+    },
+    //hip socket
+    {
+      name: "frontLeftHipSocket",
       relativeTo: "frontLeftShoulder",
       position: [0.5,-4,0],
       bondTo: ["frontLeftArmpit"],
       rigidGroup: "torso"
     },
     {
-      name: "frontRightHip",
+      name: "frontRightHipSocket",
       relativeTo: "frontRightShoulder",
       position: [-0.5,-4,0],
-      bondTo: ["frontRightArmpit","frontLeftHip"],
+      bondTo: ["frontRightArmpit","frontLeftHipSocket"],
       rigidGroup: "torso"
     },
     {
-      name: "backLeftHip",
+      name: "backLeftHipSocket",
       relativeTo: "backLeftShoulder",
       position: [0.5,-4,0],
-      bondTo: ["backLeftArmpit","frontLeftHip"],
+      bondTo: ["backLeftArmpit","frontLeftHipSocket"],
       rigidGroup: "torso"
     },
     {
-      name: "backRightHip",
+      name: "backRightHipSocket",
       relativeTo: "backRightShoulder",
       position: [-0.5,-4,0],
-      bondTo: ["backRightArmpit","backLeftHip","frontRightHip"],
+      bondTo: ["backRightArmpit","backLeftHipSocket","frontRightHipSocket"],
       rigidGroup: "torso"
     },
+    //hip bone
+    {
+      name: "frontLeftHipInsert",
+      relativeTo: "frontLeftHipSocket",
+      position: [0,0,0],
+      rigidGroup: "hip"
+    },
+    {
+      name: "frontRightHipInsert",
+      relativeTo: "frontRightHipSocket",
+      position: [0,0,0],
+      rigidGroup: "hip"
+    },
+    {
+      name: "backLeftHipInsert",
+      relativeTo: "backLeftHipSocket",
+      position: [0,0,0],
+      rigidGroup: "hip"
+    },
+    {
+      name: "backRightHipInsert",
+      relativeTo: "backRightHipSocket",
+      position: [0,0,0],
+      rigidGroup: "hip"
+    },
+    //left leg socket
+    {
+      name: "frontLeftLeftThighSocket",
+      relativeTo: "frontLeftHipInsert",
+      position: [0,-hipHeight, 0],
+      bondTo: ["frontLeftHipInsert"],
+      rigidGroup: "hip"
+    },
+    {
+      name: "backLeftLeftThighSocket",
+      relativeTo: "backLeftHipInsert",
+      position: [0,-hipHeight, 0],
+      bondTo: ["backLeftHipInsert"],
+      rigidGroup: "hip"
+    },
+    //right leg socket
+    {
+      name: "frontRightRightThighSocket",
+      relativeTo: "frontRightHipInsert",
+      position: [0,-hipHeight, 0],
+      bondTo: ["frontRightHipInsert"],
+      rigidGroup: "hip"
+    },
+    {
+      name: "backRightRightThighSocket",
+      relativeTo: "backRightHipInsert",
+      position: [0,-hipHeight, 0],
+      bondTo: ["backRightHipInsert"],
+      rigidGroup: "hip"
+    },
+    //groin
+    {
+      name: "frontGroin",
+      relativeTo: "frontRightRightThighSocket",
+      position: [-bodyWidth/3,0,0],
+      bondTo: ["frontRightRightThighSocket","frontLeftLeftThighSocket"],
+      rigidGroup: "hip"
+    },
+    {
+      name: "backGroin",
+      relativeTo: "backRightRightThighSocket",
+      position: [-bodyWidth/3,0,0],
+      bondTo: ["backRightRightThighSocket","backLeftLeftThighSocket"],
+      rigidGroup: "hip"
+    },
+    //left thigh
+    {
+      name: "frontLeftLeftThighInsert",
+      relativeTo: "frontLeftLeftThighSocket",
+      position: [0,0,0],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "frontRightLeftThighInsert",
+      relativeTo: "frontGroin",
+      position: [0,0,0],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "backRightLeftThighInsert",
+      relativeTo: "backGroin",
+      position: [0,0,0],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "backLeftLeftThighInsert",
+      relativeTo: "backLeftLeftThighSocket",
+      position: [0,0,0],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "frontLeftLeftKneeSocket",
+      relativeTo: "frontLeftLeftThighInsert",
+      position: [0,-thighLength,0],
+      bondTo: ["frontLeftLeftThighInsert"],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "frontRightLeftKneeSocket",
+      relativeTo: "frontRightLeftThighInsert",
+      position: [0,-thighLength,0],
+      bondTo: ["frontRightLeftThighInsert"],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "backRightLeftKneeSocket",
+      relativeTo: "backRightLeftThighInsert",
+      position: [0,-thighLength,0],
+      bondTo: ["backRightLeftThighInsert"],
+      rigidGroup: "leftThigh"
+    },
+    {
+      name: "backLeftLeftKneeSocket",
+      relativeTo: "backLeftLeftThighInsert",
+      position: [0,-thighLength,0],
+      bondTo: ["backLeftLeftThighInsert"],
+      rigidGroup: "leftThigh"
+    },
+    //right thigh
   ];
 
     return body;

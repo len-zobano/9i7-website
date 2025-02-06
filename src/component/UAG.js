@@ -207,9 +207,10 @@ function UAGComponent() {
         });
 
         testBody.joints.forEach((joint) => {
+          let jointSpan = 1;
           if (joint.type === 'circular') {
             for (let left = 0; left < joint.groups[0].length; ++left) 
-            for (let right = left-1+joint.groups[1].length; right < left+2+joint.groups[1].length; ++right) {
+            for (let right = left-jointSpan+joint.groups[1].length; right < left+jointSpan+1+joint.groups[1].length; ++right) {
               let 
                 leftControlPoint = bodyDeclarationMap[joint.groups[0][left]].drop,
                 rightControlPoint = bodyDeclarationMap[joint.groups[1][right % joint.groups[1].length]].drop;
