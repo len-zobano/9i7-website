@@ -146,10 +146,12 @@ class ObjDrawable {
 
     let normalizedUp = glMatrix.vec3.create();
     glMatrix.vec3.sub(normalizedUp, topPosition, centerPosition);
+    //before normalizing, use this for scale
+    let scale = glMatrix.vec3.length(normalizedUp);
     glMatrix.vec3.normalize(normalizedUp, normalizedUp);
 
     let normalizedFrontPoint = glMatrix.vec3.create();
-    glMatrix.vec3.sub(normalizedFrontPoint, topPosition, frontPosition);
+    glMatrix.vec3.sub(normalizedFrontPoint, frontPosition, centerPosition);
     glMatrix.vec3.normalize(normalizedFrontPoint, normalizedFrontPoint);
 
     let normalizedRight = glMatrix.vec3.create();
@@ -161,14 +163,15 @@ class ObjDrawable {
     glMatrix.vec3.normalize(normalizedDrawFront, normalizedDrawFront);
 
     let drawMatrix = glMatrix.mat4.fromValues(
-        normalizedRight[0], normalizedUp[0], normalizedDrawFront[0], 0,
-        normalizedRight[1], normalizedUp[1], normalizedDrawFront[1], 0,
-        normalizedRight[2], normalizedUp[2], normalizedDrawFront[2], 0,
+        normalizedRight[0], -normalizedUp[0], normalizedDrawFront[0], 0,
+        normalizedRight[1], -normalizedUp[1], normalizedDrawFront[1], 0,
+        normalizedRight[2], -normalizedUp[2], normalizedDrawFront[2], 0,
         0, 0, 0, 1
     );
+    glMatrix.mat4.invert(drawMatrix, drawMatrix);
 
     glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawMatrix);
-    glMatrix.mat4.scale(drawDelegateMatrix, drawDelegateMatrix, glMatrix.vec3.fromValues(10,10,10));
+    glMatrix.mat4.scale(drawDelegateMatrix, drawDelegateMatrix, glMatrix.vec3.fromValues(scale, scale, scale));
 
     let lightPosition = this.#world.getLights()[0].position;
     glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);

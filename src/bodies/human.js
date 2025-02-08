@@ -32,9 +32,9 @@
 
     body.drawables = [{
       type: "obj-drawable",
-      center: ["frontLeftSkull","backRightSkull"],
+      center: ["frontLeftSkull","backRightJaw"],
       top: ["crown"],
-      front: ["frontLeftSkull","frontRightSkull"],
+      front: ["frontLeftJaw","frontRightJaw"],
       // filename: '../models/drop.obj'
       filename: 'models/head.obj'
     }];
