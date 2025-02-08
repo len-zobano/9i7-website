@@ -11,6 +11,7 @@ import Human from '../bodies/human';
 import NonRigidHuman from '../bodies/non-rigid-human';
 import Cube from '../bodies/cube';
 import RigidGroup from './rigid-group';
+import ObjDrawable from './obj-drawable';
 
 import {
   BrowserRouter as Router,
@@ -223,11 +224,29 @@ function UAGComponent() {
           }
         });
 
+        testBody.drawables.forEach((drawable) => {
+          if (drawable.type === 'obj-drawable') {
+            let centerPoints = drawable.center.map((centerPointName) => {
+              return bodyDeclarationMap[centerPointName].drop;
+            });
+
+            let topPoints = drawable.top.map((topPointName) => {
+              return bodyDeclarationMap[topPointName].drop;
+            });
+
+            let frontPoints = drawable.front.map((frontPointName) => {
+              return bodyDeclarationMap[frontPointName].drop;
+            });
+
+            let objDrawable = new ObjDrawable (world, drawable.filename, centerPoints, topPoints, frontPoints);
+          }
+        });
+
         // debugger;
       }
 
       let camera = new SimpleFollowPoint(world, 100, 20, glMatrix.vec3.fromValues(10,10,10));
-      camera.position = glMatrix.vec3.fromValues(-100,-30,-200);
+      camera.position = glMatrix.vec3.fromValues(-100,50,-300);
       // camera.focused = cubes[0];
 
       let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
@@ -254,7 +273,7 @@ function UAGComponent() {
         mesh = [],
         meshSize = 5,
         meshJitter = 70,
-        meshPosition = [-200,-100,-200],
+        meshPosition = [-200,-200,-200],
         meshSquareWidth = 70,
         meshSquareLength = 70,
         thickness = -50;

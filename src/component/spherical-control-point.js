@@ -444,9 +444,7 @@ class SphericalControlPoint {
     }
 
     initializeDrawDelegates () {
-        let objFile = require('../models/controlPoint.obj');
-
-        fetch(objFile)
+        fetch('models/controlPoint.obj')
           .then(response => response.text())
           .then((text) => {
             let objFile = new OBJFile (text);

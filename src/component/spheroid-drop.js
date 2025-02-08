@@ -49,9 +49,9 @@ class SpheroidDrop {
     
     this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
 
-    let objFile = require('../models/drop.obj');
+    // let objFile = require('models/drop.obj');
 
-    fetch(objFile)
+    fetch('models/drop.obj')
       .then(response => response.text())
       .then((text) => {
         let objFile = new OBJFile (text);
