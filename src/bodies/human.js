@@ -174,6 +174,7 @@
         // {strength: 10, name: "backLeftOutsideShoulder"},
         // {strength: 10, name: "frontLeftOutsideShoulder"},
       ],
+      selectable: true
     },
     {
       name: "backLeftSkull",

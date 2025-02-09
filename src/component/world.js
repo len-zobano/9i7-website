@@ -152,6 +152,7 @@ class GridSystem {
 class World {
   #currentTime = 0;
   #drawables = [];
+  #selectables = [];
   #controlPoints = [];
   #cameras = [];
   #lights = [];
@@ -165,6 +166,13 @@ class World {
 
   set selected(toSelect) {
     this.#selected = toSelect;
+  }
+
+  addSelectable(selectable) {
+    this.#selectables.push(selectable);
+    if (!this.#selected) {
+        this.#selected = selectable;
+    }
   }
 
   #projectionMatrix = null;
@@ -233,20 +241,19 @@ constructor() {
     delete this.#downKeys[keyCode];
 
     let keyWasCaptured = false;
-    let controlPoints = this.#controlPointGroups[0].controlPoints;
-    let indexOfSelected = controlPoints.indexOf(this.#selected);
+    let indexOfSelected = this.#selectables.indexOf(this.#selected);
     //bracket - switch selected
     if (keyCode === 221) {
-        let indexOfNextSelected = (indexOfSelected + 1) % controlPoints.length;
+        let indexOfNextSelected = (indexOfSelected + 1) % this.#selectables.length;
         let lastSelected = this.#selected;
-        this.#selected = controlPoints[indexOfNextSelected];
+        this.#selected = this.#selectables[indexOfNextSelected];
         keyWasCaptured = true;
     }
 
     if (keyCode === 219) {
-        let indexOfNextSelected = (indexOfSelected - 1) % controlPoints.length;
+        let indexOfNextSelected = (indexOfSelected - 1) % this.#selectables.length;
         let lastSelected = this.#selected;
-        this.#selected = controlPoints[indexOfNextSelected];
+        this.#selected = this.#selectables[indexOfNextSelected];
         keyWasCaptured = true;
     }
 

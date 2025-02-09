@@ -168,6 +168,10 @@ function UAGComponent() {
           let dropPosition = glMatrix.vec3.create();
           glMatrix.vec3.scale(dropPosition, totalPosition, bodyScale);
           let drop = new SimpleControlPoint(world, dropPosition, 0.1);
+          if (declaredPart.selectable) {
+            world.addSelectable(drop);
+          }
+
           bodyDeclarationMap[declaredPart.name].drop = drop;
           if (declaredPart.anchor) {
             drop.isAnchored = true;
@@ -180,11 +184,6 @@ function UAGComponent() {
             thisRigidGroup.addControlPoint(drop);
           }
           cubes.push(bodyDeclarationMap[declaredPart.name].drop);
-
-          if (!world.selected) {
-            world.selected = bodyDeclarationMap[declaredPart.name].drop;
-            world.selected.anchor = true;
-          }
           
           bodyGroup.addControlPoint(bodyDeclarationMap[declaredPart.name].drop, declaredPart.name);
         });
@@ -241,7 +240,6 @@ function UAGComponent() {
             let objDrawable = new ObjDrawable (world, drawable.filename, centerPoints, topPoints, frontPoints);
           }
         });
-
         // debugger;
       }
 
@@ -249,9 +247,14 @@ function UAGComponent() {
       camera.position = glMatrix.vec3.fromValues(-100,50,-300);
       // camera.focused = cubes[0];
 
-      let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
-      light.position = glMatrix.vec3.fromValues(-200,-50,-200);
-      light.focused = cubes[0];
+      // let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
+      // light.position = glMatrix.vec3.fromValues(-200,-50,-200);
+      // light.focused = cubes[0];
+
+      let light = new SimpleControlPoint(world, glMatrix.vec3.fromValues(-200,-50,-200));
+      let lightGroup = new ControlPointGroup(world);
+      lightGroup.addControlPoint(light);
+      world.addSelectable(light);
 
       let positions = cubes.map((cube) => {
         return cube.position;
@@ -259,15 +262,6 @@ function UAGComponent() {
 
       //TEMPORARY: this should have a better system
       world.addLight(light);
-      // cubes.forEach((cube) => {
-      //   cube.positionPoint.bondToAnyWithinRadius(
-      //     cubes.map((otherCube) => {
-      //       return otherCube.positionPoint;
-      //     }),
-      //     1.7*distance,
-      //     5
-      //   )
-      // });
 
       let 
         mesh = [],
@@ -277,7 +271,6 @@ function UAGComponent() {
         meshSquareWidth = 70,
         meshSquareLength = 70,
         thickness = -50;
-
 
       for (let i = 0; i < meshSize*meshSize; ++i) {
         mesh[i] = meshPosition[1] + Math.pow(engineMath.random(),3)*meshJitter - meshJitter / 2;
