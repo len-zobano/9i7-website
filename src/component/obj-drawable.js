@@ -59,10 +59,10 @@ class ObjDrawable {
                     engineMath.random()*0.5+0.25,
                     1.0
                 ];
-                // currentColor = [0.8,0.8,0.8,1.0];
+                currentColor = [1.0,1.0,1.0,1.0];
             }
             ++timesReturned;
-            return [1.0,1.0,1.0,1.0];
+            return currentColor;
         }
 
         let colors = vertexIndices.map((index) => {
@@ -86,10 +86,15 @@ class ObjDrawable {
 
         let normals = normalIndices.map((index) => {
             let vertex = objOutput.models[0].vertexNormals[index];
+            //TEMPORARY: test length of drawable
+            let vertexVector = glMatrix.vec3.fromValues(vertex.x, vertex.y, vertex.z);
+            console.log('normal length at obj drawable',glMatrix.vec3.length(vertexVector));
             return [vertex.x, vertex.y, vertex.z];
         }).reduce((a, b) => {
             return a.concat(b);
         });
+
+        // debugger;
 
         this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });

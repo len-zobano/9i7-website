@@ -18,18 +18,22 @@ void main() {
   vColor = aVertexColor;
 
   highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
-  highp vec3 directionalLightColor = vec3(1.0, 1.0, 1.0);
-  highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
+  highp vec3 directionalLightColor = vec3(1.0, 1.0, 0.7);
 
-  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-  highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+  highp vec4 transformedNormal = vec4( aVertexNormal, 1.0 );
+  transformedNormal = uNormalMatrix * transformedNormal;
 
   highp vec4 relativePositionOfLight = uPointLightLocation - uModelViewMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
   highp float pointLightDirectional = max(dot(transformedNormal.xyz, normalize(relativePositionOfLight.xyz)), 0.0);
-  highp float pointLightDistanceQuotient = 1.0 / (1.0 + min(distanceFromPointLight - 30.0, 0.0) / 100.0);
+  highp float pointLightDistanceQuotient = 100.0/distanceFromPointLight;
   
-  vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
+  if (distanceFromPointLight > 100.0) {
+    directionalLightColor = vec3(1.0,0.0,0.0);
+  }
+
+  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
+  vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
 }
 `,
 
@@ -39,7 +43,8 @@ varying highp vec3 vLighting;
 
 void main(void) {
   // gl_FragColor = vColor;
-  gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
+  // gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
+  gl_FragColor = vec4(vLighting, vColor.a);
 }
 `,
 

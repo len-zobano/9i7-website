@@ -146,6 +146,8 @@ class TriangularSurface {
             engineMath.vec3ToArray(product)
         );
 
+        console.log('normal length at trangular surface: ',glMatrix.vec3.length(product));
+        
         this.#cameraMatrix = this.createCameraMatrix();
         this.#drawMatrix = this.createDrawMatrix();
         this.#contextMatrix = this.createContextMatrix();
