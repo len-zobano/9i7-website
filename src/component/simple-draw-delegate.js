@@ -25,15 +25,15 @@ void main() {
 
   highp vec4 relativePositionOfLight = uPointLightLocation - uModelViewMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
-  highp float pointLightDirectional = max(dot(transformedNormal.xyz, normalize(relativePositionOfLight.xyz)), 0.0);
+  highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
   highp float pointLightDistanceQuotient = 100.0/distanceFromPointLight;
   
   if (distanceFromPointLight > 100.0) {
     directionalLightColor = vec3(1.0,0.0,0.0);
   }
 
-  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
-  vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
+  vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
+  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
 }
 `,
 
@@ -224,6 +224,11 @@ class SimpleDrawDelegate {
         if (lightPosition) {
           pointLightLocation = lightPosition;
         }
+
+        let lightMatrix = glMatrix.mat4.create();
+        lightMatrix = modelViewMatrix;
+        // glMatrix.mat4.multiply()
+        glMatrix.vec3.transformMat4(pointLightLocation, pointLightLocation, lightMatrix);
 
         this.#world.gl.uniform4fv(
           this.#programInfo.uniformLocations.pointLightLocation,
