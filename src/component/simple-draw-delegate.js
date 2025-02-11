@@ -29,8 +29,8 @@ void main() {
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
-  // vLighting = ambientLight + (directionalLightColor * pointLightQuotient);
-  vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
+  vLighting = ambientLight + (directionalLightColor * pointLightQuotient);
+  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
 }
 `,
 
@@ -196,7 +196,7 @@ class SimpleDrawDelegate {
         this.setColorAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         this.setNormalAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         
-        const normalMatrix = glMatrix.mat4.create();
+        let normalMatrix = glMatrix.mat4.create();
         glMatrix.mat4.invert(normalMatrix, modelViewMatrix);
         glMatrix.mat4.transpose(normalMatrix, normalMatrix);
         // Set the shader uniforms

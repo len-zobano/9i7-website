@@ -169,12 +169,10 @@ class ObjDrawable {
     glMatrix.vec3.cross(normalizedDrawFront, normalizedRight, normalizedUp);
     glMatrix.vec3.normalize(normalizedDrawFront, normalizedDrawFront);
 
-    //TODO: normalizedUp is negative here because it prevented a loaded object from being loaded upside-down
-    //find out why and fix it
     let drawMatrix = glMatrix.mat4.fromValues(
-        normalizedRight[0], -normalizedUp[0], normalizedDrawFront[0], 0,
-        normalizedRight[1], -normalizedUp[1], normalizedDrawFront[1], 0,
-        normalizedRight[2], -normalizedUp[2], normalizedDrawFront[2], 0,
+        normalizedRight[0], normalizedUp[0], normalizedDrawFront[0], 0,
+        normalizedRight[1], normalizedUp[1], normalizedDrawFront[1], 0,
+        normalizedRight[2], normalizedUp[2], normalizedDrawFront[2], 0,
         0, 0, 0, 1
     );
     glMatrix.mat4.invert(drawMatrix, drawMatrix);
@@ -183,7 +181,6 @@ class ObjDrawable {
     glMatrix.mat4.scale(drawDelegateMatrix, drawDelegateMatrix, glMatrix.vec3.fromValues(scale, scale, scale));
 
     let lightPosition = this.#world.getLights()[0].position;
-    glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
 
     this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
   }
