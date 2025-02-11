@@ -367,12 +367,13 @@ class TriangularSurface {
     }
 
     draw() {
-        const modelViewMatrix = this.#world.modelViewMatrix;
+        let drawDelegateMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(drawDelegateMatrix, this.#world.cameraMatrix, this.#world.modelViewMatrix);
         let lightPosition = this.#world.getLights()[0].position;
-        glMatrix.vec3.transformMat4(lightPosition, lightPosition, modelViewMatrix);
+        glMatrix.vec3.transformMat4(lightPosition, lightPosition, this.#world.modelViewMatrix);
         //draw the triangle with the delegate
-        this.#topDrawDelegate.draw(modelViewMatrix, lightPosition);
-        this.#bottomDrawDelegate.draw(modelViewMatrix, lightPosition);
+        this.#topDrawDelegate.draw(drawDelegateMatrix, lightPosition);
+        this.#bottomDrawDelegate.draw(drawDelegateMatrix, lightPosition);
     }
 }
 

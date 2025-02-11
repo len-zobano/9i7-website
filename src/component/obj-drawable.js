@@ -115,11 +115,13 @@ class ObjDrawable {
     // // Set the drawing position to the "identity" point, which is
     // // the center of the scene.
     // // const modelViewMatrix = glMatrix.mat4.create();
-    const modelViewMatrix = this.#world.modelViewMatrix;
+    let modelViewMatrix = this.#world.modelViewMatrix;
+    let cameraMatrix = this.#world.cameraMatrix;
   
     // // Now move the drawing position a bit to where we want to
     // // start drawing the square.
-    let drawDelegateMatrix = glMatrix.mat4.clone(modelViewMatrix);
+    let drawDelegateMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.multiply(drawDelegateMatrix, cameraMatrix, modelViewMatrix);
 
     let 
         centerPosition = glMatrix.vec3.create(),
@@ -167,6 +169,8 @@ class ObjDrawable {
     glMatrix.vec3.cross(normalizedDrawFront, normalizedRight, normalizedUp);
     glMatrix.vec3.normalize(normalizedDrawFront, normalizedDrawFront);
 
+    //TODO: normalizedUp is negative here because it prevented a loaded object from being loaded upside-down
+    //find out why and fix it
     let drawMatrix = glMatrix.mat4.fromValues(
         normalizedRight[0], -normalizedUp[0], normalizedDrawFront[0], 0,
         normalizedRight[1], -normalizedUp[1], normalizedDrawFront[1], 0,

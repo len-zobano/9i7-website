@@ -223,10 +223,15 @@ class World {
   }
 
   #modelViewMatrix = null;
+  #cameraMatrix = null;
   #downKeys = {};
 
     get modelViewMatrix () {
         return glMatrix.mat4.clone(this.#modelViewMatrix);
+    }
+
+    get cameraMatrix () {
+        return glMatrix.mat4.clone(this.#cameraMatrix);
     }
 
 constructor() {
@@ -573,7 +578,8 @@ constructor() {
                 );
 
                this.#modelViewMatrix = glMatrix.mat4.create();
-               glMatrix.mat4.multiply(this.#modelViewMatrix, lookAtLeft, lookAtRight);
+               this.#cameraMatrix = glMatrix.mat4.create();
+               glMatrix.mat4.multiply(this.#cameraMatrix, lookAtLeft, lookAtRight);
 
                 /*
                 End camera view

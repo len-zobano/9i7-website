@@ -408,9 +408,9 @@ class SimpleControlPoint {
     }
 
     draw() {
-        const referencePointMatrix = this.#world.modelViewMatrix;
-        // Now move the drawing position a bit to where we want to
-        // start drawing the square.
+        let referencePointMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(referencePointMatrix, this.#world.cameraMatrix, this.#world.modelViewMatrix);
+
         glMatrix.mat4.translate(
             referencePointMatrix, // destination matrix
             referencePointMatrix, // matrix to translate
@@ -427,7 +427,8 @@ class SimpleControlPoint {
             //TODO: optimize this, the array shouldn't be duplicated each loop
             let transformedPosition = glMatrix.vec3.clone(this.#position);
             let transformationMatrix = glMatrix.mat4.create();
-            glMatrix.mat4.multiply(transformationMatrix, this.#world.projectionMatrix, this.#world.modelViewMatrix);
+            glMatrix.mat4.multiply(transformationMatrix, this.#world.projectionMatrix, this.#world.cameraMatrix);
+            glMatrix.mat4.multiply(transformationMatrix, transformationMatrix, this.#world.modelViewMatrix);
             glMatrix.vec3.transformMat4(transformedPosition, transformedPosition, transformationMatrix);
             vertices = vertices.concat(
                 transformedPosition[0],
