@@ -170,9 +170,9 @@ class ObjDrawable {
     glMatrix.vec3.normalize(normalizedDrawFront, normalizedDrawFront);
 
     let drawMatrix = glMatrix.mat4.fromValues(
-        normalizedRight[0], normalizedUp[0], normalizedDrawFront[0], 0,
-        normalizedRight[1], normalizedUp[1], normalizedDrawFront[1], 0,
-        normalizedRight[2], normalizedUp[2], normalizedDrawFront[2], 0,
+        normalizedRight[0], -normalizedUp[0], normalizedDrawFront[0], 0,
+        normalizedRight[1], -normalizedUp[1], normalizedDrawFront[1], 0,
+        normalizedRight[2], -normalizedUp[2], normalizedDrawFront[2], 0,
         0, 0, 0, 1
     );
     glMatrix.mat4.invert(drawMatrix, drawMatrix);

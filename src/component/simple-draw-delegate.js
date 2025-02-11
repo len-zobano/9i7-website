@@ -33,11 +33,12 @@ void main() {
   highp vec4 normalizedRelativePositionOfEye = normalize ( uModelViewMatrix * aVertexPosition * -1.0 );
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
-  if (length(specularComponentVector) < 0.1) {
+  highp float specularRatio = 1.0;
+  if (length(specularComponentVector) < 0.2) {
     specularComponent = 1.0;
   }
 
-  vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * 0.5 + specularComponent * 0.5));
+  vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * (1.0 - specularRatio) + specularComponent * specularRatio));
   // vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
 }
 `,
