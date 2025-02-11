@@ -223,7 +223,7 @@ class SimpleDrawDelegate {
         }
 
         let lightMatrix = glMatrix.mat4.create();
-        lightMatrix = modelViewMatrix;
+        lightMatrix = this.#world.cameraMatrix;
         // glMatrix.mat4.multiply()
         glMatrix.vec3.transformMat4(pointLightLocation, pointLightLocation, lightMatrix);
 
