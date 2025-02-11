@@ -26,14 +26,11 @@ void main() {
   highp vec4 relativePositionOfLight = uPointLightLocation - uModelViewMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
   highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
-  highp float pointLightDistanceQuotient = 100.0/distanceFromPointLight;
-  
-  if (distanceFromPointLight > 100.0) {
-    directionalLightColor = vec3(1.0,0.0,0.0);
-  }
+  highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
+  highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
-  vLighting = ambientLight + (directionalLightColor * pointLightDirectional * pointLightDistanceQuotient);
-  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
+  // vLighting = ambientLight + (directionalLightColor * pointLightQuotient);
+  vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
 }
 `,
 
