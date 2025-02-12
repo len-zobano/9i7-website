@@ -88,7 +88,6 @@ class ObjDrawable {
             let vertex = objOutput.models[0].vertexNormals[index];
             //TEMPORARY: test length of drawable
             let vertexVector = glMatrix.vec3.fromValues(vertex.x, vertex.y, vertex.z);
-            console.log('normal length at obj drawable',glMatrix.vec3.length(vertexVector));
             return [vertex.x, vertex.y, vertex.z];
         }).reduce((a, b) => {
             return a.concat(b);
@@ -118,11 +117,6 @@ class ObjDrawable {
     let modelViewMatrix = this.#world.modelViewMatrix;
     let cameraMatrix = this.#world.cameraMatrix;
   
-    // // Now move the drawing position a bit to where we want to
-    // // start drawing the square.
-    let drawDelegateMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.multiply(drawDelegateMatrix, cameraMatrix, modelViewMatrix);
-
     let 
         centerPosition = glMatrix.vec3.create(),
         frontPosition = glMatrix.vec3.create(),
@@ -146,8 +140,8 @@ class ObjDrawable {
     //TEMORARY: testing draw position fix
     // glMatrix.vec3.scale(drawPosition, drawPosition, -1);
     glMatrix.mat4.translate(
-      drawDelegateMatrix, // destination matrix
-      drawDelegateMatrix, // matrix to translate
+      modelViewMatrix,
+      modelViewMatrix, // matrix to translate
       centerPosition
     ); // amount to translate
 
@@ -177,12 +171,12 @@ class ObjDrawable {
     );
     glMatrix.mat4.invert(drawMatrix, drawMatrix);
 
-    glMatrix.mat4.multiply(drawDelegateMatrix, drawDelegateMatrix, drawMatrix);
-    glMatrix.mat4.scale(drawDelegateMatrix, drawDelegateMatrix, glMatrix.vec3.fromValues(scale, scale, scale));
+    glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, drawMatrix);
+    glMatrix.mat4.scale(modelViewMatrix, modelViewMatrix, glMatrix.vec3.fromValues(scale, scale, scale));
 
     let lightPosition = this.#world.getLights()[0].position;
 
-    this.#drawDelegate.draw(drawDelegateMatrix, lightPosition);
+    this.#drawDelegate.draw(cameraMatrix, modelViewMatrix, lightPosition);
   }
 }
 

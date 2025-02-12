@@ -146,8 +146,6 @@ class TriangularSurface {
             engineMath.vec3ToArray(product)
         );
 
-        console.log('normal length at trangular surface: ',glMatrix.vec3.length(product));
-        
         this.#cameraMatrix = this.createCameraMatrix();
         this.#drawMatrix = this.createDrawMatrix();
         this.#contextMatrix = this.createContextMatrix();
@@ -367,12 +365,10 @@ class TriangularSurface {
     }
 
     draw() {
-        let drawDelegateMatrix = glMatrix.mat4.create();
-        glMatrix.mat4.multiply(drawDelegateMatrix, this.#world.cameraMatrix, this.#world.modelViewMatrix);
         let lightPosition = this.#world.getLights()[0].position;
         //draw the triangle with the delegate
-        this.#topDrawDelegate.draw(drawDelegateMatrix, lightPosition);
-        this.#bottomDrawDelegate.draw(drawDelegateMatrix, lightPosition);
+        this.#topDrawDelegate.draw(this.#world.cameraMatrix, this.#world.modelViewMatrix, lightPosition);
+        this.#bottomDrawDelegate.draw(this.#world.cameraMatrix, this.#world.modelViewMatrix, lightPosition);
     }
 }
 

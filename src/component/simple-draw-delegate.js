@@ -5,6 +5,8 @@ attribute vec4 aVertexPosition;
 attribute vec3 aVertexNormal;
 attribute vec4 aVertexColor;
 
+uniform mat4 uInverseModelViewMatrix;
+uniform mat4 uCameraMatrix;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uNormalMatrix;
@@ -14,7 +16,7 @@ varying lowp vec4 vColor;
 varying highp vec3 vLighting;
 
 void main() {
-  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+  gl_Position = uProjectionMatrix * uCameraMatrix * uModelViewMatrix * aVertexPosition;
   vColor = aVertexColor;
 
   highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
@@ -22,26 +24,26 @@ void main() {
 
   highp vec4 normal = vec4( aVertexNormal, 1.0 ) + aVertexPosition;
   //transform normal with model view matrix
-  normal = uModelViewMatrix * normal;
+  normal = uCameraMatrix * uModelViewMatrix * normal;
   //get relative to vertex
-  normal -= uModelViewMatrix * aVertexPosition;
+  normal -= uCameraMatrix * uModelViewMatrix * aVertexPosition;
   //normalize
   normal = normalize(normal);
   highp vec4 transformedNormal = vec4( aVertexNormal, 1.0 );
   transformedNormal = uNormalMatrix * transformedNormal;
 
-  highp vec4 relativePositionOfLight = uPointLightLocation - uModelViewMatrix * aVertexPosition;
+  highp vec4 relativePositionOfLight = uPointLightLocation - uCameraMatrix * uModelViewMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
   highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
   highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(normal)));
-  highp vec4 normalizedRelativePositionOfEye = normalize ( uModelViewMatrix * aVertexPosition * -1.0 );
+  highp vec4 normalizedRelativePositionOfEye = normalize ( uCameraMatrix * aVertexPosition * -1.0 );
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
-  if (length(specularComponentVector) < 0.5) {
+  if (length(specularComponentVector) < 0.2) {
     specularComponent = 1.0;
   }
 
@@ -202,7 +204,12 @@ class SimpleDrawDelegate {
       return shader;
     }
 
-    draw(modelViewMatrix, lightPosition) {
+    draw(cameraMatrix, modelViewMatrix, lightPosition) {
+        let cameraAndModelViewMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(cameraAndModelViewMatrix, cameraMatrix, modelViewMatrix);
+        let inverseModelViewMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.invert(inverseModelViewMatrix, cameraAndModelViewMatrix);
+
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
         // Tell WebGL how to pull out the positions from the position
@@ -213,7 +220,7 @@ class SimpleDrawDelegate {
         this.setNormalAttribute(this.#world.gl, this.#buffers, this.#programInfo);
         
         let normalMatrix = glMatrix.mat4.create();
-        glMatrix.mat4.invert(normalMatrix, modelViewMatrix);
+        glMatrix.mat4.invert(normalMatrix, cameraAndModelViewMatrix);
         glMatrix.mat4.transpose(normalMatrix, normalMatrix);
         // Set the shader uniforms
         this.#world.gl.uniformMatrix4fv(
@@ -225,6 +232,16 @@ class SimpleDrawDelegate {
             this.#programInfo.uniformLocations.modelViewMatrix,
           false,
           modelViewMatrix,
+        );
+        this.#world.gl.uniformMatrix4fv(
+          this.#programInfo.uniformLocations.cameraMatrix,
+        false,
+        cameraMatrix,
+        );
+        this.#world.gl.uniformMatrix4fv(
+          this.#programInfo.uniformLocations.inverseModelViewMatrix,
+          false,
+          inverseModelViewMatrix,
         );
         this.#world.gl.uniformMatrix4fv(
           this.#programInfo.uniformLocations.normalMatrix,
@@ -328,6 +345,8 @@ class SimpleDrawDelegate {
                 uniformLocations: {
                     projectionMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uProjectionMatrix"),
                     modelViewMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uModelViewMatrix"),
+                    cameraMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uCameraMatrix"),
+                    inverseModelViewMatrix: world.gl.getUniformLocation(this.#shaderProgram, "uInverseModelViewMatrix"),
                     normalMatrix: world.gl.getUniformLocation(this.#shaderProgram,"uNormalMatrix"),
                     pointLightLocation: world.gl.getUniformLocation(this.#shaderProgram, "uPointLightLocation")
                 },
