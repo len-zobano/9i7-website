@@ -20,6 +20,13 @@ void main() {
   highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
   highp vec3 directionalLightColor = vec3(1.0, 1.0, 0.7);
 
+  highp vec4 normal = vec4( aVertexNormal, 1.0 ) + aVertexPosition;
+  //transform normal with model view matrix
+  normal = uModelViewMatrix * normal;
+  //get relative to vertex
+  normal -= uModelViewMatrix * aVertexPosition;
+  //normalize
+  normal = normalize(normal);
   highp vec4 transformedNormal = vec4( aVertexNormal, 1.0 );
   transformedNormal = uNormalMatrix * transformedNormal;
 
@@ -29,12 +36,12 @@ void main() {
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
-  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(transformedNormal)));
+  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(normal)));
   highp vec4 normalizedRelativePositionOfEye = normalize ( uModelViewMatrix * aVertexPosition * -1.0 );
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
-  if (length(specularComponentVector) < 0.2) {
+  if (length(specularComponentVector) < 0.5) {
     specularComponent = 1.0;
   }
 
