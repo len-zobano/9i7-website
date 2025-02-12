@@ -38,8 +38,8 @@ void main() {
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
-  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(normal)));
-  highp vec4 normalizedRelativePositionOfEye = normalize ( uCameraMatrix * aVertexPosition * -1.0 );
+  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(transformedNormal)));
+  highp vec4 normalizedRelativePositionOfEye = normalize ( uCameraMatrix * uModelViewMatrix * aVertexPosition * -1.0 );
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
