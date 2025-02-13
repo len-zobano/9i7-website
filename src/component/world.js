@@ -398,17 +398,22 @@ constructor() {
     let manupulationType = this.#downKeys[18] ? 'Acceleration' : 'Momentum';
     let angularFunctionName = `changeAngular${manupulationType}`;
     let linearFunctionName = `changeLinear${manupulationType}`;
+    let pointBeingControlled = this.#selected;
+    if (this.#downKeys[67]) {
+        pointBeingControlled = this.#cameras[0];
+    }
+
     // //a is down
     if (this.#downKeys[65]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraUp.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraUp.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
             // let selected = this.#selected;
             // debugger;
-            this.#selected[linearFunctionName](cameraRight.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraRight.map((element) => {
                 return -element*speed;
             }));
         }
@@ -416,13 +421,13 @@ constructor() {
 
     //d is down
     if (this.#downKeys[68]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraUp.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraUp.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected[linearFunctionName](cameraRight.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraRight.map((element) => {
                 return element*speed;
             }));
         }
@@ -430,13 +435,13 @@ constructor() {
 
     // //w
     if (this.#downKeys[87]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraRight.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraRight.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected[linearFunctionName](cameraUp.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraUp.map((element) => {
                 return element*speed;
             }));
         }
@@ -444,13 +449,13 @@ constructor() {
 
     // //s
     if (this.#downKeys[83]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraRight.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraRight.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected[linearFunctionName](cameraUp.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraUp.map((element) => {
                 return -element*speed;
             }));
         }
@@ -458,13 +463,13 @@ constructor() {
     
     //x
     if (this.#downKeys[88]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraDirection.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraDirection.map((element) => {
                 return element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected[linearFunctionName](cameraDirection.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraDirection.map((element) => {
                 return element*speed;
             }));
         }
@@ -472,13 +477,13 @@ constructor() {
     
     //z
     if (this.#downKeys[90]) {
-        if (this.#downKeys[16] && this.#selected[angularFunctionName]) {
-            this.#selected[angularFunctionName](cameraDirection.map((element) => {
+        if (this.#downKeys[16] && pointBeingControlled[angularFunctionName]) {
+            pointBeingControlled[angularFunctionName](cameraDirection.map((element) => {
                 return -element*speed*angularSpeedFactor;
             })); 
         }
         else {
-            this.#selected[linearFunctionName](cameraDirection.map((element) => {
+            pointBeingControlled[linearFunctionName](cameraDirection.map((element) => {
                 return -element*speed;
             }));
         }

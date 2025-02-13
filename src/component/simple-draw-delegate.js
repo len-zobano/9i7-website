@@ -38,9 +38,18 @@ void main() {
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
 
+  // manual reflect function: 
+  // highp vec4 reflectedRelativePositionOfLight = normalize(relativePositionOfLight) - 2.0*dot(normalize(transformedNormal), normalize(relativePositionOfLight)) * normalize(transformedNormal);
+  // highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflectedRelativePositionOfLight);
+  
   highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(transformedNormal)));
   highp vec4 normalizedRelativePositionOfEye = normalize ( uCameraMatrix * uModelViewMatrix * aVertexPosition * -1.0 );
+
+  //it doesn't seem to matter what normalizedRelativePos is here
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
+  // why is this the same as the reflected vector???
+  // highp vec4 specularComponentVector = normalize(relativePositionOfLight) - normalizedRelativePositionOfEye;
+
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
   if (length(specularComponentVector) < 0.2) {
@@ -257,7 +266,7 @@ class SimpleDrawDelegate {
 
         let lightMatrix = glMatrix.mat4.create();
         lightMatrix = this.#world.cameraMatrix;
-        // glMatrix.mat4.multiply()
+        //experiment with the light matrix. not sure if the light position is correct here;
         glMatrix.vec3.transformMat4(pointLightLocation, pointLightLocation, lightMatrix);
 
         this.#world.gl.uniform4fv(

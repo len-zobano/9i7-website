@@ -19,6 +19,11 @@ class SimpleControlPoint {
     #rigidGroup = null;
     #isAnchored = false;
     #group = null;
+    #visible = true;
+
+    set visible (visible) {
+        this.#visible = !!visible;
+    }
 
     get group () {
         return this.#group;
@@ -408,6 +413,10 @@ class SimpleControlPoint {
     }
 
     draw() {
+        if (!this.#visible) {
+            return;
+        }
+        
         let referencePointMatrix = glMatrix.mat4.create();
         glMatrix.mat4.multiply(referencePointMatrix, this.#world.cameraMatrix, this.#world.modelViewMatrix);
 

@@ -243,8 +243,12 @@ function UAGComponent() {
         // debugger;
       }
 
-      let camera = new SimpleFollowPoint(world, 100, 20, glMatrix.vec3.fromValues(10,10,10));
-      camera.position = glMatrix.vec3.fromValues(-100,50,-300);
+      let camera = new SimpleControlPoint(world, glMatrix.vec3.fromValues(-100,50,-300));
+      camera.visible = false;
+      let cameraGroup = new ControlPointGroup(world);
+      cameraGroup.addControlPoint(camera);
+      // world.addSelectable(camera);
+      world.addCamera(camera);
       // camera.focused = cubes[0];
 
       // let light = new SimpleFollowPoint(world, 50, 5, glMatrix.vec3.fromValues(0, 10, 0));
