@@ -107,6 +107,8 @@ class TriangularSurface {
         world.addTriangularSurface(this);
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
 
+        let randomColor = engineMath.HSLToRGB(Math.random(), 0.7, 0.5);
+
         this.#vertices = vertices.map((vertex) => {
             return glMatrix.vec3.clone(vertex);
         });
@@ -116,7 +118,7 @@ class TriangularSurface {
         });
 
         let topColorArray = this.#vertices.map((vertex) => {
-            return [1.0,1.0,1.0,1.0];
+            return [randomColor[0], randomColor[1], randomColor[2], 1.0];
         }).reduce((a, b) => {
             return a.concat(b);
         });
