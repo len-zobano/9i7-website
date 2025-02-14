@@ -27,26 +27,26 @@ void main() {
   highp vec3 transformedNormal = normalize( (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz );
 
   highp vec4 relativePositionOfLight = uPointLightLocation - eyeMatrix * aVertexPosition;
+  highp vec3 normalizedRelativePositionOfLight = normalize(relativePositionOfLight.xyz);
   highp float distanceFromPointLight = length(relativePositionOfLight);
-  highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
+  highp float pointLightDirectional = max(dot(transformedNormal, normalizedRelativePositionOfLight), 0.0);
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
   
-  highp vec3 normalizedRelativePositionOfLight = normalize(relativePositionOfLight.xyz);
-  highp vec3 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal));
+  highp vec3 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal))*-1.0;
   highp vec3 normalizedRelativePositionOfEye = normalize ( ((eyeMatrix * aVertexPosition) * -1.0).xyz );
 
+  // highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
   
   //the specular component vector can't be over 2 (sphere of radius 1)
-  specularComponent = min (1.0 - length(specularComponentVector) / 2.0, 1.0);
-  
-  specularComponent = 0.0;
-  if (length(specularComponentVector) < 0.2) {
-    specularComponent = 1.0;
-  }
+  highp float specularComponentLength = length(specularComponentVector)/2.0;
+  highp float specularComponentNarrowness = 3.0;
+  specularComponent = specularComponentNarrowness * ( 1.0 - specularComponentLength - (1.0 - 1.0/specularComponentNarrowness));
+  specularComponent = min (1.0, specularComponent);
+  specularComponent = max (0.0, specularComponent);
 
   vLighting = vec3 (
     pointLightQuotient,
