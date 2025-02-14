@@ -24,7 +24,7 @@ void main() {
   highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
   highp vec3 directionalLightColor = vec3(1.0, 1.0, 0.7);
 
-  highp vec4 transformedNormal = normalize(uNormalMatrix * vec4( aVertexNormal, 1.0 ));
+  highp vec3 transformedNormal = normalize( (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz );
 
   highp vec4 relativePositionOfLight = uPointLightLocation - eyeMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
@@ -32,11 +32,11 @@ void main() {
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
   
-  highp vec4 normalizedRelativePositionOfLight = normalize(relativePositionOfLight);
-  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal));
-  highp vec4 normalizedRelativePositionOfEye = normalize ( (eyeMatrix * aVertexPosition) * -1.0 );
+  highp vec3 normalizedRelativePositionOfLight = normalize(relativePositionOfLight.xyz);
+  highp vec3 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal));
+  highp vec3 normalizedRelativePositionOfEye = normalize ( ((eyeMatrix * aVertexPosition) * -1.0).xyz );
 
-  highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
+  highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
   
