@@ -140,10 +140,28 @@ class TriangularSurface {
         glMatrix.vec3.sub(inverseProduct, glMatrix.vec3.create(), product);
         this.#invertedVertexNormal = inverseProduct;
 
+        //temporary: make sure the normal is never pointing down toward bottom vertices
+        let topVertexPlusNormal = glMatrix.vec3.create();
+        glMatrix.vec3.add(topVertexPlusNormal, vertices[0], product);
+        let bottomVertexRelativeToTopVertex = glMatrix.vec3.create();
+        glMatrix.vec3.sub(bottomVertexRelativeToTopVertex, bottomVertices[0], vertices[0]);
+        let bottomVertexRelativeToTopVertexPlusNormal = glMatrix.vec3.create();
+        glMatrix.vec3.sub(bottomVertexRelativeToTopVertexPlusNormal, bottomVertices[0], topVertexPlusNormal);
+        if (glMatrix.vec3.length(bottomVertexRelativeToTopVertex) > glMatrix.vec3.length(bottomVertexRelativeToTopVertexPlusNormal)) {
+            console.log('normal of triangular surface pointing down');
+            debugger;
+        }
+
         let normalArray = [].concat(
             engineMath.vec3ToArray(product),
             engineMath.vec3ToArray(product),
             engineMath.vec3ToArray(product)
+        );
+
+        let bottomNormalArray = [].concat(
+            engineMath.vec3ToArray(inverseProduct),
+            engineMath.vec3ToArray(inverseProduct),
+            engineMath.vec3ToArray(inverseProduct) 
         );
 
         this.#cameraMatrix = this.createCameraMatrix();

@@ -16,48 +16,44 @@ varying lowp vec4 vColor;
 varying highp vec3 vLighting;
 
 void main() {
-  gl_Position = uProjectionMatrix * uCameraMatrix * uModelViewMatrix * aVertexPosition;
+  highp mat4 allMatrix = uProjectionMatrix * uCameraMatrix * uModelViewMatrix;
+  highp mat4 eyeMatrix = uCameraMatrix * uModelViewMatrix;
+  gl_Position = allMatrix * aVertexPosition;
   vColor = aVertexColor;
 
   highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
   highp vec3 directionalLightColor = vec3(1.0, 1.0, 0.7);
 
-  highp vec4 normal = vec4( aVertexNormal, 1.0 ) + aVertexPosition;
-  //transform normal with model view matrix
-  normal = uCameraMatrix * uModelViewMatrix * normal;
-  //get relative to vertex
-  normal -= uCameraMatrix * uModelViewMatrix * aVertexPosition;
-  //normalize
-  normal = normalize(normal);
-  highp vec4 transformedNormal = vec4( aVertexNormal, 1.0 );
-  transformedNormal = uNormalMatrix * transformedNormal;
+  highp vec4 transformedNormal = normalize(uNormalMatrix * vec4( aVertexNormal, 1.0 ));
 
-  highp vec4 relativePositionOfLight = uPointLightLocation - uCameraMatrix * uModelViewMatrix * aVertexPosition;
+  highp vec4 relativePositionOfLight = uPointLightLocation - eyeMatrix * aVertexPosition;
   highp float distanceFromPointLight = length(relativePositionOfLight);
   highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
-
-  // manual reflect function: 
-  // highp vec4 reflectedRelativePositionOfLight = normalize(relativePositionOfLight) - 2.0*dot(normalize(transformedNormal), normalize(relativePositionOfLight)) * normalize(transformedNormal);
-  // highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflectedRelativePositionOfLight);
   
-  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalize(relativePositionOfLight), normalize(transformedNormal)));
-  highp vec4 normalizedRelativePositionOfEye = normalize ( uCameraMatrix * uModelViewMatrix * aVertexPosition * -1.0 );
+  highp vec4 normalizedRelativePositionOfLight = normalize(relativePositionOfLight);
+  highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal));
+  highp vec4 normalizedRelativePositionOfEye = normalize ( (eyeMatrix * aVertexPosition) * -1.0 );
 
-  //it doesn't seem to matter what normalizedRelativePos is here
   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
-  // why is this the same as the reflected vector???
-  // highp vec4 specularComponentVector = normalize(relativePositionOfLight) - normalizedRelativePositionOfEye;
-
   highp float specularComponent = 0.0;
   highp float specularRatio = 1.0;
+  
+  //the specular component vector can't be over 2 (sphere of radius 1)
+  specularComponent = min (1.0 - length(specularComponentVector) / 2.0, 1.0);
+  
+  specularComponent = 0.0;
   if (length(specularComponentVector) < 0.2) {
     specularComponent = 1.0;
   }
 
-  vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * (1.0 - specularRatio) + specularComponent * specularRatio));
-  // vLighting = ambientLight + (directionalLightColor * pointLightDirectional);
+  vLighting = vec3 (
+    pointLightQuotient,
+    pointLightQuotient,
+    specularComponent
+  );
+  // vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * (1.0 - specularRatio) + specularComponent * specularRatio));
 }
 `,
 
@@ -86,6 +82,59 @@ class SimpleDrawDelegate {
     #colors = null;
     #indices = null;
     #normals = null;
+
+
+    // testVertexShader() {
+    //   //naming
+
+    //   //end naming
+    //   let allMatrix = glMatrix.mat4.create();
+    //   glMatrix.mat4.multiply(allMatrix, uProjectionMatrix, uCameraMatrix);
+    //   glMatrix.mat4.multiply(allMatrix, allMatrix, uModelViewMatrix);
+
+    //   let eyeMatrix = glMatrix.mat4.create();
+    //   glMatrix.mat4.multiply(eyeMatrix, uCameraMatrix, uModelViewMatrix);
+  
+    //   let gl_Position = glMatrix.vec3.clone(aVertexPosition);
+    //   glMatrix.vec3.transformMat4(gl_Position, gl_Position, allMatrix);
+
+    //   let ambientLight = glMatrix.vec3.fromValues(0.2 , 0.2, 0.2);
+    //   let directionalLightColor = glMatrix.vec3.fromValues(1.0, 1.0, 0.7);
+    
+    //   let transformedNormal = glMatrix.vec4.fromValues(aVertexNormal[0], aVertexNormal[1], aVertexNormal[2], 1.0);
+    //   glMatrix.vec4.transformMat4(transformedNormal, transformedNormal, uNormalMatrix);
+    //   glMatrix.vec4.normalize(transformedNormal, transformedNormal);
+    
+    //   let vertexPositionInEyeSpace = glMatrix.vec4.fromValues(aVertexPosition[0], aVertexPosition[1], aVertexPosition[2], 1.0);
+    //   highp vec4 relativePositionOfLight = uPointLightLocation - eyeMatrix * aVertexPosition;
+    //   highp float distanceFromPointLight = length(relativePositionOfLight);
+    //   highp float pointLightDirectional = max(dot(normalize(transformedNormal.xyz), normalize(relativePositionOfLight.xyz)), 0.0);
+    //   highp float pointLightDistanceQuotient = 100.0/max( distanceFromPointLight, 1.0);
+    //   highp float pointLightQuotient = min(pointLightDirectional * pointLightDistanceQuotient, 1.0);
+      
+    //   highp vec4 normalizedRelativePositionOfLight = normalize(relativePositionOfLight);
+    //   highp vec4 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal));
+    //   highp vec4 normalizedRelativePositionOfEye = normalize ( (eyeMatrix * aVertexPosition) * -1.0 );
+    
+    //   highp vec4 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
+    //   highp float specularComponent = 0.0;
+    //   highp float specularRatio = 1.0;
+      
+    //   //the specular component vector can't be over 2 (sphere of radius 1)
+    //   specularComponent = min (1.0 - length(specularComponentVector) / 2.0, 1.0);
+      
+    //   specularComponent = 0.0;
+    //   if (length(specularComponentVector) < 0.2) {
+    //     specularComponent = 1.0;
+    //   }
+    
+    //   vLighting = vec3 (
+    //     pointLightQuotient,
+    //     pointLightQuotient,
+    //     specularComponent
+    //   );
+    //   // vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * (1.0 - specularRatio) + specularComponent * specularRatio));
+    // };
 
     setGlobalPointLightControlPoint (controlPoint) {
       globalPointLightControlPoint = controlPoint;
@@ -218,6 +267,7 @@ class SimpleDrawDelegate {
         glMatrix.mat4.multiply(cameraAndModelViewMatrix, cameraMatrix, modelViewMatrix);
         let inverseModelViewMatrix = glMatrix.mat4.create();
         glMatrix.mat4.invert(inverseModelViewMatrix, cameraAndModelViewMatrix);
+        let inverseCameraMatrix = glMatrix.mat4.create();
 
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
@@ -265,7 +315,7 @@ class SimpleDrawDelegate {
         }
 
         let lightMatrix = glMatrix.mat4.create();
-        lightMatrix = this.#world.cameraMatrix;
+        lightMatrix = cameraMatrix;
         //experiment with the light matrix. not sure if the light position is correct here;
         glMatrix.vec3.transformMat4(pointLightLocation, pointLightLocation, lightMatrix);
 
