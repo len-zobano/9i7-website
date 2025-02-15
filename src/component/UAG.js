@@ -137,23 +137,17 @@ function UAGComponent() {
           //get absolute position
           let mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[declaredPart.name], totalPosition = glMatrix.vec3.fromValues(0,0,0);
           //as long as you're searching for the absolute position, keep looking and adding to relative position
-          console.log('beginning search for position for ',declaredPart.name);
           while (mappedPartToSearchForAbsolutePosition) {
-            console.log('searching mapped part',mappedPartToSearchForAbsolutePosition,'for ',declaredPart.name);
             if (mappedPartToSearchForAbsolutePosition.absolutePosition) {
               glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.absolutePosition);
-              console.log('added absolute position',mappedPartToSearchForAbsolutePosition.absolutePosition);
               bodyDeclarationMap[declaredPart.name].absolutePosition = totalPosition;
               mappedPartToSearchForAbsolutePosition = null;
             }
             else {
               glMatrix.vec3.add(totalPosition, totalPosition, mappedPartToSearchForAbsolutePosition.relativePosition);
-              console.log('added relative position',mappedPartToSearchForAbsolutePosition.relativePosition);
               // bodyDeclarationMap[declaredPart.name].relativePosition = mappedPartToSearchForAbsolutePosition.relativeTo;
               let nameOfNextToSearchForPosition = mappedPartToSearchForAbsolutePosition.relativeTo;
               mappedPartToSearchForAbsolutePosition = bodyDeclarationMap[nameOfNextToSearchForPosition];
-              console.log('searching next: ',nameOfNextToSearchForPosition,'for position of ',declaredPart.name);
-              console.log('part for search next',mappedPartToSearchForAbsolutePosition);
               // if (!mappedPartToSearchForAbsolutePosition) {
               //   debugger;
               // }

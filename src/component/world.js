@@ -188,6 +188,10 @@ class World {
     return this.#triangularSurfaces.slice(0);
   }
 
+  get gl () {
+    return this.#gl;
+  }
+
   addLight (controlPoint) {
     this.#lights.push(controlPoint);
   }

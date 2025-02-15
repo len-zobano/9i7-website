@@ -1,5 +1,5 @@
 import * as glMatrix from 'gl-matrix';
-import SimpleDrawDelegate from './simple-draw-delegate';
+import MaterialDrawDelegate from './material-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import engineMath from '../utility/engine-math';
 
@@ -86,16 +86,29 @@ class ObjDrawable {
 
         let normals = normalIndices.map((index) => {
             let vertex = objOutput.models[0].vertexNormals[index];
-            //TEMPORARY: test length of drawable
-            let vertexVector = glMatrix.vec3.fromValues(vertex.x, vertex.y, vertex.z);
             return [vertex.x, vertex.y, vertex.z];
         }).reduce((a, b) => {
             return a.concat(b);
         });
 
-        // debugger;
+        let textureCoordinateIndices = objOutput.models[0].faces.map((face) => {
+            let ret = face.vertices.map((vertex) => {
+              return vertex.textureCoordsIndex - 1;
+            });
+  
+            return ret;
+        }).reduce((a, b) => {
+         return a.concat(b);
+        });
+  
+        let textureCoordinates = textureCoordinateIndices.map((index) => {
+            let textureCoordinate = objOutput.models[0].textureCoords[index];
+            return [textureCoordinate.u, textureCoordinate.v];
+        }).reduce((a, b) => {
+            return a.concat(b);
+        });
 
-        this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
+        this.#drawDelegate = new MaterialDrawDelegate(this.#world, positions, colors, normals, textureCoordinates, 'texture-images/nut-skin.png');
       });
 
       world.addDrawable(this);
