@@ -1,6 +1,7 @@
 import * as glMatrix from 'gl-matrix';
 import { useState, useEffect } from 'react';
 import Plottable from './plottable';
+import engineMath from '../utility/engine-math';
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -239,6 +240,7 @@ constructor() {
 
         var canvas = document.getElementById("test-canvas");
         this.#gl = canvas.getContext("webgl", {alpha: false}); 
+        engineMath.gl = this.#gl;
 }
 
   keyIsUp(keyCode) {

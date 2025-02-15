@@ -269,11 +269,11 @@ function UAGComponent() {
 
       let 
         mesh = [],
-        meshSize = 10,
-        meshJitter = 0,
-        meshPosition = [-200,-200,-200],
-        meshSquareWidth = 40,
-        meshSquareLength = 40,
+        meshSize = 5,
+        meshJitter = 70,
+        meshPosition = [-200,-100,-200],
+        meshSquareWidth = 70,
+        meshSquareLength = 70,
         thickness = -50;
 
       for (let i = 0; i < meshSize*meshSize; ++i) {

@@ -13,7 +13,8 @@ uniform mat4 uNormalMatrix;
 uniform vec4 uPointLightLocation;
 
 varying lowp vec4 vColor;
-varying highp vec3 vLighting;
+varying highp vec3 vDiffuseLighting;
+varying highp vec3 vSpecularLighting;
 
 void main() {
   highp mat4 allMatrix = uProjectionMatrix * uCameraMatrix * uModelViewMatrix;
@@ -21,7 +22,7 @@ void main() {
   gl_Position = allMatrix * aVertexPosition;
   vColor = aVertexColor;
 
-  highp vec3 ambientLight = vec3(0.2 , 0.2, 0.2);
+  highp vec3 ambientLight = vec3(0.05 , 0.05, 0.05);
   highp vec3 directionalLightColor = vec3(1.0, 1.0, 1.0);
 
   highp vec3 transformedNormal = normalize( (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz );
@@ -39,7 +40,6 @@ void main() {
   // highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
-  highp float specularRatio = 0.5;
   
   //the specular component vector can't be over 2 (sphere of radius 1)
   highp float specularComponentLength = length(specularComponentVector)/2.0;
@@ -48,17 +48,18 @@ void main() {
   specularComponent = min (1.0, specularComponent);
   specularComponent = max (0.0, specularComponent);
 
-  vLighting = ambientLight + (directionalLightColor * (pointLightQuotient * (1.0 - specularRatio) + specularComponent * specularRatio));
+  vDiffuseLighting = ambientLight + (directionalLightColor * pointLightQuotient);
+  vSpecularLighting = directionalLightColor * specularComponent;
 }
 `,
 
 globalFragmentShaderSource = `
 varying lowp vec4 vColor;
-varying highp vec3 vLighting;
+varying highp vec3 vDiffuseLighting;
+varying highp vec3 vSpecularLighting;
 
 void main(void) {
-  gl_FragColor = vColor;
-  gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
+  gl_FragColor = vec4(vColor.rgb * vDiffuseLighting + vSpecularLighting, vColor.a);
 }
 `,
 
