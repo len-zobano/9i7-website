@@ -1,5 +1,6 @@
 import * as glMatrix from 'gl-matrix';
 import MaterialDrawDelegate from './material-draw-delegate';
+import SimpleDrawDelegate from './simple-draw-delegate';
 import OBJFile from 'obj-file-parser';
 import engineMath from '../utility/engine-math';
 
@@ -108,7 +109,8 @@ class ObjDrawable {
             return a.concat(b);
         });
 
-        this.#drawDelegate = new MaterialDrawDelegate(this.#world, positions, colors, normals, textureCoordinates, 'texture-images/nut-skin.png');
+        this.#drawDelegate = new MaterialDrawDelegate(this.#world, positions, colors, normals, null, textureCoordinates, 'texture-images/nut-skin.png');
+        // this.#drawDelegate = new SimpleDrawDelegate(this.#world, positions, colors, normals);
       });
 
       world.addDrawable(this);

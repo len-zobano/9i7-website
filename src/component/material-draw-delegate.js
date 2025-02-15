@@ -1,4 +1,5 @@
 import * as glMatrix from 'gl-matrix';
+import engineMath from '../utility/engine-math';
 
 let globalVertexShaderSource = `
 attribute vec4 aVertexPosition;
@@ -39,7 +40,6 @@ void main() {
   highp vec3 normalizedRelativePositionOfLightReflection = normalize(reflect(normalizedRelativePositionOfLight, transformedNormal))*-1.0;
   highp vec3 normalizedRelativePositionOfEye = normalize ( ((eyeMatrix * aVertexPosition) * -1.0).xyz );
 
-  // highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp vec3 specularComponentVector = normalizedRelativePositionOfLightReflection - normalizedRelativePositionOfEye;
   highp float specularComponent = 0.0;
   
@@ -65,8 +65,8 @@ varying highp vec2 vVertexTextureCoordinate;
 uniform sampler2D uSampler;
 
 void main(void) {
-//   gl_FragColor = texture2D(uSampler, vVertexTextureCoordinate);
-  gl_FragColor = vec4(vColor.rgb * vDiffuseLighting + vSpecularLighting, vColor.a);
+  gl_FragColor = texture2D(uSampler, vVertexTextureCoordinate);
+//   gl_FragColor = vec4(vColor.rgb * vDiffuseLighting + vSpecularLighting, vColor.a);
 }
 `,
 
@@ -114,7 +114,7 @@ class MaterialDrawDelegate {
         const normalize = false; // don't normalize
         const stride = 0; // how many bytes to get from one set to the next
         const offset = 0; // how many bytes inside the buffer to start from
-        this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, this.#buffers.textureCoord);
+        this.#world.gl.bindBuffer(this.#world.gl.ARRAY_BUFFER, this.#buffers.texture);
         this.#world.gl.vertexAttribPointer(
           this.#programInfo.attribLocations.vertexTextureCoordinate,
           num,
@@ -123,7 +123,7 @@ class MaterialDrawDelegate {
           stride,
           offset,
         );
-        // this.#world.gl.enableVertexAttribArray(this.#programInfo.attribLocations.vertexTextureCoordinate);
+        this.#world.gl.enableVertexAttribArray(this.#programInfo.attribLocations.vertexTextureCoordinate);
     }
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -222,7 +222,7 @@ class MaterialDrawDelegate {
           // WebGL1 has different requirements for power of 2 images
           // vs. non power of 2 images so check if the image is a
           // power of 2 in both dimensions.
-          if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
+          if (engineMath.isPowerOf2(image.width) && engineMath.isPowerOf2(image.height)) {
             // Yes, it's a power of 2. Generate mips.
             this.#world.gl.generateMipmap(this.#world.gl.TEXTURE_2D);
           } else {
@@ -310,7 +310,6 @@ class MaterialDrawDelegate {
         glMatrix.mat4.multiply(cameraAndModelViewMatrix, cameraMatrix, modelViewMatrix);
         let inverseModelViewMatrix = glMatrix.mat4.create();
         glMatrix.mat4.invert(inverseModelViewMatrix, cameraAndModelViewMatrix);
-        let inverseCameraMatrix = glMatrix.mat4.create();
 
         this.#world.gl.bindBuffer(this.#world.gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
         this.#world.gl.useProgram(this.#programInfo.program);
@@ -376,7 +375,6 @@ class MaterialDrawDelegate {
         // Tell WebGL we want to affect texture unit 0
         this.#world.gl.activeTexture(this.#world.gl.TEXTURE0);
         // Bind the texture to texture unit 0
-        let tfi = this.#textureForImage;
         this.#world.gl.bindTexture(this.#world.gl.TEXTURE_2D, this.#textureForImage);
         // Tell the shader we bound the texture to texture unit 0
         this.#world.gl.uniform1i(this.#programInfo.uniformLocations.uSampler, 0);
