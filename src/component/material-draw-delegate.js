@@ -65,7 +65,14 @@ varying highp vec2 vVertexTextureCoordinate;
 uniform sampler2D uSampler;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vVertexTextureCoordinate);
+  highp vec4 textureColor = texture2D(uSampler, vVertexTextureCoordinate);
+  highp float textureValue = (textureColor.r + textureColor.g + textureColor.b)/3.0;
+  highp float specularFactor = min((textureValue - 0.5) * 2.0, 1.0);
+  specularFactor = max(specularFactor, 0.0);
+
+//   gl_FragColor += vec4( vSpecularLighting, 1.0);
+//   gl_FragColor = vec4 (gl_FragColor.r, gl_FragColor.g, gl_FragColor.b, gl_FragColor.a);
+  gl_FragColor = vec4(textureColor.rgb * vDiffuseLighting + vSpecularLighting * specularFactor, vColor.a);
 //   gl_FragColor = vec4(vColor.rgb * vDiffuseLighting + vSpecularLighting, vColor.a);
 }
 `,
