@@ -250,8 +250,6 @@ class SimpleControlPoint {
                 let trajectoryChange = triangularSurface.trajectoryChangeForControlPoint(this);
                 if (trajectoryChange) {
                     glMatrix.vec3.scale(trajectoryChange, trajectoryChange, interval*50);
-                    //testing friction
-                    glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.0);
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, trajectoryChange);
                 }
             }
