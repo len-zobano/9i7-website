@@ -244,7 +244,6 @@ class SimpleControlPoint {
             ) {
                 let trajectoryChange = triangularSurface.trajectoryChangeForControlPoint(this);
                 if (trajectoryChange) {
-                    // debugger;
                     glMatrix.vec3.scale(trajectoryChange, trajectoryChange, interval*50);
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, trajectoryChange);
                 }
@@ -290,51 +289,6 @@ class SimpleControlPoint {
         let collidedWithSurface = true, numberOfCollisions = 0;
         //TEMPORARY: disable reflection method of collision handling
         collidedWithSurface = false;
-        //keep searching for collisions until all surfaces are looped through without a collision occurring
-        //don't collide with the same surface twice in a row. That's just a rounding error
-        let lastCollidedSurface = null;
-        while(collidedWithSurface) {
-            collidedWithSurface = false;
-            triangularSurfaces.forEach((triangularSurface) => {
-                if (
-                    triangularSurface.lineSegmentMayIntersect(this.#position, positionBeforeSurfaceCollision)
-                ) {
-                    let mirroredSegment = triangularSurface.mirrorLineSegmentAfterIntersection(this.#position, positionBeforeSurfaceCollision);
-                    if (mirroredSegment && lastCollidedSurface !== triangularSurface) {
-                        //set repeat collision detection data 
-                        collidedWithSurface = true;
-                        lastCollidedSurface = triangularSurface;
-                        ++numberOfCollisions;
-                        //calculate angular momentum
-                        let 
-                            firstLegOfBounce = glMatrix.vec3.create(),
-                            secondLegOfBounce = glMatrix.vec3.create();
-
-                        glMatrix.vec3.subtract(firstLegOfBounce, mirroredSegment[0], this.#position);
-                        glMatrix.vec3.subtract(secondLegOfBounce, mirroredSegment[1], mirroredSegment[0]);
-                        let angleOfCollision = engineMath.angleBetweenTwoVectors(triangularSurface.vertexNormal, secondLegOfBounce);
-                        let lengthOfCollision = glMatrix.vec3.length(firstLegOfBounce) + glMatrix.vec3.length(secondLegOfBounce);
-
-                        let mangitudeOfMomentum = glMatrix.vec3.length(this.#linearMomentum);
-                        let flattenParticle = mangitudeOfMomentum < 10;
-                        //TEMPORARY: always bounce
-                        flattenParticle = false;
-                        //change particles
-                        this.#position = mirroredSegment[0];
-                        positionBeforeSurfaceCollision = mirroredSegment[1];
-                        if (flattenParticle) {
-                            positionBeforeSurfaceCollision = triangularSurface.flattenAbsoluteVectorAlongPlane(positionBeforeSurfaceCollision);
-                        }
-                        this.#linearMomentum = triangularSurface.mirrorRelativeVector(this.#linearMomentum);
-                        if (flattenParticle) {
-                            this.#linearMomentum = triangularSurface.flattenRelativeVectorAlongPlane(this.#linearMomentum);
-                        }
-                        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, this.#bounciness);
-                    }
-                }
-            });
-        }
-        
         this.#position = positionBeforeSurfaceCollision;
     }
 
