@@ -239,6 +239,7 @@ function UAGComponent() {
 
       let camera = new SimpleControlPoint(world, glMatrix.vec3.fromValues(-100,50,-300));
       camera.visible = false;
+      camera.suspended = true;
       let cameraGroup = new ControlPointGroup(world);
       cameraGroup.addControlPoint(camera);
       // world.addSelectable(camera);
@@ -250,6 +251,7 @@ function UAGComponent() {
       // light.focused = cubes[0];
 
       let light = new SimpleControlPoint(world, glMatrix.vec3.fromValues(-200,-50,-200));
+      light.suspended = true;
       let lightGroup = new ControlPointGroup(world);
       lightGroup.addControlPoint(light);
       world.addSelectable(light);

@@ -20,6 +20,11 @@ class SimpleControlPoint {
     #isAnchored = false;
     #group = null;
     #visible = true;
+    #suspended = false;
+
+    set suspended (suspended) {
+        this.#suspended = suspended;
+    }
 
     set visible (visible) {
         this.#visible = !!visible;
@@ -245,14 +250,18 @@ class SimpleControlPoint {
                 let trajectoryChange = triangularSurface.trajectoryChangeForControlPoint(this);
                 if (trajectoryChange) {
                     glMatrix.vec3.scale(trajectoryChange, trajectoryChange, interval*50);
+                    //testing friction
+                    glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, 0.0);
                     glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, trajectoryChange);
                 }
             }
         });
         //add gravity to linear momentum
-        let gravity = this.#world.getGravityForLocation(this.#position);
-        glMatrix.vec3.scale(gravity, gravity, interval);
-        glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
+        if (!this.#suspended) {
+            let gravity = this.#world.getGravityForLocation(this.#position);
+            glMatrix.vec3.scale(gravity, gravity, interval);
+            glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
+        }
 
         if (this.#rigidGroup) {
             this.#rigidGroup.changeTrajectory(this);

@@ -219,13 +219,15 @@ class TriangularSurface {
             this.#inverseContextMatrix
         );
 
-        if (engineMath.isInsideNormalTruncatedPyramid(
+        let depth = engineMath.depthInsideNormalTruncatedPyramid(
             inContextControlPointPosition,
             this.#verticesInContext,
             this.#bottomVerticesInContext
-        )) {
+        );
+
+        if (depth < 0.0) {
             trajectoryChange = glMatrix.vec3.clone(this.#vertexNormal);
-            glMatrix.vec3.scale(trajectoryChange, trajectoryChange, -inContextControlPointPosition[1]*0.1);
+            glMatrix.vec3.scale(trajectoryChange, trajectoryChange, -0.1*depth);
         }
 
         return trajectoryChange;

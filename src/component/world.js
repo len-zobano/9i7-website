@@ -179,7 +179,7 @@ class World {
   #projectionMatrix = null;
   #gridSystem = null;
   #gl = null;
-  #globalGravityVector = glMatrix.vec3.fromValues(0,0,0);
+  #globalGravityVector = glMatrix.vec3.fromValues(0,-5,0);
   #isRunning = false;
   #upPosition = glMatrix.vec3.fromValues(0,1000,0);
   #triangularSurfaces = [];

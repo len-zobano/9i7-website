@@ -126,13 +126,16 @@ function EngineMath () {
         return [r, g, b];
     }
 
-    //normal truncated pyramid's top triangle is along the plane y=0
     this.isInsideNormalTruncatedPyramid = (vertex, topVertices, bottomVertices) => {
+        return this.depthInsideNormalTruncatedPyramid(vertex, topVertices, bottomVertices) < 0.0;
+    }
+    //normal truncated pyramid's top triangle is along the plane y=0
+    this.depthInsideNormalTruncatedPyramid = (vertex, topVertices, bottomVertices) => {
         if (vertex[1] > 0) {
             return false;
         }
         //TODO: you could optimize this by precalculating the bottom vertices to be where their relative position is y = -1
-        let verticesAtPointOfIntersection = [];
+        let verticesAtPointOfIntersection = [], depth = vertex[1] - topVertices[0][1];
         //if y value is zero, just clone the vertices
         for (let i = 0; i < 3; ++i) {
             //get relative vertex
@@ -145,12 +148,14 @@ function EngineMath () {
             verticesAtPointOfIntersection[i] = relativePositionOfBottom;
         }
         
-        return engineMath.isInsideTriangle(
+        let isInsideTriangle = engineMath.isInsideTriangle(
             vertex,
             verticesAtPointOfIntersection[0], 
             verticesAtPointOfIntersection[1],
             verticesAtPointOfIntersection[2]
         );
+
+        return isInsideTriangle ? depth : 0.0;
     }
     //TODO: this is a 2D function, and should be expressed as such
     this.isInsideTriangle = (pt, v1, v2, v3) => {
