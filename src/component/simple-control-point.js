@@ -262,8 +262,7 @@ class SimpleControlPoint {
         }
 
         if (this.#rigidGroup) {
-            this.#rigidGroup.changeTrajectory(this);
-            this.#linearMomentum = glMatrix.vec3.create();
+            this.#rigidGroup.transferMomentumToGroup(this); 
         }
     }
 
