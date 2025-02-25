@@ -3,6 +3,9 @@ import engineMath from '../utility/engine-math';
 
 class ControlPointGroup {
     #world = null;
+    #childGroups = {};
+    #parentGroup = null;
+
     #totalMass = null;
     #centerOfMass = null;
     #radius = null;
@@ -10,12 +13,20 @@ class ControlPointGroup {
     #isSelected = false;
     #controlPoints = [];
     #controlPointsByName = {};
+
     #linearMomentum = glMatrix.vec3.create();
     #angularMomentum = glMatrix.vec3.create();
-    #linearMomentumDecay = 0.5;
-    #angularMomentumDecay = 0.5;
+    #averageLinearMomentum = glMatrix.vec3.create();
+    #averageAngularMomentum = glMatrix.vec3.create();
+
+    #linearMomentumDecay = 1.0;
+    #angularMomentumDecay = 1.0;
     #rigidity = 0.0;
     #ID = null;
+
+    set parentGroup (group) {
+        this.#parentGroup = group;
+    }
 
     get controlPoints () {
         return this.#controlPoints.slice(0);
@@ -29,7 +40,6 @@ class ControlPointGroup {
         return this.#radius;
     }
 
-    #linearMomentum = null;
     get linearMomentum () {
         return glMatrix.vec3.clone(this.#linearMomentum);
     }
@@ -38,7 +48,6 @@ class ControlPointGroup {
         this.#ID = `${new Date().getTime()}${Math.round(engineMath.random()*10000)}`;
         this.#world = world;
         world.addControlPointGroup(this);
-        this.#linearMomentum = glMatrix.vec3.create();
     }
 
     addControlPoint (controlPoint, name) {
@@ -56,14 +65,14 @@ class ControlPointGroup {
         });
     }
 
-    addControlPointGroup () {
+    addControlPointGroup (group) {
         //add the group
-        //add all the group's points
+        this.#childGroups[group.ID] = {
+            group,
+            iterationOfLastTrajectoryCalculation: 0
+        };
         //set the group's parent
-    }
-
-    freeze() {
-        return false;
+        group.parentGroup = group;
     }
 
     calculateProperties () {
@@ -93,34 +102,12 @@ class ControlPointGroup {
         this.#circumference = Math.PI*2*this.#radius;
     }
 
-    calculateProperties () {
-        this.#totalMass = 0;
-        this.#centerOfMass = glMatrix.vec3.create();
-        this.#radius = 0;
+    transferMomentumFromControlPoint (controlPoint) {
 
-        //calculate mass
-        this.#controlPoints.forEach((controlPoint) => {
-            this.#totalMass += controlPoint.mass;
-            let scaledPosition = controlPoint.position;
-            glMatrix.vec3.scale(scaledPosition, scaledPosition, controlPoint.mass);
-            glMatrix.vec3.add(this.#centerOfMass, this.#centerOfMass, scaledPosition);
-        });
+        if (this.#rigidity === 0) {
+            return;
+        }
 
-        glMatrix.vec3.scale(this.#centerOfMass, this.#centerOfMass, 1/this.#totalMass);
-        //calculate radius
-        this.#controlPoints.forEach((controlPoint) => {
-            let thisRadius = glMatrix.vec3.create();
-            glMatrix.vec3.subtract(thisRadius, controlPoint.position, this.#centerOfMass);
-            let thisRadiusLength = glMatrix.vec3.length(thisRadius);
-            if (thisRadiusLength > this.#radius) {
-                this.#radius = thisRadiusLength;
-            }
-        });
-
-        this.#circumference = Math.PI*2*this.#radius;
-    }
-
-    transferMomentumToGroup (controlPoint) {
         let 
             momentumToTransfer = controlPoint.linearMomentum,
             momentumToKeep = controlPoint.linearMomentum,
@@ -129,7 +116,7 @@ class ControlPointGroup {
             relativeOriginPlusMomentum = glMatrix.vec3.create(),
             scaledUpRelativeOrigin = glMatrix.vec3.create(),
             scaledDownRelativeOrigin = glMatrix.vec3.create(),
-            lengthOfMomentum = glMatrix.vec3.length(momentum),
+            lengthOfMomentum = glMatrix.vec3.length(controlPoint.linearMomentum),
             scaledLinearMomentum = glMatrix.vec3.create(),
             scaledAngularMomentum = glMatrix.vec3.create(),
             magnitude = controlPoint.mass / this.#totalMass;
@@ -183,29 +170,63 @@ class ControlPointGroup {
             }
 
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, scaledLinearMomentum);
-            this.#linearMomentum = glMatrix.vec3.create();
         }
     }
 
-    //simulate against all control points in a tile
-    calculateTrajectory(interval) {
+    calculateTrajectoryIfAllChildrenHaveCalculated (interval) {
+        let allChildrenHaveCalculated = true;
+        Object.keys(this.#childGroups).forEach((childGroupID) => {
+            let childGroup = this.#childGroups[childGroupID];
+            allChildrenHaveCalculated &&= (childGroup.iterationOfLastTrajectoryCalculation === this.#world.currentIteration);
+        });
+
+        if (allChildrenHaveCalculated) {
+            this.calculateTrajectory(interval);
+        }
+    }
+
+    childHasCalculated (group) {
+        this.#childGroups[group.ID].iterationOfLastTrajectoryCalculation = this.#world.currentIteration;
+    }
+
+    calculateTrajectory (interval) {
+        //TODO: calculate this beforehand, per iteration
         let averageLinearMomentum = glMatrix.vec3.create();
-        this.#controlPoints.forEach((controlPoint) => {
+        this.getDescendentControlPoints().forEach((controlPoint) => {
             controlPoint.calculateTrajectory(interval);
+            this.transferMomentumFromControlPoint(controlPoint);
             let linearMomentum = controlPoint.linearMomentum;
             glMatrix.vec3.scale(linearMomentum, linearMomentum, 1/(this.#controlPoints.length));
             glMatrix.vec3.add(averageLinearMomentum, averageLinearMomentum, linearMomentum);
         });
 
-        this.#controlPoints.forEach((controlPoint) => {
-            // controlPoint.decay(averageLinearMomentum, Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
-            controlPoint.decay(glMatrix.vec3.create(), Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
-        });
+        this.applyTrajectory();
+
+        //set child has calculated, and calculate the parent if all children have calculated
+        if (this.#parentGroup) {
+            this.#parentGroup.childHasCalculated(this);
+            this.#parentGroup.calculateTrajectoryIfAllChildrenHaveCalculated(interval);
+        }
+        //if this is the top group, it's the local frame of reference, and calculates the decay
+        else {
+            //for each control point, get its momentum change due to linear momentum
+            this.getDescendentControlPoints().forEach((controlPoint) => {
+                // controlPoint.decay(averageLinearMomentum, Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
+                debugger;
+                controlPoint.decay(glMatrix.vec3.create(), Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
+            });
+        }
     }
 
-    decay (interval) {
-        glMatrix.vec3.scale(this.#linearMomentum, this.#linearMomentum, Math.pow(this.#linearMomentumDecay, interval));
-        glMatrix.vec3.scale(this.#angularMomentum, this.#angularMomentum,  Math.pow(this.#angularMomentumDecay, interval));
+    getDescendentControlPoints() {
+        let controlPoints = this.#controlPoints.slice();
+
+        Object.keys(this.#childGroups).forEach((childGroupID) => {
+            let childGroup = this.#childGroups[childGroupID];
+            controlPoints = controlPoints.concat(childGroup.getDescendentControlPoints());
+        });
+
+        return controlPoints;
     }
 
     simulate(interval) {
@@ -214,22 +235,25 @@ class ControlPointGroup {
         });
     }
 
+    //TODO: this functionality belongs in clculateTrajectory
     applyTrajectory () {
         this.#controlPoints.forEach((controlPoint) => {
-            let newPosition = controlPoint.position;
+            let newLinearMomentum = controlPoint.linearMomentum;
             let positionRelativeToCenter = glMatrix.vec3.create();
-            glMatrix.vec3.subtract(positionRelativeToCenter, newPosition, this.#centerOfMass);
+            glMatrix.vec3.subtract(positionRelativeToCenter, controlPoint.position, this.#centerOfMass);
             let rotatedPositionRelativeToCenter = glMatrix.vec3.clone(positionRelativeToCenter);
             engineMath.transformVectorByAngle(rotatedPositionRelativeToCenter, this.#angularMomentum);
             let anglePositionComponent = glMatrix.vec3.create();
             glMatrix.vec3.subtract(anglePositionComponent, rotatedPositionRelativeToCenter, positionRelativeToCenter);
 
             //TODO: calculate total energty of rotation momentum and normalize it to the amount of momentum going into the application of the trajectory
-            glMatrix.vec3.add(newPosition, newPosition, anglePositionComponent);
-            
-            glMatrix.vec3.add(newPosition, newPosition, this.#linearMomentum);
-            controlPoint.position = newPosition;
+            glMatrix.vec3.add(newLinearMomentum, newLinearMomentum, anglePositionComponent);
+            glMatrix.vec3.add(newLinearMomentum, newLinearMomentum, this.#linearMomentum);
+            controlPoint.linearMomentum = newLinearMomentum;
         });
+
+        this.#angularMomentum = glMatrix.vec3.create();
+        this.#linearMomentum = glMatrix.vec3.create();
     }
 
     #keyCodesToCommands = {};

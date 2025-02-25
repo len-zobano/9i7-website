@@ -15,8 +15,6 @@ class SimpleControlPoint {
     #world = null;
     #position = null;
     #ID = null;
-    #bounciness = 1;
-    #rigidGroup = null;
     #isAnchored = false;
     #group = null;
     #visible = true;
@@ -36,10 +34,6 @@ class SimpleControlPoint {
 
     set group (group) {
         this.#group = group;
-    }
-
-    set rigidGroup (rigidGroup) {
-        this.#rigidGroup = rigidGroup;
     }
 
     set isAnchored (isAnchored) {
@@ -260,14 +254,10 @@ class SimpleControlPoint {
             glMatrix.vec3.scale(gravity, gravity, interval);
             glMatrix.vec3.add(this.#linearMomentum, this.#linearMomentum, gravity);
         }
-
-        if (this.#rigidGroup) {
-            this.#rigidGroup.transferMomentumToGroup(this); 
-        }
     }
 
     decay (groupMomentum, scaledMomentumDecay, scaledAngularMomentumDecay) {
-        if (this.#isAnchored || this.#rigidGroup) {
+        if (this.#isAnchored) {
             return;
         }
         //calculate the momentum relative to the frame of reference
@@ -280,7 +270,7 @@ class SimpleControlPoint {
     }
 
     simulate(interval) {
-        if (this.#isAnchored || this.#rigidGroup) {
+        if (this.#isAnchored) {
             return;
         }
         //scale linear momentum by interval

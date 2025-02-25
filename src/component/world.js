@@ -37,11 +37,15 @@ function useWindowDimensions() {
 //maintains a table of tiles as well as a table of ID keys to tile values
 //the tiles track what iteration the elements were in. that way, a plottable is ignored in a tile if it isn't of the current iteration
 class GridSystem {
-    #iteration = 0;
     #scale = 2.0;
     #tiles = {};
     #tileOffsets = [];
     #controlPointsToPrimaryTileCoordinates = {};
+    #world = null;
+
+    constructor(world) {
+        this.#world = world;
+    }
 
     addControlPointToTile(controlPoint, coordinates) {
         let tileContainer = this.#tiles;
@@ -52,7 +56,7 @@ class GridSystem {
             tileContainer = tileContainer[coordinates[i]];
         }
         return tileContainer[controlPoint.ID] = {
-            iteration: this.#iteration,
+            iteration: this.#world.currentIteration,
             controlPoint
         };
     }
@@ -88,7 +92,7 @@ class GridSystem {
         let tileContainerToReturn = {};
         for (let key in tileContainer) {
             //only return the control points that are of the current iteration
-            if (tileContainer[key].iteration === this.#iteration) {
+            if (tileContainer[key].iteration === this.#world.currentIteration) {
                 tileContainerToReturn[key] = tileContainer[key];
             }
             //clean up the control points otherwise
@@ -118,7 +122,7 @@ class GridSystem {
 
         for (let key in tileContainer) {
             //delete if the plottable is of a previous iteration
-            if (tileContainer[key].iteration !== this.#iteration) {
+            if (tileContainer[key].iteration !== this.#world.currentIteration) {
                 delete tileContainer[key];
             }
         }
@@ -144,10 +148,6 @@ class GridSystem {
         //return the coordinates of the tile
         return tileCoordinates;
     }
-
-    iterate() {
-        ++this.#iteration;
-    }
 }
 
 class World {
@@ -160,6 +160,7 @@ class World {
   #controlPointGroups = [];
   #selected = null;
   #rigidGroups = [];
+  #currentIteration = 1;
   
   get selected () {
     return this.#selected;
@@ -337,7 +338,7 @@ constructor() {
     }
 
     if (!this.#gridSystem) {
-        this.#gridSystem = new GridSystem();
+        this.#gridSystem = new GridSystem(this);
     }
 
     //collision detection if optimized
@@ -495,24 +496,19 @@ constructor() {
         }
     }
     
-    this.#rigidGroups.forEach((rigidGroup) => {
-        rigidGroup.calculateProperties();
-    });
-
     this.#controlPointGroups.forEach((controlPointGroup) => {
-        controlPointGroup.calculateTrajectory(interval);
+        controlPointGroup.calculateProperties();
     });
 
-    this.#cameras.forEach((camera) => {
-        camera.calculateTrajectory(interval);
+    //calculate trajectory for all leaves. They will delegate calculation to others
+    this.#controlPointGroups.forEach((controlPointGroup) => {
+        if (controlPointGroup.isLeaf) {
+            controlPointGroup.calculateTrajectory(interval);
+        }
     });
 
     this.#controlPointGroups.forEach((controlPointGroup) => {
         controlPointGroup.simulate(interval);
-    });
-
-    this.#rigidGroups.forEach((rigidGroup) => {
-        rigidGroup.applyTrajectory();
     });
 
     this.#cameras.forEach((camera) => {
@@ -522,10 +518,8 @@ constructor() {
     this.#rigidGroups.forEach((rigidGroup) => {
         rigidGroup.decay(interval);
     });
-    //only iterate after all other collisions are calculated
-    if (this.#gridSystem) {
-        this.#gridSystem.iterate();
-    }
+    
+    ++this.#currentIteration;
   }
 
     draw() {

@@ -172,7 +172,10 @@ function UAGComponent() {
           }
           if (declaredPart.rigidGroup) {
             if (!rigidGroupMap[declaredPart.rigidGroup]) {
-              rigidGroupMap[declaredPart.rigidGroup] = new RigidGroup (world);
+              let rigidGroup = new ControlPointGroup (world);
+              rigidGroupMap[declaredPart.rigidGroup] = rigidGroup;
+              rigidGroup.rigidity = 1.0;
+              bodyGroup.addControlPointGroup(rigidGroup);
             }
             let thisRigidGroup = rigidGroupMap[declaredPart.rigidGroup];
             thisRigidGroup.addControlPoint(drop);
