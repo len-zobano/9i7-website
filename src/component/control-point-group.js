@@ -24,6 +24,10 @@ class ControlPointGroup {
     #rigidity = 0.0;
     #ID = null;
 
+    get isLeaf () {
+        return !this.#parentGroup;
+    }
+
     set parentGroup (group) {
         this.#parentGroup = group;
     }
@@ -72,7 +76,7 @@ class ControlPointGroup {
             iterationOfLastTrajectoryCalculation: 0
         };
         //set the group's parent
-        group.parentGroup = group;
+        group.parentGroup = this;
     }
 
     calculateProperties () {
@@ -107,6 +111,8 @@ class ControlPointGroup {
         if (this.#rigidity === 0) {
             return;
         }
+
+        debugger;
 
         let 
             momentumToTransfer = controlPoint.linearMomentum,
@@ -176,8 +182,8 @@ class ControlPointGroup {
     calculateTrajectoryIfAllChildrenHaveCalculated (interval) {
         let allChildrenHaveCalculated = true;
         Object.keys(this.#childGroups).forEach((childGroupID) => {
-            let childGroup = this.#childGroups[childGroupID];
-            allChildrenHaveCalculated &&= (childGroup.iterationOfLastTrajectoryCalculation === this.#world.currentIteration);
+            let childGroupObject = this.#childGroups[childGroupID];
+            allChildrenHaveCalculated &&= (childGroupObject.iterationOfLastTrajectoryCalculation === this.#world.currentIteration);
         });
 
         if (allChildrenHaveCalculated) {
@@ -212,17 +218,17 @@ class ControlPointGroup {
             //for each control point, get its momentum change due to linear momentum
             this.getDescendentControlPoints().forEach((controlPoint) => {
                 // controlPoint.decay(averageLinearMomentum, Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
-                debugger;
                 controlPoint.decay(glMatrix.vec3.create(), Math.pow(this.#linearMomentumDecay, interval), Math.pow(this.#angularMomentumDecay, interval));
             });
         }
     }
 
     getDescendentControlPoints() {
-        let controlPoints = this.#controlPoints.slice();
+        let controlPoints = this.#controlPoints.slice(0);
 
         Object.keys(this.#childGroups).forEach((childGroupID) => {
-            let childGroup = this.#childGroups[childGroupID];
+            let childGroup = this.#childGroups[childGroupID].group;
+            let desc = childGroup.getDescendentControlPoints;
             controlPoints = controlPoints.concat(childGroup.getDescendentControlPoints());
         });
 

@@ -64,6 +64,10 @@ class SimpleControlPoint {
         return glMatrix.vec3.clone(this.#linearMomentum);
     }
 
+    set linearMomentum (linearMomentum) {
+        this.#linearMomentum = glMatrix.vec3.clone(linearMomentum);
+    }
+
     get mass () {
         return this.#mass;
     }
